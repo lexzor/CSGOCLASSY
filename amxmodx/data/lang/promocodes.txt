@@ -1,0 +1,7 @@
+[en]
+INVALID_PROMOCODE = Promocode^4 %s^1 is not a valid one!
+MUST_BE_ADMIN = You must be an admin to use this promocode!
+USED_PROMOCODE = You already used^4 %s^1 promocode!
+MAIN_MENU_PROMO_TITLE = Promocode menu
+TYPE_PROMOCODE_OPTION = Promocode:\r %s
+MENU_OPTION_CONFIRM = Confirm
