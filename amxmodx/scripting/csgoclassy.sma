@@ -133,6 +133,13 @@ static MODE = 0; // 1 - DNS, 0 - IP
 #define rank_38 38
 #define rank_39 39
 
+native isUsingSomeoneElsesWeapon(id, weaponID);
+native getOriginalOwnerID(owner, weaponid);
+native isUsingCertainPlayersSkin(iPlayer, id, iWeaponID);
+
+native cs_set_viewmodel_body(id, weaponId, iBodyPart);
+native cs_set_modelformat(id, weaponId, viewModel[]);
+
 enum (+= 1234)
 {
 	TASK_GIVEAWAY = 532,
@@ -217,79 +224,39 @@ enum _:SQLDATA
 	SQL_DB[64]
 }
 
-enum STATISTICS
+enum _:PlayerScopeData
 {
-	DROPPED_SKINS,
-	DROPPED_STT_SKINS,
-	RECEIVED_MONEY,
-	RECEIVED_SCRAPS,
-	DROPPED_CASES,
-	DROPPED_KEYS,
-	DROPPED_NAMETAG_CAPSULES,
-	DROPPED_NAMETAG_MYTHICS,
-	DROPPED_NAMETAG_RARE,
-	DROPPED_NAMETAG_COMMON,
-	DROPPED_GLOVES,
-	DROPPED_GLOVE0,
-	DROPPED_GLOVE1,
-	DROPPED_GLOVE2,
-	DROPPED_GLOVE3,
-	DROPPED_GLOVE4,
-	TOTAL_UPGRADES,
-	TOTAL_DAILY_REWARDS,
-	TOTAL_GIFTS,
-	TOTAL_TRADES,
-	TOTAL_COINFLIPS,
-	TOTAL_GIVEAWAYS,
-	TOTAL_PLAYERS_JOINED_GIVEAWAY,
-	TOTAL_CONTRACTS,
-	TOTAL_JACKPOT,
-	TOTAL_RAFFLE,
-	TOTAL_ROULETTE,
-	MARKET_ITEMS_SOLD
+	Float:ScopeTime, ScopeType
 }
 
-new g_eServerStatistics[STATISTICS]
-new g_eUserStatistics[MAX_PLAYERS + 1][STATISTICS]
-
-new g_iServerSkinStatistics[TOTAL_SKINS]
-new g_iServerSttSkinStatistics[TOTAL_SKINS]
-
-new g_iUserSkinStatistics[MAX_PLAYERS + 1][TOTAL_SKINS]
-new g_iUserSttSkinStatistics[MAX_PLAYERS + 1][TOTAL_SKINS]
-
-static const DB_SERVER_KEY[] = "SERVER_STATS"
-
-static const g_szStatsName[][] =
+enum STATISTICS
 {
-	"DROPPED_SKINS",
-	"DROPPED_STT_SKINS",
-	"RECEIVED_MONEY",
-	"RECEIVED_SCRAPS",
-	"DROPPED_CASES",
-	"DROPPED_KEYS",
-	"DROPPED_NAMETAG_CAPSULES",
-	"DROPPED_NAMETAG_MYTHICS",
-	"DROPPED_NAMETAG_RARE",
-	"DROPPED_NAMETAG_COMMON",
-	"DROPPED_GLOVES",
-	"DROPPED_GLOVE0",
-	"DROPPED_GLOVE1",
-	"DROPPED_GLOVE2",
-	"DROPPED_GLOVE3",
-	"DROPPED_GLOVE4",
-	"TOTAL_UPGRADES",
-	"TOTAL_DAILY_REWARDS",
-	"TOTAL_GIFTS",
-	"TOTAL_TRADES",
-	"TOTAL_COINFLIPS",
-	"TOTAL_GIVEAWAYS",
-	"TOTAL_PLAYERS_JOINED_GIVEAWAY",
-	"TOTAL_CONTRACTS",
-	"TOTAL_JACKPOT",
-	"TOTAL_RAFFLE",
-	"TOTAL_ROULETTE",
-	"MARKET_ITEMS_SOLD"
+	DROPPED_SKINS, //done
+	DROPPED_STT_SKINS, //done
+	RECEIVED_MONEY, //done
+	RECEIVED_SCRAPS, //done
+	DROPPED_CASES, //done
+	DROPPED_KEYS, //done
+	DROPPED_NAMETAG_CAPSULES, //done
+	DROPPED_NAMETAG_MYTHICS, //done
+	DROPPED_NAMETAG_RARE, //done
+	DROPPED_NAMETAG_COMMON, //done
+	DROPPED_GLOVES, //done
+	DROPPED_GLOVE0, //done
+	DROPPED_GLOVE1, //done
+	DROPPED_GLOVE2, //done
+	DROPPED_GLOVE3, //done
+	DROPPED_GLOVE4, //done
+	TOTAL_UPGRADES, //done
+	TOTAL_DAILY_REWARDS, //done
+	TOTAL_GIFTS, //done -> for server must be /2
+	TOTAL_TRADES, //done -> for server must be /2
+	TOTAL_COINFLIPS,//done -> for server must be /2
+	TOTAL_GIVEAWAYS, //done
+	TOTAL_CONTRACTS, //done
+	TOTAL_ROULETTE, //done
+	MARKET_ITEMS_SOLD, //done
+	MARKET_ITEM_BOUGHT //done
 }
 
 enum
@@ -341,31 +308,14 @@ enum
 	NAMETAG_MYTHIC
 }
 
-new AMXX_CONFIG_DIRECTORY[64]
-
-new g_iKills[MAX_PLAYERS + 1]
-new g_iHS[MAX_PLAYERS + 1]
-new Float:g_fDmg[MAX_PLAYERS + 1] 
-
-new bool:g_bUsingM4A4[MAX_PLAYERS + 1]
-native isUsingSomeoneElsesWeapon(id, weaponID);
-native getOriginalOwnerID(owner, weaponid);
-native isUsingCertainPlayersSkin(iPlayer, id, iWeaponID);
-
-native cs_set_viewmodel_body(id, weaponId, iBodyPart);
-native cs_set_modelformat(id, weaponId, viewModel[]);
-
-new g_GiveawayDelay
-new g_iCurrentRound
-new g_bGiveAwayStarted
-new bool:g_bJoinedGiveAway[MAX_PLAYERS + 1]
-new g_szSkinName[32]
-new g_iSkinID
-new g_iSkinsInContract[MAX_PLAYERS + 1]
-new g_iWeaponUsedInContract[MAX_PLAYERS + 1][MAX_SKINS]
-new g_iUserChance[MAX_PLAYERS + 1]
-new g_iUsedSttC[MAX_PLAYERS + 1][MAX_SKINS]
-new g_szAuthId[MAX_PLAYERS + 1][36]
+enum 
+{
+	GLOVE0,
+	GLOVE1,
+	GLOVE2,
+	GLOVE3,
+	GLOVE4,
+}
 
 static const g_szTWin[] =
 {
@@ -430,134 +380,37 @@ static const ranks_names[maxranks][]=
 	"Global General Rank 40"
 }
 
-new g_status_sync
-new rankLevelBonus
-static const db_save[] = "csgoclassyrangs";
-new level[MAX_PLAYERS + 1]
-new xp[MAX_PLAYERS + 1]
-new rank[MAX_PLAYERS + 1]
-new bool:g_bLogged[MAX_PLAYERS + 1]
-new g_WarmUpSync
-new g_iRanksNum
-new g_iSkinsNum
-new bool:g_bShallUseStt[MAX_PLAYERS + 1][31]
-new g_iAskType[MAX_PLAYERS + 1]
-new bool:g_bPublishedStattrakSkin[MAX_PLAYERS + 1]
-new bool:g_bGiftingStt[MAX_PLAYERS + 1]
-new bool:g_bDestroyStt[MAX_PLAYERS + 1]
-new bool:g_bTradingStt[MAX_PLAYERS + 1]
-new bool:g_bJackpotStt[MAX_PLAYERS + 1]
-new bool:g_bIsWeaponStattrak[MAX_PLAYERS + 1][TOTAL_SKINS]
-new g_iUserStattrakKillCount[MAX_PLAYERS + 1][TOTAL_SKINS]
-const STATTRAK_STATUS = 3111
-const STATTRAK_CHANCE = 2
-new g_iUserSelectedSkin[MAX_PLAYERS + 1][31]
-new g_iUserSkins[MAX_PLAYERS + 1][TOTAL_SKINS]
-new g_iUserMoney[MAX_PLAYERS + 1]
-new g_iUserScraps[MAX_PLAYERS + 1]
-new g_iUserKeys[MAX_PLAYERS + 1]
-new g_iUserCases[MAX_PLAYERS + 1]
-new g_iUserKills[MAX_PLAYERS + 1]
-new g_iUserRank[MAX_PLAYERS + 1]
-new g_szName[MAX_PLAYERS + 1][MAX_NAME_LENGTH]
-new g_szUserPassword[MAX_PLAYERS + 1][MAX_NAME_LENGTH]
-new g_szUserSavedPass[MAX_PLAYERS + 1][MAX_SQL_NAME_LENGTH]
-new g_szUserOldPassword[MAX_PLAYERS + 1][MAX_NAME_LENGTH]
-new g_szUserNewPassword[MAX_PLAYERS + 1][MAX_NAME_LENGTH]
-new g_iUserPassFail[MAX_PLAYERS + 1]
-new g_iWeaponUsedInUpgrade[MAX_PLAYERS + 1]
-new c_RegOpen
-new fw_CUIC
-new HamHook:fw_ID[31]
-new HamHook:fw_ICD[31]
-new HamHook:fw_K1
-new HamHook:fw_K2
-new c_DropType
-new c_KeyPrice
-new c_DropChance
-new c_CraftCost
-new g_iUserSellItem[MAX_PLAYERS + 1]
-new g_iUserItemPrice[MAX_PLAYERS + 1]
-new bool:g_bUserSellSkin[MAX_PLAYERS + 1]
-new g_iLastPlace[MAX_PLAYERS + 1]
-new g_iMenuType[MAX_PLAYERS + 1]
-new c_DustForTransform
-new c_ReturnPercent
-new g_iGiftTarget[MAX_PLAYERS + 1]
-new g_iGiftItem[MAX_PLAYERS + 1]
-new g_bTradeAccept[MAX_PLAYERS + 1]
-new g_iTradeTarget[MAX_PLAYERS + 1]
-new g_iTradeItem[MAX_PLAYERS + 1]
-new g_bTradeActive[MAX_PLAYERS + 1]
-new g_bTradeSecond[MAX_PLAYERS + 1]
-new g_iTradeRequest[MAX_PLAYERS + 1]
-new g_bCFAccept[MAX_PLAYERS + 1]
-new g_iCFTarget[MAX_PLAYERS + 1]
-new g_iCFItem[MAX_PLAYERS + 1]
-new g_bCFActive[MAX_PLAYERS + 1]
-new g_bCFSecond[MAX_PLAYERS + 1]
-new g_iCFRequest[MAX_PLAYERS + 1]
-new bool:g_bOneAccepted
-new bool:g_bBettingCFStt[MAX_PLAYERS + 1]
-new g_iRouletteCost
-new g_bRoulettePlay[MAX_PLAYERS + 1]
-new g_iTombolaPlayers
-new g_iTombolaPrize
-new g_bUserPlay[MAX_PLAYERS + 1]
-new g_iNextTombolaStart
-new c_TombolaCost
-new c_TombolaTimer
-new g_iTombolaTimer = 180
-new g_bTombolaWork = 1
-new c_RouletteMin
-new c_RouletteMax
-new g_iUserBetMoney[MAX_PLAYERS + 1]
-new bool:g_bJackpotWork
-new g_iUserJackpotItem[MAX_PLAYERS + 1]
-new g_bUserPlayJackpot[MAX_PLAYERS + 1]
-new g_iJackpotClose
-new c_JackpotTimer
-new g_iMaxPlayers
-new g_iRoundNum
-new g_iTotalRounds;
-new bool:g_bWarmUp
-new bool:g_bWasWarmUp
-new c_WarmUpDuration
-new c_Competitive
-new g_iTimer
-new bool:g_bTeamSwap
-new p_Freezetime
-new g_iFreezetime
-new c_RankUpBonus[16]
-new c_CmdAccess[16]
-new c_MVPMsgType
-new g_iRoundKills[MAX_PLAYERS + 1]
-new g_iDealDamage[MAX_PLAYERS + 1]
-new c_AMinMoney
-new c_AMaxMoney
-new c_HMinMoney
-new c_HMaxMoney
-new c_KMinMoney
-new c_KMaxMoney
-new c_HMinChance
-new c_HMaxChance
-new c_KMinChance
-new c_KMaxChance
-new g_iMostDamage[MAX_PLAYERS + 1]
-new g_iDamage[MAX_PLAYERS + 1][MAX_PLAYERS + 1]
-
-enum _:PlayerScopeData
+static const g_szStatsName[][] =
 {
-	Float:ScopeTime, ScopeType
+	"DROPPED_SKINS",
+	"DROPPED_STT_SKINS",
+	"RECEIVED_MONEY",
+	"RECEIVED_SCRAPS",
+	"DROPPED_CASES",
+	"DROPPED_KEYS",
+	"DROPPED_NAMETAG_CAPSULES",
+	"DROPPED_NAMETAG_MYTHICS",
+	"DROPPED_NAMETAG_RARE",
+	"DROPPED_NAMETAG_COMMON",
+	"DROPPED_GLOVES",
+	"DROPPED_GLOVE0",
+	"DROPPED_GLOVE1",
+	"DROPPED_GLOVE2",
+	"DROPPED_GLOVE3",
+	"DROPPED_GLOVE4",
+	"TOTAL_UPGRADES",
+	"TOTAL_DAILY_REWARDS",
+	"TOTAL_GIFTS",
+	"TOTAL_TRADES",
+	"TOTAL_COINFLIPS",
+	"TOTAL_GIVEAWAYS",
+	"TOTAL_PLAYERS_JOINED_GIVEAWAY",
+	"TOTAL_CONTRACTS",
+	"TOTAL_JACKPOT",
+	"TOTAL_RAFFLE",
+	"TOTAL_ROULETTE",
+	"MARKET_ITEMS_SOLD"
 }
-
-new ScopeData[MAX_PLAYERS + 1][PlayerScopeData]
-new PluginForwardQuick
-new g_iReturn
-new g_quick_enable
-new g_quick_type
-new g_iMenuToOpen[MAX_PLAYERS + 1]
-new bool:g_IsChangeAllowed[MAX_PLAYERS + 1]
 
 static const g_szWeaponEntName[31][] =
 {
@@ -593,9 +446,6 @@ static const g_szWeaponEntName[31][] =
 	"weapon_knife",
 	"weapon_p90"
 }
-
-new Handle:g_SqlTuple, g_Error[512];
-new MYSQL[SQLDATA];
 
 static const 	MYSQL_HOST[] 		=	 	"MYSQL_HOST",
 				MYSQL_USER[]		=	 	"MYSQL_USER",
@@ -782,7 +632,17 @@ static const g_cItemCounter[COUNTER] =
 	SETTINGS_DEFAULT_ITEMS_COUNT
 }
 
-new g_eDefaultModels[31][DEFAULT_MODEL]
+static const DB_SERVER_KEY[] = "SERVER_STATS"
+static const db_save[] = "csgoclassyrangs";
+
+static const g_sznVaultGlovesName[] 			=		 "user_gloves"
+static const g_sznVaultWeaponGlovesName[] 		=		 "user_weapon_gloves"
+static const g_sznVaultSkinTagVaultName[]	 	=		 "skin_tags"
+static const g_sznVaultPlayerTagName[] 			=		 "player_skin_tags"
+static const g_sznVaultTagLevelName[] 			=		 "name_tag_skin_level"
+static const g_sznVaultStattrakName[] 			=		 "csgoclassy_stattrak"
+static const g_sznVaultStattrakKillsName[]		=		 "csgoclassy_stattrak_kills"
+static const g_sznVaultAccountsName[] 			=		 "csgoclassy"
 
 new g_nVaultAccounts
 new g_nVaultStattrak
@@ -793,14 +653,150 @@ new g_nVaultPlayerTags
 new g_nVaultNameTagsLevel
 new g_nVaultSkinTags
 
-static const g_sznVaultGlovesName[] 			=		 "user_gloves"
-static const g_sznVaultWeaponGlovesName[] 		=		 "user_weapon_gloves"
-static const g_sznVaultSkinTagVaultName[]	 	=		 "skin_tags"
-static const g_sznVaultPlayerTagName[] 			=		 "player_skin_tags"
-static const g_sznVaultTagLevelName[] 			=		 "name_tag_skin_level"
-static const g_sznVaultStattrakName[] 			=		 "csgoclassy_stattrak"
-static const g_sznVaultStattrakKillsName[]		=		 "csgoclassy_stattrak_kills"
-static const g_sznVaultAccountsName[] 			=		 "csgoclassy"
+
+new AMXX_CONFIG_DIRECTORY[64]
+new g_iKills[MAX_PLAYERS + 1]
+new g_iHS[MAX_PLAYERS + 1]
+new Float:g_fDmg[MAX_PLAYERS + 1] 
+new bool:g_bUsingM4A4[MAX_PLAYERS + 1]
+new g_GiveawayDelay
+new g_iCurrentRound
+new g_bGiveAwayStarted
+new bool:g_bJoinedGiveAway[MAX_PLAYERS + 1]
+new g_szSkinName[32]
+new g_iSkinID
+new g_iSkinsInContract[MAX_PLAYERS + 1]
+new g_iWeaponUsedInContract[MAX_PLAYERS + 1][MAX_SKINS]
+new g_iUserChance[MAX_PLAYERS + 1]
+new g_iUsedSttC[MAX_PLAYERS + 1][MAX_SKINS]
+new g_szAuthId[MAX_PLAYERS + 1][36]
+
+
+new g_status_sync
+new rankLevelBonus
+new level[MAX_PLAYERS + 1]
+new xp[MAX_PLAYERS + 1]
+new rank[MAX_PLAYERS + 1]
+new bool:g_bLogged[MAX_PLAYERS + 1]
+new g_WarmUpSync
+new g_iRanksNum
+new g_iSkinsNum
+new bool:g_bShallUseStt[MAX_PLAYERS + 1][31]
+new g_iAskType[MAX_PLAYERS + 1]
+new bool:g_bPublishedStattrakSkin[MAX_PLAYERS + 1]
+new bool:g_bGiftingStt[MAX_PLAYERS + 1]
+new bool:g_bDestroyStt[MAX_PLAYERS + 1]
+new bool:g_bTradingStt[MAX_PLAYERS + 1]
+new bool:g_bJackpotStt[MAX_PLAYERS + 1]
+new bool:g_bIsWeaponStattrak[MAX_PLAYERS + 1][TOTAL_SKINS]
+new g_iUserStattrakKillCount[MAX_PLAYERS + 1][TOTAL_SKINS]
+const STATTRAK_STATUS = 3111
+const STATTRAK_CHANCE = 2
+new g_iUserSelectedSkin[MAX_PLAYERS + 1][31]
+new g_iUserSkins[MAX_PLAYERS + 1][TOTAL_SKINS]
+new g_iUserMoney[MAX_PLAYERS + 1]
+new g_iUserScraps[MAX_PLAYERS + 1]
+new g_iUserKeys[MAX_PLAYERS + 1]
+new g_iUserCases[MAX_PLAYERS + 1]
+new g_iUserKills[MAX_PLAYERS + 1]
+new g_iUserRank[MAX_PLAYERS + 1]
+new g_szName[MAX_PLAYERS + 1][MAX_NAME_LENGTH]
+new g_szUserPassword[MAX_PLAYERS + 1][MAX_NAME_LENGTH]
+new g_szUserSavedPass[MAX_PLAYERS + 1][MAX_SQL_NAME_LENGTH]
+new g_szUserOldPassword[MAX_PLAYERS + 1][MAX_NAME_LENGTH]
+new g_szUserNewPassword[MAX_PLAYERS + 1][MAX_NAME_LENGTH]
+new g_iUserPassFail[MAX_PLAYERS + 1]
+new g_iWeaponUsedInUpgrade[MAX_PLAYERS + 1]
+new c_RegOpen
+new fw_CUIC
+new HamHook:fw_ID[31]
+new HamHook:fw_ICD[31]
+new HamHook:fw_K1
+new HamHook:fw_K2
+new c_DropType
+new c_KeyPrice
+new c_DropChance
+new c_CraftCost
+new g_iUserSellItem[MAX_PLAYERS + 1]
+new g_iUserItemPrice[MAX_PLAYERS + 1]
+new bool:g_bUserSellSkin[MAX_PLAYERS + 1]
+new g_iLastPlace[MAX_PLAYERS + 1]
+new g_iMenuType[MAX_PLAYERS + 1]
+new c_DustForTransform
+new c_ReturnPercent
+new g_iGiftTarget[MAX_PLAYERS + 1]
+new g_iGiftItem[MAX_PLAYERS + 1]
+new g_bTradeAccept[MAX_PLAYERS + 1]
+new g_iTradeTarget[MAX_PLAYERS + 1]
+new g_iTradeItem[MAX_PLAYERS + 1]
+new g_bTradeActive[MAX_PLAYERS + 1]
+new g_bTradeSecond[MAX_PLAYERS + 1]
+new g_iTradeRequest[MAX_PLAYERS + 1]
+new g_bCFAccept[MAX_PLAYERS + 1]
+new g_iCFTarget[MAX_PLAYERS + 1]
+new g_iCFItem[MAX_PLAYERS + 1]
+new g_bCFActive[MAX_PLAYERS + 1]
+new g_bCFSecond[MAX_PLAYERS + 1]
+new g_iCFRequest[MAX_PLAYERS + 1]
+new bool:g_bOneAccepted
+new bool:g_bBettingCFStt[MAX_PLAYERS + 1]
+new g_iRouletteCost
+new g_bRoulettePlay[MAX_PLAYERS + 1]
+new g_iTombolaPlayers
+new g_iTombolaPrize
+new g_bUserPlay[MAX_PLAYERS + 1]
+new g_iNextTombolaStart
+new c_TombolaCost
+new c_TombolaTimer
+new g_iTombolaTimer = 180
+new g_bTombolaWork = 1
+new c_RouletteMin
+new c_RouletteMax
+new g_iUserBetMoney[MAX_PLAYERS + 1]
+new bool:g_bJackpotWork
+new g_iUserJackpotItem[MAX_PLAYERS + 1]
+new g_bUserPlayJackpot[MAX_PLAYERS + 1]
+new g_iJackpotClose
+new c_JackpotTimer
+new g_iMaxPlayers
+new g_iRoundNum
+new g_iTotalRounds;
+new bool:g_bWarmUp
+new bool:g_bWasWarmUp
+new c_WarmUpDuration
+new c_Competitive
+new g_iTimer
+new bool:g_bTeamSwap
+new p_Freezetime
+new g_iFreezetime
+new c_RankUpBonus[16]
+new c_CmdAccess[16]
+new c_MVPMsgType
+new g_iRoundKills[MAX_PLAYERS + 1]
+new g_iDealDamage[MAX_PLAYERS + 1]
+new c_AMinMoney
+new c_AMaxMoney
+new c_HMinMoney
+new c_HMaxMoney
+new c_KMinMoney
+new c_KMaxMoney
+new c_HMinChance
+new c_HMaxChance
+new c_KMinChance
+new c_KMaxChance
+new g_iMostDamage[MAX_PLAYERS + 1]
+new g_iDamage[MAX_PLAYERS + 1][MAX_PLAYERS + 1]
+new ScopeData[MAX_PLAYERS + 1][PlayerScopeData]
+new PluginForwardQuick
+new g_iReturn
+new g_quick_enable
+new g_quick_type
+new g_iMenuToOpen[MAX_PLAYERS + 1]
+new bool:g_IsChangeAllowed[MAX_PLAYERS + 1]
+new Handle:g_SqlTuple, g_Error[512];
+new MYSQL[SQLDATA];
+
+new g_eDefaultModels[31][DEFAULT_MODEL]
 
 new Array:g_aGloves
 new Array:g_aGlovesModelName
@@ -875,6 +871,13 @@ new g_szSQLName[MAX_PLAYERS + 1][MAX_SQL_NAME_LENGTH];
 new g_iUserDailyTime[MAX_PLAYERS + 1]
 new g_iTotalPlayedTime[MAX_PLAYERS + 1]
 
+new g_eServerStatistics[STATISTICS]
+new g_eUserStatistics[MAX_PLAYERS + 1][STATISTICS]
+new g_iServerSkinStatistics[TOTAL_SKINS]
+new g_iServerSttSkinStatistics[TOTAL_SKINS]
+new g_iUserSkinStatistics[MAX_PLAYERS + 1][TOTAL_SKINS]
+new g_iUserSttSkinStatistics[MAX_PLAYERS + 1][TOTAL_SKINS]
+
 public plugin_init()
 {
 	register_plugin("CSGO Classy Enhanced", VERSION, "lexzor")	
@@ -948,9 +951,9 @@ public plugin_init()
 	RegisterCMDS()
 }
 
-stock AddStatistics(const id, const STATISTICS:sType, const amount, const iSkinID = -1)
+stock AddStatistics(const id, const STATISTICS:sType, const amount, const iSkinID = -1, const iGloveID = -1)
 {
-	static iServerOld, iUserOld
+	// static iServerOld, iUserOld
 
 	if(sType == DROPPED_SKINS || sType == DROPPED_STT_SKINS)
 	{
@@ -964,8 +967,8 @@ stock AddStatistics(const id, const STATISTICS:sType, const amount, const iSkinI
 		{
 			case DROPPED_SKINS:
 			{
-				iServerOld = g_iServerSkinStatistics[iSkinID]
-				iUserOld = g_iUserSkinStatistics[id][iSkinID]
+				// iServerOld = g_iServerSkinStatistics[iSkinID]
+				// iUserOld = g_iUserSkinStatistics[id][iSkinID]
 
 				g_iServerSkinStatistics[iSkinID] += amount
 				g_iUserSkinStatistics[id][iSkinID] += amount
@@ -973,19 +976,57 @@ stock AddStatistics(const id, const STATISTICS:sType, const amount, const iSkinI
 
 			case DROPPED_STT_SKINS:
 			{
-				iServerOld = g_iServerSttSkinStatistics[iSkinID]
-				iUserOld = g_iUserSttSkinStatistics[id][iSkinID]
+				// iServerOld = g_iServerSttSkinStatistics[iSkinID]
+				// iUserOld = g_iUserSttSkinStatistics[id][iSkinID]
 
 				g_iServerSttSkinStatistics[iSkinID] += amount
 				g_iUserSttSkinStatistics[id][iSkinID] += amount
 			}
 		}
 		
-		static szSkinName[64]
-		ArrayGetString(g_aSkinName, iSkinID, szSkinName, charsmax(szSkinName))
+		// static szSkinName[64]
+		// ArrayGetString(g_aSkinName, iSkinID, szSkinName, charsmax(szSkinName))
 
-		server_print("[%s] %s%s has a server value of %i [old is %i]", g_szStatsName[_:sType], sType == DROPPED_STT_SKINS ? "StatTrack " : "", szSkinName, g_iServerSkinStatistics[iSkinID], iServerOld)
-		server_print("[%s] %s%s has a value of %i [old is %i] for user %n", g_szStatsName[_:sType], sType == DROPPED_STT_SKINS ? "StatTrack " : "", szSkinName, g_iUserSttSkinStatistics[id][iSkinID], iUserOld, id)
+		// server_print("[%s] %s%s has a server value of %i [old is %i]", g_szStatsName[_:sType], sType == DROPPED_STT_SKINS ? "StatTrack " : "", szSkinName, g_iServerSkinStatistics[iSkinID], iServerOld)
+		// server_print("[%s] %s%s has a value of %i [old is %i] for user %n", g_szStatsName[_:sType], sType == DROPPED_STT_SKINS ? "StatTrack " : "", szSkinName, g_iUserSttSkinStatistics[id][iSkinID], iUserOld, id)
+		return
+	}
+
+
+	if(sType == DROPPED_GLOVES)
+	{
+		switch(iGloveID)
+		{
+			case GLOVE0:
+			{
+				g_eServerStatistics[DROPPED_GLOVE0] += amount
+				g_eUserStatistics[id][DROPPED_GLOVE0] += amount
+			}
+
+			case GLOVE1:
+			{
+				g_eServerStatistics[DROPPED_GLOVE1] += amount
+				g_eUserStatistics[id][DROPPED_GLOVE1] += amount
+			}
+
+			case GLOVE2:
+			{
+				g_eServerStatistics[DROPPED_GLOVE2] += amount
+				g_eUserStatistics[id][DROPPED_GLOVE2] += amount
+			}
+
+			case GLOVE3:
+			{
+				g_eServerStatistics[DROPPED_GLOVE3] += amount
+				g_eUserStatistics[id][DROPPED_GLOVE3] += amount
+			}
+
+			case GLOVE4:
+			{
+				g_eServerStatistics[DROPPED_GLOVE4] += amount
+				g_eUserStatistics[id][DROPPED_GLOVE4] += amount
+			}
+		}
 		return
 	}
 
@@ -995,14 +1036,14 @@ stock AddStatistics(const id, const STATISTICS:sType, const amount, const iSkinI
 		return
 	}
 
-	iServerOld = g_eServerStatistics[sType]
-	iUserOld = g_eUserStatistics[id][sType]
+	// iServerOld = g_eServerStatistics[sType]
+	// iUserOld = g_eUserStatistics[id][sType]
 
 	g_eServerStatistics[sType] += amount
 	g_eUserStatistics[id][sType] += amount
 	
-	server_print("[%s] has a server value of %i [old is %i]", g_szStatsName[_:sType] , g_eUserStatistics[id][sType], iServerOld)
-	server_print("[%s] has a value of %i [old is %i] for user %n", g_szStatsName[_:sType] , g_eUserStatistics[id][sType], iUserOld, id)
+	// server_print("[%s] has a server value of %i [old is %i]", g_szStatsName[_:sType] , g_eUserStatistics[id][sType], iServerOld)
+	// server_print("[%s] has a value of %i [old is %i] for user %n", g_szStatsName[_:sType] , g_eUserStatistics[id][sType], iUserOld, id)
 	
 	return
 }
@@ -1628,7 +1669,6 @@ _GiveBonus(const id, const type)
 					new random_value = random_num(g_CvarMVPMinCases, g_CvarMVPMaxCases);
 					
 					g_iUserCases[id] += random_value
-
 					AddStatistics(id, DROPPED_CASES, random_value)
 
 					switch (c_MVPMsgType)
@@ -1651,7 +1691,6 @@ _GiveBonus(const id, const type)
 					new random_value = random_num(g_CvarMVPMinKeys, g_CvarMVPMaxKeys);
 					
 					g_iUserKeys[id] += random_value
-
 					AddStatistics(id, DROPPED_KEYS, random_value)
 					
 					switch (c_MVPMsgType)
@@ -1674,7 +1713,6 @@ _GiveBonus(const id, const type)
 					new random_value = random_num(g_CvarMVPMinScraps, g_CvarMVPMaxScraps);
 					
 					g_iUserScraps[id] += random_value
-
 					AddStatistics(id, RECEIVED_SCRAPS, random_value)
 
 					switch (c_MVPMsgType)
@@ -1947,26 +1985,26 @@ saveSqlData(id)
 	}
 
 	static szQuery[TOTAL_SKINS * 10], iTotalInventoryValue, iQueryLen;
-	getTotalInventoryValue(id, iTotalInventoryValue);
-
 	static droppedskins[2][TOTAL_SKINS * 6], weapbuff[TOTAL_SKINS * 6], stattrackkill[TOTAL_SKINS * 6], stattrackskins[TOTAL_SKINS * 6];
-	new skinbuff[200], stattrakbuff[200], iLen
+	new skinbuff[200], stattrakbuff[200], iLen[4]
 
+	getTotalInventoryValue(id, iTotalInventoryValue);
+	
 	for(new i = 0; i < g_iSkinsNum; i++)
 	{
-		formatex(weapbuff[iLen], charsmax(weapbuff), "%d,", g_iUserSkins[id][i]);
-		formatex(stattrackkill[iLen], charsmax(stattrackkill), "%d,", g_iUserStattrakKillCount[id][i])
-		formatex(stattrackskins[iLen], charsmax(stattrackskins), "%d,", _:g_bIsWeaponStattrak[id][i]);
-		formatex(droppedskins[NON_STT][iLen], charsmax(droppedskins[]), "%d,", g_iUserSkinStatistics[id][i])
-		iLen += formatex(droppedskins[STT][iLen], charsmax(droppedskins[]), "%d,", g_iUserSttSkinStatistics[id][i])
+		formatex(weapbuff[iLen[0]], charsmax(weapbuff), "%d,", g_iUserSkins[id][i]);
+		iLen[0] += formatex(stattrackskins[iLen[0]], 		charsmax(stattrackskins), 	"%d,", 	_:g_bIsWeaponStattrak[id][i])
+		iLen[1] += formatex(stattrackkill[iLen[1]], 		charsmax(stattrackkill), 	"%d,", 	g_iUserStattrakKillCount[id][i])
+		iLen[2] += formatex(droppedskins[NON_STT][iLen[2]], charsmax(droppedskins[]), 	"%d,",	g_iUserSkinStatistics[id][i])
+		iLen[3] += formatex(droppedskins[STT][iLen[3]], 	charsmax(droppedskins[]), 	"%d,", 	g_iUserSttSkinStatistics[id][i])
 	}
 
-	iLen = 0
+	iLen[0] = 0
 
 	for(new i = 1; i < 31; i++)
 	{
 		formatex(skinbuff[iLen], charsmax(skinbuff), "%d,", g_iUserSelectedSkin[id][i]);
-		iLen += formatex(stattrakbuff[iLen], charsmax(stattrakbuff), "%d,", g_bShallUseStt[id][i])
+		iLen[0] += formatex(stattrakbuff[iLen], charsmax(stattrakbuff), "%d,", g_bShallUseStt[id][i])
 	}
 
 	iQueryLen = formatex(szQuery, charsmax(szQuery), "UPDATE %s AS data \
@@ -2029,8 +2067,6 @@ saveSqlData(id)
 	}
 
 	iQueryLen += formatex(szQuery[iQueryLen], charsmax(szQuery), " WHERE data.uname = '%s'", g_szSQLName[id]);
-
-	log_to_file(LOG_FILE, "[%i] User query: %s", iQueryLen, szQuery);
 
 	SQL_ThreadQuery(g_SqlTuple, "FreeHandle", szQuery);
 }
@@ -3407,6 +3443,7 @@ public open_name_tag_capsule(id)
 				{
 					bItemDropped = true
 					g_iCommonNameTag[id]++;
+					AddStatistics(id, DROPPED_NAMETAG_COMMON, 1)
 					iItemType = NAMETAG_COMMON
 				}
 			}
@@ -3418,6 +3455,7 @@ public open_name_tag_capsule(id)
 					{
 						bItemDropped = true
 						g_iCommonNameTag[id]++;
+						AddStatistics(id, DROPPED_NAMETAG_COMMON, 1)
 						iItemType = NAMETAG_COMMON
 					}
 				}
@@ -3427,6 +3465,7 @@ public open_name_tag_capsule(id)
 					{
 						bItemDropped = true
 						g_iCommonNameTag[id]++;
+						AddStatistics(id, DROPPED_NAMETAG_COMMON, 1)
 						iItemType = NAMETAG_COMMON
 					}
 				}
@@ -3441,6 +3480,7 @@ public open_name_tag_capsule(id)
 				{
 					bItemDropped = true
 					g_iRareNameTag[id]++;
+					AddStatistics(id, DROPPED_NAMETAG_RARE, 1)
 					iItemType = NAMETAG_RARE
 				}
 			}
@@ -3452,6 +3492,7 @@ public open_name_tag_capsule(id)
 					{
 						bItemDropped = true
 						g_iRareNameTag[id]++;
+						AddStatistics(id, DROPPED_NAMETAG_RARE, 1)
 						iItemType = NAMETAG_RARE
 					}
 				}
@@ -3461,6 +3502,7 @@ public open_name_tag_capsule(id)
 					{
 						bItemDropped = true
 						g_iRareNameTag[id]++;
+						AddStatistics(id, DROPPED_NAMETAG_RARE, 1)
 						iItemType = NAMETAG_RARE
 					}
 				}
@@ -3475,6 +3517,7 @@ public open_name_tag_capsule(id)
 				{
 					bItemDropped = true
 					g_iMythicNameTag[id]++;
+					AddStatistics(id, DROPPED_NAMETAG_MYTHICS, 1)
 					iItemType = NAMETAG_MYTHIC
 				}
 			}
@@ -3486,6 +3529,7 @@ public open_name_tag_capsule(id)
 					{
 						bItemDropped = true
 						g_iMythicNameTag[id]++;
+						AddStatistics(id, DROPPED_NAMETAG_MYTHICS, 1)
 						iItemType = NAMETAG_MYTHIC
 					}
 				}
@@ -3495,6 +3539,7 @@ public open_name_tag_capsule(id)
 					{
 						bItemDropped = true
 						g_iMythicNameTag[id]++;
+						AddStatistics(id, DROPPED_NAMETAG_MYTHICS, 1)
 						iItemType = NAMETAG_MYTHIC
 					}
 				}
@@ -4209,6 +4254,7 @@ public open_gloves_menu_handler(id, menu, item)
 				new iRandomGlove = getRandomGlove(bool:is_user_gold_vip(id));
 				
 				g_iUserGloves[id][iRandomGlove]++;
+				AddStatistics(id, DROPPED_GLOVES, 1, .iGloveID = iRandomGlove)
 
 				save_user_gloves(id);
 
@@ -4893,6 +4939,7 @@ public confirmationu_handler(id, menu, item)
 		g_iUserSkins[id][iIndex] += 1
 		g_bIsWeaponStattrak[id][iIndex] = true
 		AddStatistics(id, DROPPED_STT_SKINS, 1, iIndex)
+		AddStatistics(id, TOTAL_UPGRADES, 1)
 	}
 
 	g_iWeaponUsedInUpgrade[id] = -1
@@ -5113,28 +5160,28 @@ public reward_handler(id, menu, item)
 		{
 			rand = random_num(1, 100);
 			g_iUserMoney[id] += rand
-			AddStatistics(id, RECEIVED_MONEY, random_value)
+			AddStatistics(id, RECEIVED_MONEY, rand)
 			client_print_color(id, id, "%s %l", CHAT_PREFIX, "DAILY_GOT_MONEY", rand);
 		}
 		case 1:
 		{
 			rand = random_num(1, 5);
 			g_iUserKeys[id] += rand
-			AddStatistics(id, DROPPED_KEYS, random_value)
+			AddStatistics(id, DROPPED_KEYS, rand)
 			client_print_color(id, id, "%s %l", CHAT_PREFIX, "DAILY_GOT_KEYS", rand, rand == 1 ? "" : "s" );
 		}
 		case 2:
 		{
 			rand = random_num(1, 6);
 			g_iUserCases[id] += rand
-			AddStatistics(id, DROPPED_CASES, random_value)
+			AddStatistics(id, DROPPED_CASES, rand)
 			client_print_color(id, id, "%s %l", CHAT_PREFIX, "DAILY_GOT_CASES", rand, rand == 1 ? "" : "s" );
 		}
 		case 3:
 		{
 			rand = random_num(1, 75);
 			g_iUserScraps[id] += rand
-			AddStatistics(id, RECEIVED_SCRAPS, random_value)
+			AddStatistics(id, RECEIVED_SCRAPS, rand)
 			client_print_color(id, id, "%s %l", CHAT_PREFIX, "DAILY_GOT_SCRAPS", rand, rand == 1 ? "" : "s" );
 		}
 	}
@@ -5420,6 +5467,7 @@ public confirmation_handler(id, menu, item)
 	
 	if(bool:item == true)
 	{
+		AddStatistics(id, TOTAL_CONTRACTS, 1)
 		for(new i, index = -1;i < MAX_SKINS;i++)
 		{
 			index = g_iWeaponUsedInContract[id][i]
@@ -5452,7 +5500,6 @@ public confirmation_handler(id, menu, item)
 				iValue = random_num(5, 100)
 				g_iUserMoney[id] += iValue
 				AddStatistics(id, RECEIVED_MONEY, iValue)
-				// g_eServer
 			}
 			else
 			{
@@ -6486,6 +6533,9 @@ public confirm_cf_handler(id, menu, item)
 		
 	_ResetCFData(id);
 	_ResetCFData(sender);
+
+	AddStatistics(id, TOTAL_COINFLIPS, 1)
+	AddStatistics(sender, TOTAL_COINFLIPS, 1)
 		
 	return 1
 }
@@ -6908,6 +6958,7 @@ public oc_craft_menu_handler(id, menu, item)
 			else
 			{
 				g_iUserMoney[id] += c_KeyPrice / 2;
+				AddStatistics(id, RECEIVED_MONEY, c_KeyPrice / 2)
 				g_iUserKeys[id]--;
 				_ShowOpenCaseCraftMenu(id);
 			}
@@ -7091,15 +7142,17 @@ _CraftSkin(id)
 				new iRandomValue = random_num(0, 1);
 				new bool:bScrapsInstead = bool:(iRandomValue == 1);
 
-				new iValue = 1;
+				new iValue = random_num(3, 15);
 				if(bScrapsInstead)
 				{
 					g_iUserScraps[id] += iValue;
+					AddStatistics(id, RECEIVED_SCRAPS, iValue)
 				}
 				else
 				{
 					iValue = (ArrayGetCell(g_aSkinCostMin, rSkin)) / 4;
 					g_iUserMoney[id] += iValue;
+					AddStatistics(id, RECEIVED_MONEY, iValue)
 				}
 				g_iUserScraps[id] -= c_CraftCost;
 				client_print_color(id, id, "^4%s^1 %L", CHAT_PREFIX, id, "SINCE_ALREADY_HAVE", Skin, iValue, bScrapsInstead ? " scrap" : "$")
@@ -7491,6 +7544,9 @@ public market_menu_handler(id, menu, item)
 					save_skin_tags(id);
 					save_skin_tags(index);
 
+					AddStatistics(id, MARKET_ITEM_BOUGHT, 1)
+					AddStatistics(index, MARKET_ITEMS_SOLD, 1)
+
 					return PLUGIN_HANDLED;
 				}
 
@@ -7513,6 +7569,9 @@ public market_menu_handler(id, menu, item)
 					g_bIsSelling[index] = false;
 					g_iUserItemPrice[index] = 0;
 					g_bSellGlove[index] = false;
+
+					AddStatistics(id, MARKET_ITEM_BOUGHT, 1)
+					AddStatistics(index, MARKET_ITEMS_SOLD, 1)
 
 					return PLUGIN_HANDLED;
 				}
@@ -7564,6 +7623,9 @@ public market_menu_handler(id, menu, item)
 					g_bIsSelling[index] = false;
 					g_iUserItemPrice[index] = 0;
 					_ShowMarketMenu(id);
+
+					AddStatistics(id, MARKET_ITEM_BOUGHT, 1)
+					AddStatistics(index, MARKET_ITEMS_SOLD, 1)
 				}	
 			}
 		}
@@ -8209,7 +8271,6 @@ destroySkin(id, index)
 			
 			if(g_bDestroyStt[id])
 			{
-
 				if(g_bHasSkinTag[id][index])
 				{
 					iScraps += g_CvarScrapsDestroyNameTagSkin;
@@ -8232,6 +8293,7 @@ destroySkin(id, index)
 			else client_print_color(id, id, "^4%s^1 %L", CHAT_PREFIX, id, "TRANSFORM", iScraps, iScraps > 1 ? "s" : "", Skin);
 			
 			g_iUserScraps[id] += iScraps;
+			AddStatistics(id, RECEIVED_SCRAPS, iScraps)
 		}
 		case 2:
 		{	
@@ -8263,6 +8325,7 @@ destroySkin(id, index)
 			else client_print_color(id, id, "^4%s^1 %L", CHAT_PREFIX, id, "DESTROY", Skin, rest);
 			
 			g_iUserMoney[id] += rest;
+			AddStatistics(id, RECEIVED_MONEY, rest)
 		}
 	}
 	
@@ -8440,6 +8503,8 @@ giftPlayer(id, target, iSkin)
 	g_iUserSkins[id][iSkin]--;
 	g_iUserSkins[target][iSkin]++;
 	
+	AddStatistics(id, TOTAL_GIFTS, 1)
+
 	checkInstantDefault(id, iSkin)
 			
 	g_bGiftingStt[id] = false
@@ -9277,6 +9342,9 @@ public clcmd_say_accept(id)
 	
 		_ResetTradeData(id);
 		_ResetTradeData(sender);
+
+		AddStatistics(id, TOTAL_TRADES, 1)
+		AddStatistics(sender, TOTAL_TRADES, 1)
 	}
 	else
 	{
@@ -9603,6 +9671,7 @@ public task_TombolaRun(task)
 				else
 				{
 					g_iUserMoney[id] += g_iTombolaPrize;
+					AddStatistics(id, RECEIVED_MONEY, g_iTombolaPrize)
 					new Name[32];
 					get_user_name(id, Name, 31);
 					client_print_color(0, 0, "^4%s^1 %L", CHAT_PREFIX, -1, "RAFFLE_WINNER", Name, g_iTombolaPrize);
@@ -9723,6 +9792,8 @@ _RouletteWin(id, multi)
 {
 	new num = multi * g_iUserBetMoney[id];
 	g_iUserMoney[id] += num;
+	AddStatistics(id, RECEIVED_MONEY, num)
+	AddStatistics(id, TOTAL_ROULETTE, num)
 	g_bRoulettePlay[id] = 1;
 	client_print_color(0, id, "^4%s^1 %L", CHAT_PREFIX, -1, "ROULETTE_WIN", g_szName[id], num);
 	client_print_color(id, id, "^4%s^1 %L", CHAT_PREFIX, id, "ROULETTE_NEXT");
@@ -9874,9 +9945,6 @@ public jackpot_menu_handler(id, menu, item)
 				}
 				client_print_color(0, 0, "^4%s %L", CHAT_PREFIX, -1, "JACKPOT_JOINED", g_szName[id], szItem);
 			}
-		}
-		default:
-		{
 		}
 	}
 	menu_destroy(menu)
@@ -11311,6 +11379,7 @@ public ev_DeathMsg()
 	if (equal(szWeapon, "knife", 0))
 	{
 		g_iUserScraps[killer] += g_CvarKnifeKillScraps
+		AddStatistics(killer, RECEIVED_SCRAPS, g_CvarKnifeKillScraps)
 		client_print_color(0, killer, "^4%s^1 %L", CHAT_PREFIX, -1, "KNIFE_KILL", g_szName[killer], g_szName[victim], g_CvarKnifeKillScraps)
 	}
 
@@ -11342,6 +11411,7 @@ public ev_DeathMsg()
 	}
 
 	g_iUserMoney[killer] += rmoney;
+	AddStatistics(killer, RECEIVED_MONEY, rmoney)
 
 	static szMessage[192];
 
@@ -11361,10 +11431,12 @@ public ev_DeathMsg()
 			case 1:
 			{
 				g_iUserCases[killer]++;
+				AddStatistics(killer, DROPPED_CASES, 1)
 			}
 			case 2:
 			{
 				g_iUserKeys[killer]++;
+				AddStatistics(killer, DROPPED_KEYS, 1)
 			}
 		}
 
@@ -11381,6 +11453,7 @@ public ev_DeathMsg()
 			if(iRandom <= g_CvarCapsuleChance)
 			{
 				g_iNameTagCapsule[killer]++;
+				AddStatistics(killer, DROPPED_NAMETAG_CAPSULES, 1)
 				formatex(szMessage, charsmax(szMessage), "^4[CSGO Classy] %s^1 dropped a^3 Name-Tag capsule", g_szName[killer]);
 				send_message(killer, szMessage);
 				gotbonus = true;
@@ -11393,6 +11466,7 @@ public ev_DeathMsg()
 				if(iRandom <= g_CvarCapsuleChance + g_CvarGoldVipCapsuleChance)
 				{
 					g_iNameTagCapsule[killer]++;
+					AddStatistics(killer, DROPPED_NAMETAG_CAPSULES, 1)
 					formatex(szMessage, charsmax(szMessage), "^4[CSGO Classy] %s^1 dropped a^3 Name-Tag capsule", g_szName[killer]);
 					send_message(killer, szMessage);
 					gotbonus = true;
@@ -11403,6 +11477,7 @@ public ev_DeathMsg()
 				if(iRandom <= g_CvarCapsuleChance + g_CvarSilverVipCapsuleChance)
 				{
 					g_iNameTagCapsule[killer]++;
+					AddStatistics(killer, DROPPED_NAMETAG_CAPSULES, 1)
 					formatex(szMessage, charsmax(szMessage), "^4[CSGO Classy] %s^1 dropped a^3 Name-Tag capsule", g_szName[killer]);
 					send_message(killer, szMessage);
 					gotbonus = true;
@@ -11451,17 +11526,20 @@ public ev_DeathMsg()
 		if (0 < keys)
 		{
 			g_iUserKeys[killer] += keys;
+			AddStatistics(killer, DROPPED_KEYS, keys)
 		}
 		if (0 < cases)
 		{
 			g_iUserCases[killer] += cases;
+			AddStatistics(killer, DROPPED_CASES, cases)
 		}
 		if (0 < money)
 		{
 			g_iUserMoney[killer] += money;
+			AddStatistics(killer, RECEIVED_MONEY, money)
 		}
 
-		client_print_color(killer, killer, "^4%s^1 %L", CHAT_PREFIX, killer, "RANKUP_BONUS", keys, cases, money);
+		client_print_color(killer, print_team_default, "^4%s^1 %L", CHAT_PREFIX, killer, "RANKUP_BONUS", keys, cases, money);
 	}
 
 	return PLUGIN_HANDLED;
@@ -13965,6 +14043,9 @@ public countDown()
 		g_iUserSkins[iWinner][g_iSkinID]++
 		g_bIsWeaponStattrak[iWinner][g_iSkinID] = true
 		
+		AddStatistics(iWinner, DROPPED_STT_SKINS, 1)
+		AddStatistics(iWinner, TOTAL_GIVEAWAYS, 1)
+
 		new szWinnerName[MAX_PLAYERS]
 		get_user_name(iWinner, szWinnerName, charsmax(szWinnerName))
 		client_print_color(0, 0, "^4%s^1 ^4%s^1 won^4 StatTrak (TM) %s^1 at the ^4Giveaway", CHAT_PREFIX, szWinnerName, g_szSkinName)
