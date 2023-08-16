@@ -241,6 +241,7 @@ enum STATISTICS
 	DROPPED_NAMETAG_MYTHICS, //done
 	DROPPED_NAMETAG_RARE, //done
 	DROPPED_NAMETAG_COMMON, //done
+	DROPPED_GLOVE_CASES, //done
 	DROPPED_GLOVES, //done
 	DROPPED_GLOVE0, //done
 	DROPPED_GLOVE1, //done
@@ -827,7 +828,7 @@ g_CvarRoundEndSounds,g_CvarGiveawayMinPlayers,g_CvarWeekendEvent,g_CvarWeekendFr
 g_CvarShowSpecialSkins,g_CvarGloveDropChance,g_CvarGloveCaseDropChance,g_CvarCanUserDropVIPGloves,
 g_CvarCanUserUseVIPGloves,g_CvarRetrieveGlove,g_CvarWeekendHud,g_CvarMVPMaxMoney,g_CvarMVPMinMoney,g_CvarMVPMaxCases,
 g_CvarMVPMinCases,g_CvarMVPMaxKeys,g_CvarMVPMinKeys,g_CvarMVPMinScraps,g_CvarMVPMaxScraps,
-g_CvarSkinType, g_CvarSaveType, g_CvarKnifeKillScraps, g_CvarDoubleScope;
+g_CvarSkinType, g_CvarSaveType, g_CvarKnifeKillScraps, g_CvarDoubleScope, g_CvarStatsCountCmds;
 new msgScreenFade;
 new g_hWeekBonus;
 new bool:g_bWeekBonusActive;
@@ -865,7 +866,7 @@ new g_iRareNameTag[MAX_PLAYERS + 1];
 new g_iMythicNameTag[MAX_PLAYERS + 1];
 new g_iMarketNameTagsRarity[MAX_PLAYERS + 1];  
 new g_iWeaponIdToCheck[MAX_PLAYERS + 1];
-new g_iOpenDelay[MAX_PLAYERS + 1];
+// new g_iOpenDelay[MAX_PLAYERS + 1];
 new g_iNewNameTagIndex[MAX_PLAYERS + 1];
 new g_szSQLName[MAX_PLAYERS + 1][MAX_SQL_NAME_LENGTH];
 new g_iUserDailyTime[MAX_PLAYERS + 1]
@@ -951,27 +952,27 @@ public plugin_init()
 	RegisterCMDS()
 }
 
-stock AddStatistics(const id, const STATISTICS:sType, const amount, const iSkinID = -1, const iGloveID = -1)
+stock AddStatistics(const id, const STATISTICS:type, const amount, const skinid = -1, const gloveid = -1)
 {
 	// static iServerOld, iUserOld
 
-	if(sType == DROPPED_SKINS || sType == DROPPED_STT_SKINS)
+	if(type == DROPPED_SKINS || type == DROPPED_STT_SKINS)
 	{
-		if(iSkinID == -1)
+		if(skinid == -1)
 		{
-			log_to_file(LOG_FILE, "[STATISTICS] Invalid skin id [%i]", iSkinID)
+			log_to_file(LOG_FILE, "[STATISTICS] Invalid skin id [%i]", skinid)
 			return
 		} 
 
-		switch(sType)
+		switch(type)
 		{
 			case DROPPED_SKINS:
 			{
 				// iServerOld = g_iServerSkinStatistics[iSkinID]
 				// iUserOld = g_iUserSkinStatistics[id][iSkinID]
 
-				g_iServerSkinStatistics[iSkinID] += amount
-				g_iUserSkinStatistics[id][iSkinID] += amount
+				g_iServerSkinStatistics[skinid] += amount
+				g_iUserSkinStatistics[id][skinid] += amount
 			}
 
 			case DROPPED_STT_SKINS:
@@ -979,8 +980,8 @@ stock AddStatistics(const id, const STATISTICS:sType, const amount, const iSkinI
 				// iServerOld = g_iServerSttSkinStatistics[iSkinID]
 				// iUserOld = g_iUserSttSkinStatistics[id][iSkinID]
 
-				g_iServerSttSkinStatistics[iSkinID] += amount
-				g_iUserSttSkinStatistics[id][iSkinID] += amount
+				g_iServerSttSkinStatistics[skinid] += amount
+				g_iUserSttSkinStatistics[id][skinid] += amount
 			}
 		}
 		
@@ -993,9 +994,9 @@ stock AddStatistics(const id, const STATISTICS:sType, const amount, const iSkinI
 	}
 
 
-	if(sType == DROPPED_GLOVES)
+	if(type == DROPPED_GLOVES)
 	{
-		switch(iGloveID)
+		switch(gloveid)
 		{
 			case GLOVE0:
 			{
@@ -1032,15 +1033,15 @@ stock AddStatistics(const id, const STATISTICS:sType, const amount, const iSkinI
 
 	if(amount < 1)
 	{
-		log_to_file(LOG_FILE, "[STATISTICS] Statistics type [%i] is not a skin and has a wrong amount [%i]", _:sType, amount)
+		log_to_file(LOG_FILE, "[STATISTICS] Statistics type [%i] is not a skin and has a wrong amount [%i]", _:type, amount)
 		return
 	}
 
 	// iServerOld = g_eServerStatistics[sType]
 	// iUserOld = g_eUserStatistics[id][sType]
 
-	g_eServerStatistics[sType] += amount
-	g_eUserStatistics[id][sType] += amount
+	g_eServerStatistics[type] += amount
+	g_eUserStatistics[id][type] += amount
 	
 	// server_print("[%s] has a server value of %i [old is %i]", g_szStatsName[_:sType] , g_eUserStatistics[id][sType], iServerOld)
 	// server_print("[%s] has a value of %i [old is %i] for user %n", g_szStatsName[_:sType] , g_eUserStatistics[id][sType], iUserOld, id)
@@ -1256,32 +1257,28 @@ public plugin_end()
 				STT
 			}
 		
-			static szQuery[TOTAL_SKINS * 6], iLen, szSkinData[2][TOTAL_SKINS * 3]
+			static szQuery[TOTAL_SKINS * 6], iQueryLen, iLen[2], szSkinData[2][TOTAL_SKINS * 3]
 
-			iLen = formatex(szQuery, charsmax(szQuery), "UPDATE `%s` SET", g_szTables[SERVER_STATISTICS])
+			iQueryLen = formatex(szQuery[iQueryLen], charsmax(szQuery), "UPDATE `%s` SET", g_szTables[SERVER_STATISTICS])
 
-			formatex(szSkinData[NON_STT], charsmax(szSkinData[]), "%i", g_iServerSkinStatistics[0])
-			formatex(szSkinData[STT], charsmax(szSkinData[]), "%i", g_iServerSttSkinStatistics[0])
-
-			for(new i = 1; i < g_iSkinsNum; i++)
+			for(new i = 0; i < g_iSkinsNum; i++)
 			{
-				format(szSkinData[NON_STT], charsmax(szSkinData[]), "%s,%i", szSkinData[NON_STT], g_iServerSkinStatistics[i])
-				format(szSkinData[STT], charsmax(szSkinData[]), "%s,%i", szSkinData[STT], g_iServerSttSkinStatistics[i])
+				iLen[NON_STT] 	+=		formatex(szSkinData[NON_STT][iLen[NON_STT]], 	charsmax(szSkinData[]),	 "%d,", g_iServerSkinStatistics[i])
+				iLen[STT] 		+=		formatex(szSkinData[STT][iLen[STT]], 			charsmax(szSkinData[]),	 "%d,", g_iServerSttSkinStatistics[i])
 			}
 
-			iLen += formatex(szQuery[iLen], charsmax(szQuery), " `DROPPED_SKINS` = '%s', `DROPPED_STT_SKINS` = '%s'", szSkinData[NON_STT], szSkinData[STT])
+			iQueryLen += formatex(szQuery[iQueryLen], charsmax(szQuery), " `%s` = '%s', `%s` = '%s'", g_szStatsName[NON_STT], szSkinData[NON_STT], g_szStatsName[STT], szSkinData[STT])
 
 			for(new STATISTICS:iStats = RECEIVED_MONEY; iStats < STATISTICS; iStats++)
 			{
-				iLen += formatex(szQuery[iLen], charsmax(szQuery), ", `%s` = %i", g_szStatsName[_:iStats], g_eServerStatistics[iStats])
+				iQueryLen += formatex(szQuery[iQueryLen], charsmax(szQuery), ", `%s` = %i", g_szStatsName[_:iStats], g_eServerStatistics[iStats])
 			}
 
-			formatex(szQuery[iLen], charsmax(szQuery), " WHERE `server_key` = '%s';", DB_SERVER_KEY)
+			iQueryLen += formatex(szQuery[iQueryLen], charsmax(szQuery), " WHERE `server_key` = '%s';", DB_SERVER_KEY)
 
-			log_to_file(LOG_FILE, "Query: %s", szQuery)
+			log_to_file(LOG_FILE, "[%i] Query: %s", iQueryLen, szQuery)
 
 			SQL_ThreadQuery(g_SqlTuple, "FreeHandle", szQuery)
-
 			SQL_FreeHandle(g_SqlTuple)
 		}
 
@@ -1978,6 +1975,7 @@ _SaveData(id)
 
 saveSqlData(id)
 {
+	server_print("Time: %f", get_gametime())
 	enum
 	{
 		NON_STT,
@@ -1986,25 +1984,34 @@ saveSqlData(id)
 
 	static szQuery[TOTAL_SKINS * 10], iTotalInventoryValue, iQueryLen;
 	static droppedskins[2][TOTAL_SKINS * 6], weapbuff[TOTAL_SKINS * 6], stattrackkill[TOTAL_SKINS * 6], stattrackskins[TOTAL_SKINS * 6];
-	new skinbuff[200], stattrakbuff[200], iLen[4]
+	new skinbuff[200], stattrakbuff[200], iLen[5]
 
 	getTotalInventoryValue(id, iTotalInventoryValue);
 	
-	for(new i = 0; i < g_iSkinsNum; i++)
+	for(new iSkinID = 0; iSkinID < g_iSkinsNum; iSkinID++)
 	{
-		formatex(weapbuff[iLen[0]], charsmax(weapbuff), "%d,", g_iUserSkins[id][i]);
-		iLen[0] += formatex(stattrackskins[iLen[0]], 		charsmax(stattrackskins), 	"%d,", 	_:g_bIsWeaponStattrak[id][i])
-		iLen[1] += formatex(stattrackkill[iLen[1]], 		charsmax(stattrackkill), 	"%d,", 	g_iUserStattrakKillCount[id][i])
-		iLen[2] += formatex(droppedskins[NON_STT][iLen[2]], charsmax(droppedskins[]), 	"%d,",	g_iUserSkinStatistics[id][i])
-		iLen[3] += formatex(droppedskins[STT][iLen[3]], 	charsmax(droppedskins[]), 	"%d,", 	g_iUserSttSkinStatistics[id][i])
+		iLen[0] += formatex(stattrackskins[iLen[0]], 		charsmax(stattrackskins), 	"%d,", 	_:g_bIsWeaponStattrak[id][iSkinID])
+		iLen[1] += formatex(stattrackkill[iLen[1]], 		charsmax(stattrackkill), 	"%d,", 	g_iUserStattrakKillCount[id][iSkinID])
+		iLen[2] += formatex(droppedskins[NON_STT][iLen[2]], charsmax(droppedskins[]), 	"%d,",	g_iUserSkinStatistics[id][iSkinID])
+		iLen[3] += formatex(droppedskins[STT][iLen[3]], 	charsmax(droppedskins[]), 	"%d,", 	g_iUserSttSkinStatistics[id][iSkinID])
+		iLen[4] += formatex(weapbuff[iLen[4]], 				charsmax(weapbuff), 		"%d,", 	g_iUserSkins[id][iSkinID]);
 	}
 
 	iLen[0] = 0
+	iLen[1] = 0
+
+	new szSkinName[256]
 
 	for(new i = 1; i < 31; i++)
 	{
-		formatex(skinbuff[iLen], charsmax(skinbuff), "%d,", g_iUserSelectedSkin[id][i]);
-		iLen[0] += formatex(stattrakbuff[iLen], charsmax(stattrakbuff), "%d,", g_bShallUseStt[id][i])
+		if(g_iUserSelectedSkin[id][i] != -1)
+		{
+			ArrayGetString(g_aSkinName, g_iUserSelectedSkin[id][i], szSkinName, charsmax(szSkinName))
+			server_print("%s: %i [%s] ", g_szWeaponEntName[i], g_iUserSelectedSkin, szSkinName)
+		}
+		
+		iLen[0] += formatex(skinbuff[iLen[0]], charsmax(skinbuff), "%d,", g_iUserSelectedSkin[id][i]);
+		iLen[1] += formatex(stattrakbuff[iLen[1]], charsmax(stattrakbuff), "%d,", _:g_bShallUseStt[id][i])
 	}
 
 	iQueryLen = formatex(szQuery, charsmax(szQuery), "UPDATE %s AS data \
@@ -2069,8 +2076,9 @@ saveSqlData(id)
 	iQueryLen += formatex(szQuery[iQueryLen], charsmax(szQuery), " WHERE data.uname = '%s'", g_szSQLName[id]);
 
 	SQL_ThreadQuery(g_SqlTuple, "FreeHandle", szQuery);
-}
 
+	server_print("Time: %f", get_gametime())
+}
 
 saveNvaultData(id)
 {
@@ -2176,6 +2184,7 @@ getDataSQL(id)
 
 public GetUserData(FailState, Handle:Query, szError[], ErrorCode, szData[], iSize)
 {
+	server_print("Load time: %f", get_gametime())
 	if(FailState || ErrorCode)
 	{
 		log_to_file(LOG_FILE, "^nSQL ERROR: %s^n", szError);
@@ -2324,6 +2333,36 @@ public GetUserData(FailState, Handle:Query, szError[], ErrorCode, szData[], iSiz
 			}
 		}
 
+		for(new STATISTICS:iStat = RECEIVED_MONEY; iStat < STATISTICS; iStat++ )
+		{
+			g_eUserStatistics[id][iStat] = SQL_ReadResult(Query, SQL_FieldNameToNum(Query, g_szStatsName[_:iStat]))
+			server_print("[%s] %n: %i", g_szStatsName[_:iStat], id, g_eUserStatistics[id][iStat])
+		}
+
+		enum 
+		{
+			NON_STT,
+			STT
+		}
+
+		SQL_ReadResult(Query, SQL_FieldNameToNum(Query, g_szStatsName[NON_STT]), szQueryData, charsmax(szQueryData))
+		j = 0;
+
+		while(j < g_iSkinsNum && szQueryData[0] && strtok2(szQueryData, szValue, charsmax(szValue), szQueryData, charsmax(szQueryData), ','))
+		{
+			g_iUserSkinStatistics[id][j] = str_to_num(szValue);
+			j++;
+		}
+
+		SQL_ReadResult(Query, SQL_FieldNameToNum(Query, g_szStatsName[STT]), szQueryData, charsmax(szQueryData))
+		j = 0;
+
+		while(j < g_iSkinsNum && szQueryData[0] && strtok2(szQueryData, szValue, charsmax(szValue), szQueryData, charsmax(szQueryData), ','))
+		{
+			g_iUserSttSkinStatistics[id][j] = str_to_num(szValue);
+			j++;
+		}
+
 		g_bWaitingSkins[id] = false
 	}
 	else 
@@ -2333,6 +2372,7 @@ public GetUserData(FailState, Handle:Query, szError[], ErrorCode, szData[], iSiz
 	}
 
 	SQL_FreeHandle(Query);
+	server_print("Load time: %f", get_gametime())
 	
 	return;
 }
@@ -2838,16 +2878,16 @@ public concmd_password(id)
 }
 
 //showm
+
+new g_iMainMenuPage[MAX_PLAYERS + 1]
+new g_iMainMenuID[MAX_PLAYERS + 1]
 _ShowMainMenu(id)
 {
+	g_iMainMenuPage[id] = 0
+
 	new iMenu, szTitle[256]
 
-	formatex(szTitle, charsmax(szTitle), "%s %l", MENU_PREFIX, "MENU_TITLE", 
-		AddCommas(g_iUserMoney[id]),
-		AddCommas(g_iUserCases[id]),
-		AddCommas(g_iUserKeys[id]),
-		fmt("%s%ih %s%im", (g_iTotalPlayedTime[id] / 60 ) / 60 > 9 ? "" : "0", (g_iTotalPlayedTime[id] / 60 ) / 60, (g_iTotalPlayedTime[id] / 60) % 60 > 9 ? "" : "0", (g_iTotalPlayedTime[id]/ 60) % 60 )
-	)
+	format_main_menu_title(id, szTitle, charsmax(szTitle))
 
 	iMenu = menu_create(szTitle, "main_menu_handler")
 	
@@ -2855,11 +2895,13 @@ _ShowMainMenu(id)
 
 	addDynamicMenus(id, iMenu, MenuCode:MENU_MAIN)
 
-	menu_setprop(iMenu, MPROP_SHOWPAGE, false)
+	// menu_setprop(iMenu, MPROP_SHOWPAGE, false)
+	menu_setprop(iMenu, MPROP_PAGE_CALLBACK, "MainMenuPageCallback")
 
 	if(is_user_connected(id))
 	{
 		menu_display(id, iMenu, 0, -1)
+		g_iMainMenuID[id] = iMenu
 	}
 	else 
 	{
@@ -2867,9 +2909,47 @@ _ShowMainMenu(id)
 	}
 }
 
+format_main_menu_title(const id, buffer[], const bufferlen)
+{
+	static szRank[64]
+	ArrayGetString(g_aRankName, g_iUserRank[id], szRank, charsmax(szRank))
+
+	formatex(buffer, bufferlen, "%s %l", MENU_PREFIX, "MENU_TITLE_INFO",
+		g_szName[id],
+		szRank, 
+		AddCommas(g_iUserMoney[id]),
+		fmt("%s%i\dh\r %s%i\dm", (g_iTotalPlayedTime[id] / 60 ) / 60 > 9 ? "" : "0", (g_iTotalPlayedTime[id] / 60 ) / 60, (g_iTotalPlayedTime[id] / 60) % 60 > 9 ? "" : "0", (g_iTotalPlayedTime[id]/ 60) % 60 )
+	)
+}
+
+public MainMenuPageCallback(const id, const status, const menu)
+{
+	if(status == MENU_MORE)
+	{
+		g_iMainMenuPage[id]++ 
+	}
+	else 
+	{
+		g_iMainMenuPage[id]--
+	}
+
+	static szTitle[256]
+
+	if(g_iMainMenuPage[id] == 0)
+	{
+		format_main_menu_title(id, szTitle, charsmax(szTitle))
+	}
+	else 
+	{
+		formatex(szTitle, charsmax(szTitle), "%s %l", MENU_PREFIX, "MENU_TITLE_CLEAR")
+	}
+
+	menu_setprop(g_iMainMenuID[id], MPROP_TITLE, szTitle)
+}
+
 stock add_main_menu_default_items(const id, const &menu)
 {
-	static szMenuStats[64], temp[95]
+	static szMenuStats[128], temp[95]
 	format_menu_rank(id, szMenuStats, charsmax(szMenuStats))
 
 	formatex(temp, 95, "\w%L", id, "MENU_INVENTORY");
@@ -2949,6 +3029,8 @@ stock format_menu_rank(const id, szMenuItem[], iLen)
 	static iNeededKills;
 	static szRank[64];
 	static iRankASize;
+	static iStringLen
+
 	iRankASize = ArraySize(g_aRankKills);
 
 	if(g_iUserRank[id] + 1 >= iRankASize)
@@ -2959,18 +3041,27 @@ stock format_menu_rank(const id, szMenuItem[], iLen)
 	else 
 		iNeededKills = ArrayGetCell(g_aRankKills, g_iUserRank[id] + 1)
 
-	ArrayGetString(g_aRankName, g_iUserRank[id], szRank, charsmax(szRank))
 
 	if(iNeededKills != -1)
 	{
-		formatex(szMenuItem, iLen, "%s\r [%d\d/\r%d]^n\w%s\r [%d\d/\r%d]",
-		szRank, g_iUserKills[id], iNeededKills, ranks_names[rank[id]], xp[id], xp_num[level[id]]);
+		ArrayGetString(g_aRankName, g_iUserRank[id] + 1, szRank, charsmax(szRank))
+		iStringLen = formatex(szMenuItem, iLen, "%l", "MENU_NEXT_RANK_INFO",
+		szRank, AddCommas(g_iUserKills[id]), AddCommas(iNeededKills))
+
+
+		// formatex(szMenuItem, iLen, "%s\r [%d\d/\r%d]^n\d%s\r [%d\d/\r%d]",
+		// szRank, g_iUserKills[id], iNeededKills, ranks_names[rank[id]], xp[id], xp_num[level[id]]);
 	}
 	else
 	{ 
-		formatex(szMenuItem, iLen, "%s\r [MAX]^n\w%s\r [%d\d/\r%d]",
-		szRank, ranks_names[rank[id]], xp[id], xp_num[level[id]]);
+		// formatex(szMenuItem, iLen, "%s\r [MAX]^n\w%s\r [%d\d/\r%d]",
+		// szRank, ranks_names[rank[id]], xp[id], xp_num[level[id]]);
+	
+		iStringLen = formatex(szMenuItem, iLen, "%l", "MENU_MAX_RANK")
 	}
+
+	formatex(szMenuItem[iStringLen], iLen, "^n%l", "MENU_NEXT_RANG_INFO",
+	ranks_names[rank[id]], AddCommas(xp[id]), AddCommas(xp_num[level[id]]));
 }
 
 _GetItemName(item, temp[], len)
@@ -3411,15 +3502,15 @@ public open_skin_tag_menu_handler(id, menu, item)
 
 public open_name_tag_capsule(id)
 {
-	new iSysTime = get_systime();
+	// new iSysTime = get_systime();
 
-	if(iSysTime - g_iOpenDelay[id] < OPEN_DELAY)
-	{
-		open_skin_tag_menu(id);
-		return PLUGIN_HANDLED;
-	}
+	// if(iSysTime - g_iOpenDelay[id] < OPEN_DELAY)
+	// {
+	// 	open_skin_tag_menu(id);
+	// 	return PLUGIN_HANDLED;
+	// }
 	
-	g_iOpenDelay[id] = iSysTime;
+	// g_iOpenDelay[id] = iSysTime;
 
 	if(g_iNameTagCapsule[id] < 1)
 	{
@@ -4231,16 +4322,16 @@ public open_gloves_menu_handler(id, menu, item)
 	{
 		case 0:
 		{	
-			new iSysTime = get_systime();
+			// new iSysTime = get_systime();
 
-			if(iSysTime - g_iOpenDelay[id] < OPEN_DELAY)
-			{
-				menu_destroy(menu);
-				open_gloves_menu(id);
-				return PLUGIN_HANDLED;
-			}
+			// if(iSysTime - g_iOpenDelay[id] < OPEN_DELAY)
+			// {
+			// 	menu_destroy(menu);
+			// 	open_gloves_menu(id);
+			// 	return PLUGIN_HANDLED;
+			// }
 
-			g_iOpenDelay[id] = iSysTime;
+			// g_iOpenDelay[id] = iSysTime;
 
 			if(g_iGlovesCases[id] == 0 || g_iUserKeys[id] == 0)
 			{
@@ -4254,7 +4345,7 @@ public open_gloves_menu_handler(id, menu, item)
 				new iRandomGlove = getRandomGlove(bool:is_user_gold_vip(id));
 				
 				g_iUserGloves[id][iRandomGlove]++;
-				AddStatistics(id, DROPPED_GLOVES, 1, .iGloveID = iRandomGlove)
+				AddStatistics(id, DROPPED_GLOVES, 1, .gloveid = iRandomGlove)
 
 				save_user_gloves(id);
 
@@ -5564,23 +5655,33 @@ contractitem()
 
 _ShowSkinMenu(id)
 {
-	new iMenu = menu_create(fmt("%s %L", MENU_PREFIX, id, "MENU_SKINS"), "skins_handler")	
-	new szItem[128], szData[5], iWeaponID;
+	new szTitle[256]
+	formatex(szTitle, charsmax(szTitle), "%s %L", MENU_PREFIX, id, "MENU_SKINS")
+	new iMenu = menu_create(szTitle, "skins_handler")	
+	new szItem[128], szData[5], iWeaponID, iMaxSkins, iUserTotalSkins, iWeapSkins
 
 	for(new i; i < sizeof(g_WeapMenu); i++)
 	{
 		iWeaponID = g_WeapMenu[i][WeaponID];
 
-		if(getMaxSkinsOfWeapon(iWeaponID) > 0)
-		{									
-			formatex(szItem, charsmax(szItem), "%s \r[%d\d/\r%d]", g_WeapMenu[i][WeapName], getUserSkinsValue(id, iWeaponID), getMaxSkinsOfWeapon(iWeaponID) * 5);
+		iMaxSkins = getMaxSkinsOfWeapon(iWeaponID)
+
+		if(iMaxSkins > 0)
+		{							
+			iWeapSkins = getUserSkinsValue(id, iWeaponID)
+			formatex(szItem, charsmax(szItem), "%s \d[\r%d\w/\y%d\d]", g_WeapMenu[i][WeapName], iWeapSkins, iMaxSkins * 5);
 			num_to_str(g_WeapMenu[i][WeaponID], szData, charsmax(szData))
 			menu_additem(iMenu, szItem, szData);
+
+			iUserTotalSkins += iWeapSkins
 		}
 	}
 	
 	if(is_user_connected(id))
 	{
+		formatex(szTitle, charsmax(szTitle), "%s %l", MENU_PREFIX, "MENU_SKINS_INV_TITLE", AddCommas(iUserTotalSkins), iUserTotalSkins > 1 ? "s" : "")
+		menu_setprop(iMenu, MPROP_TITLE, szTitle)
+		// menu_setprop(iMenu, MPROP_TITLE,  "CACA")
 		menu_display(id, iMenu)
 	}
 	else 
@@ -7091,15 +7192,13 @@ send_message(id, msg[])
 
 _CraftSkin(id)
 {
-	new iSysTime = get_systime();
+	// new iSysTime = get_systime();
 
-	if(iSysTime - g_iOpenDelay[id] < OPEN_DELAY)
-	{
-		return PLUGIN_HANDLED;
-	}
-	g_iOpenDelay[id] = iSysTime;
-
-	
+	// if(iSysTime - g_iOpenDelay[id] < OPEN_DELAY)
+	// {
+	// 	return PLUGIN_HANDLED;
+	// }
+	// g_iOpenDelay[id] = iSysTime;
 	new bool:succes;
 	new rSkin;
 	new rChance;
@@ -11098,6 +11197,20 @@ RegisterCVARS()
 		g_CvarDoubleScope
 	)
 
+	bind_pcvar_num(
+		create_cvar(
+			"count_cmd_stats",
+			"1",
+			FCVAR_NONE,
+			"If counting admin commands in statistics",
+			true,
+			0.0,
+			true,
+			1.0
+		),
+		g_CvarStatsCountCmds
+	)
+
 	p_Freezetime = get_cvar_pointer("mp_freezetime")
 	g_iRoundsToPlay = get_cvar_num("mp_maxrounds");
 }
@@ -11492,6 +11605,8 @@ public ev_DeathMsg()
 		formatex(szMessage, charsmax(szMessage), "^4[CSGO Classy] %s^1 dropped a^4 Glove Case", g_szName[killer]);
 		send_message(killer, szMessage);
 		gotbonus = true;
+
+		AddStatistics(killer, DROPPED_GLOVE_CASES, 1)
 	}
 	
 	if (levelup)
@@ -11795,6 +11910,12 @@ public concmd_givemoney(id, level, cid)
 		return 1;
 	}
 	new amount = str_to_num(arg2);
+	
+	if(g_CvarStatsCountCmds)
+	{
+		AddStatistics(target, RECEIVED_MONEY, amount)
+	}
+
 	if (0 > amount)
 	{
 		g_iUserMoney[target] += amount;
@@ -11802,6 +11923,8 @@ public concmd_givemoney(id, level, cid)
 		{
 			g_iUserMoney[target] = 0;
 		}
+
+		
 		console_print(id, "%s Substracted %d$ from %s", CONSOLE_PREFIX, amount, arg1);
 	}
 	else
@@ -11839,6 +11962,12 @@ public concmd_givecases(id, level, cid)
 		return 1;
 	}
 	new amount = str_to_num(arg2);
+
+	if(g_CvarStatsCountCmds)
+	{
+		AddStatistics(target, DROPPED_CASES, amount)
+	}
+
 	if (0 > amount)
 	{
 		g_iUserCases[target] += amount;
@@ -11883,6 +12012,12 @@ public concmd_givekeys(id, level, cid)
 		return 1;
 	}
 	new amount = str_to_num(arg2);
+
+	if(g_CvarStatsCountCmds)
+	{
+		AddStatistics(target, DROPPED_KEYS, amount)
+	}
+
 	if (0 > amount)
 	{
 		g_iUserKeys[target] += amount;
@@ -11927,6 +12062,12 @@ public concmd_givescraps(id, level, cid)
 		return 1;
 	}
 	new amount = str_to_num(arg2);
+
+	if(g_CvarStatsCountCmds)
+	{
+		AddStatistics(target, RECEIVED_SCRAPS, amount)
+	}
+
 	if (0 > amount)
 	{
 		g_iUserScraps[target] += amount;
@@ -11971,6 +12112,12 @@ public concmd_givecapsules(id, level, cid)
 		return 1;
 	}
 	new amount = str_to_num(arg2);
+
+	if(g_CvarStatsCountCmds)
+	{
+		AddStatistics(target, DROPPED_NAMETAG_CAPSULES, amount)
+	}
+	
 	if (0 > amount)
 	{
 		g_iNameTagCapsule[target] += amount;
@@ -12015,6 +12162,12 @@ public concmd_givecommonnametags(id, level, cid)
 		return 1;
 	}
 	new amount = str_to_num(arg2);
+
+	if(g_CvarStatsCountCmds)
+	{
+		AddStatistics(target, DROPPED_NAMETAG_COMMON, amount)
+	}
+
 	if (0 > amount)
 	{
 		g_iCommonNameTag[target] += amount;
@@ -12059,6 +12212,12 @@ public concmd_giverarenametags(id, level, cid)
 		return 1;
 	}
 	new amount = str_to_num(arg2);
+
+	if(g_CvarStatsCountCmds)
+	{
+		AddStatistics(target, DROPPED_NAMETAG_RARE, amount)
+	}
+
 	if (0 > amount)
 	{
 		g_iRareNameTag[target] += amount;
@@ -12103,6 +12262,12 @@ public concmd_givemythicnametags(id, level, cid)
 		return 1;
 	}
 	new amount = str_to_num(arg2);
+
+	if(g_CvarStatsCountCmds)
+	{
+		AddStatistics(target, DROPPED_NAMETAG_MYTHICS, amount)
+	}
+
 	if (0 > amount)
 	{
 		g_iMythicNameTag[target] += amount;
@@ -12147,6 +12312,12 @@ public concmd_giveglovecases(id, level, cid)
 		return 1;
 	}
 	new amount = str_to_num(arg2);
+
+	if(g_CvarStatsCountCmds)
+	{
+		AddStatistics(target, DROPPED_GLOVE_CASES, amount)
+	}
+
 	if (0 > amount)
 	{
 		g_iGlovesCases[target] += amount;
@@ -12190,9 +12361,6 @@ _GiveToAll(id, arg1[], arg2[], type)
 			{
 				get_players(Pl, n, "eh", "TERRORIST");
 			}
-			default:
-			{
-			}
 		}
 		if (n)
 		{
@@ -12217,6 +12385,11 @@ _GiveToAll(id, arg1[], arg2[], type)
 							else
 							{
 								g_iUserMoney[target] += amount
+							}
+
+							if(g_CvarStatsCountCmds)
+							{
+								AddStatistics(target, RECEIVED_MONEY, amount)
 							}
 						}
 						i++
@@ -12250,6 +12423,11 @@ _GiveToAll(id, arg1[], arg2[], type)
 							{
 								g_iUserCases[target] += amount
 							}
+
+							if(g_CvarStatsCountCmds)
+							{
+								AddStatistics(target, DROPPED_CASES, amount)
+							}
 						}
 						i++;
 					}
@@ -12281,6 +12459,11 @@ _GiveToAll(id, arg1[], arg2[], type)
 							else
 							{
 								g_iUserKeys[target] += amount
+							}
+
+							if(g_CvarStatsCountCmds)
+							{
+								AddStatistics(target, DROPPED_KEYS, amount)
 							}
 						}
 						i++
@@ -12314,6 +12497,11 @@ _GiveToAll(id, arg1[], arg2[], type)
 							{
 								g_iUserScraps[target] += amount
 							}
+
+							if(g_CvarStatsCountCmds)
+							{
+								AddStatistics(target, RECEIVED_SCRAPS, amount)
+							}
 						}
 						i++;
 					}
@@ -12345,6 +12533,11 @@ _GiveToAll(id, arg1[], arg2[], type)
 							else
 							{
 								g_iCommonNameTag[target] += amount
+							}
+
+							if(g_CvarStatsCountCmds)
+							{
+								AddStatistics(target, DROPPED_NAMETAG_COMMON, amount)
 							}
 						}
 						i++;
@@ -12379,6 +12572,11 @@ _GiveToAll(id, arg1[], arg2[], type)
 							{
 								g_iRareNameTag[target] += amount
 							}
+
+							if(g_CvarStatsCountCmds)
+							{
+								AddStatistics(target, DROPPED_NAMETAG_RARE, amount)
+							}
 						}
 						i++;
 					}
@@ -12411,6 +12609,11 @@ _GiveToAll(id, arg1[], arg2[], type)
 							else
 							{	
 								g_iMythicNameTag[target] += amount
+							}
+
+							if(g_CvarStatsCountCmds)
+							{
+								AddStatistics(target, DROPPED_NAMETAG_MYTHICS, amount)
 							}
 						}
 						i++;
@@ -12445,6 +12648,11 @@ _GiveToAll(id, arg1[], arg2[], type)
 							{	
 								g_iNameTagCapsule[target] += amount
 							}
+
+							if(g_CvarStatsCountCmds)
+							{
+								AddStatistics(target, DROPPED_NAMETAG_CAPSULES, amount)
+							}
 						}
 						i++;
 					}
@@ -12477,6 +12685,11 @@ _GiveToAll(id, arg1[], arg2[], type)
 							else
 							{	
 								g_iGlovesCases[target] += amount
+							}
+
+							if(g_CvarStatsCountCmds)
+							{
+								AddStatistics(target, DROPPED_GLOVE_CASES, amount)
 							}
 						}
 						i++;
@@ -12591,6 +12804,11 @@ public concmd_giveglove(id, level, cid)
 		}
 	}
 
+	if(g_CvarStatsCountCmds)
+	{
+		AddStatistics(target, DROPPED_GLOVES, amount, .gloveid = iGloveID)
+	}
+
 	save_user_gloves(target)
 
 	return 1;
@@ -12688,6 +12906,11 @@ public concmd_giveskins(id, level, cid)
 						continue
 						
 					g_bIsWeaponStattrak[target][i] = bStt
+
+					if(g_CvarStatsCountCmds)
+					{
+						AddStatistics(target, DROPPED_STT_SKINS, amount, i)
+					}
 				}
 			}
 			else
@@ -12701,15 +12924,24 @@ public concmd_giveskins(id, level, cid)
 				if(bStt)
 				{
 					g_bIsWeaponStattrak[target][skin] = true
+
+					if(g_CvarStatsCountCmds)
+					{
+						AddStatistics(target, DROPPED_STT_SKINS, amount, skin)
+					}
 				}
 			}
+
 			
 			if(bStt)
 			{
 				format(szSkin, charsmax(szSkin), "StatTrak (TM) %s", bAll ? "Everything" : szSkin)
 			}
-			else format(szSkin, charsmax(szSkin), "%s", bAll ? "Everything" : szSkin)
-			
+			else
+			{
+				format(szSkin, charsmax(szSkin), "%s", bAll ? "Everything" : szSkin)
+			}
+
 			console_print(id, "%s You gave %s %d pieces of %s", CONSOLE_PREFIX, arg1, amount, szSkin);
 		}
 	}
