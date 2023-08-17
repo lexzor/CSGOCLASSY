@@ -76,7 +76,7 @@ public func_teaminfo()
 
 public autologin(id)
 {
-    if(id >= MAX_PLAYERS)
+    if(id > MAX_PLAYERS)
         id -= AUTO_LOGIN_RETRY_TASK;
         
     if(g_iAutoLoginRetry[id] > 1)

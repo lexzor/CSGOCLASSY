@@ -383,34 +383,33 @@ static const ranks_names[maxranks][]=
 
 static const g_szStatsName[][] =
 {
-	"DROPPED_SKINS",
-	"DROPPED_STT_SKINS",
-	"RECEIVED_MONEY",
-	"RECEIVED_SCRAPS",
-	"DROPPED_CASES",
-	"DROPPED_KEYS",
-	"DROPPED_NAMETAG_CAPSULES",
-	"DROPPED_NAMETAG_MYTHICS",
-	"DROPPED_NAMETAG_RARE",
-	"DROPPED_NAMETAG_COMMON",
-	"DROPPED_GLOVES",
-	"DROPPED_GLOVE0",
-	"DROPPED_GLOVE1",
-	"DROPPED_GLOVE2",
-	"DROPPED_GLOVE3",
-	"DROPPED_GLOVE4",
-	"TOTAL_UPGRADES",
-	"TOTAL_DAILY_REWARDS",
+	"DROPPED_SKINS", 
+	"DROPPED_STT_SKINS", 
+	"RECEIVED_MONEY", 
+	"RECEIVED_SCRAPS", 
+	"DROPPED_CASES", 
+	"DROPPED_KEYS", 
+	"DROPPED_NAMETAG_CAPSULES", 
+	"DROPPED_NAMETAG_MYTHICS", 
+	"DROPPED_NAMETAG_RARE", 
+	"DROPPED_NAMETAG_COMMON", 
+	"DROPPED_GLOVE_CASES", 
+	"DROPPED_GLOVES", 
+	"DROPPED_GLOVE0", 
+	"DROPPED_GLOVE1", 
+	"DROPPED_GLOVE2", 
+	"DROPPED_GLOVE3", 
+	"DROPPED_GLOVE4", 
+	"TOTAL_UPGRADES", 
+	"TOTAL_DAILY_REWARDS", 
 	"TOTAL_GIFTS",
 	"TOTAL_TRADES",
 	"TOTAL_COINFLIPS",
-	"TOTAL_GIVEAWAYS",
-	"TOTAL_PLAYERS_JOINED_GIVEAWAY",
-	"TOTAL_CONTRACTS",
-	"TOTAL_JACKPOT",
-	"TOTAL_RAFFLE",
-	"TOTAL_ROULETTE",
-	"MARKET_ITEMS_SOLD"
+	"TOTAL_GIVEAWAYS", 
+	"TOTAL_CONTRACTS", 
+	"TOTAL_ROULETTE", 
+	"MARKET_ITEMS_SOLD", 
+	"MARKET_ITEM_BOUGHT" 
 }
 
 static const g_szWeaponEntName[31][] =
@@ -504,64 +503,62 @@ static const g_szTablesInfo[][] = {
 	`uname` VARCHAR(96) NOT NULL DEFAULT 'NONE' COLLATE utf8_bin,\
 	`DROPPED_SKINS` TEXT NOT NULL DEFAULT '0' ,\
 	`DROPPED_STT_SKINS` TEXT NOT NULL DEFAULT '0' ,\
-	`RECEIVED_MONEY` INT(11) NOT NULL DEFAULT 0 ,\
-	`RECEIVED_SCRAPS` INT(11) NOT NULL DEFAULT 0 ,\
-	`DROPPED_CASES` INT(11) NOT NULL DEFAULT 0 ,\
-	`DROPPED_KEYS` INT(11) NOT NULL DEFAULT 0 ,\
-	`DROPPED_NAMETAG_CAPSULES` INT(11) NOT NULL DEFAULT 0 ,\
-	`DROPPED_NAMETAG_MYTHICS` INT(11) NOT NULL DEFAULT 0 ,\
-	`DROPPED_NAMETAG_RARE` INT(11) NOT NULL DEFAULT 0 ,\
-	`DROPPED_NAMETAG_COMMON` INT(11) NOT NULL DEFAULT 0 ,\
-	`DROPPED_GLOVES` INT(11) NOT NULL DEFAULT 0 ,\
-	`DROPPED_GLOVE0` INT(11) NOT NULL DEFAULT 0 ,\
-	`DROPPED_GLOVE1` INT(11) NOT NULL DEFAULT 0 ,\
-	`DROPPED_GLOVE2` INT(11) NOT NULL DEFAULT 0 ,\
-	`DROPPED_GLOVE3` INT(11) NOT NULL DEFAULT 0 ,\
-	`DROPPED_GLOVE4` INT(11) NOT NULL DEFAULT 0 ,\
-	`TOTAL_UPGRADES` INT(11) NOT NULL DEFAULT 0 ,\
-	`TOTAL_DAILY_REWARDS` INT(11) NOT NULL DEFAULT 0 ,\
-	`TOTAL_GIFTS` INT(11) NOT NULL DEFAULT 0 ,\
-	`TOTAL_TRADES` INT(11) NOT NULL DEFAULT 0 ,\
-	`TOTAL_COINFLIPS` INT(11) NOT NULL DEFAULT 0 ,\
-	`TOTAL_GIVEAWAYS` INT(11) NOT NULL DEFAULT 0 ,\
-	`TOTAL_PLAYERS_JOINED_GIVEAWAY` INT(11) NOT NULL DEFAULT 0 ,\
-	`TOTAL_CONTRACTS` INT(11) NOT NULL DEFAULT 0 ,\
-	`TOTAL_JACKPOT` INT(11) NOT NULL DEFAULT 0 ,\
-	`TOTAL_RAFFLE` INT(11) NOT NULL DEFAULT 0 ,\
-	`TOTAL_ROULETTE` INT(11) NOT NULL DEFAULT 0 ,\
-	`MARKET_ITEMS_SOLD` INT(11) NOT NULL DEFAULT 0 ,\
+	`RECEIVED_MONEY` INT(11) NOT NULL DEFAULT 0 ,\ 
+	`RECEIVED_SCRAPS` INT(11) NOT NULL DEFAULT 0 ,\ 
+	`DROPPED_CASES` INT(11) NOT NULL DEFAULT 0 ,\ 
+	`DROPPED_KEYS` INT(11) NOT NULL DEFAULT 0 ,\ 
+	`DROPPED_NAMETAG_CAPSULES` INT(11) NOT NULL DEFAULT 0 ,\ 
+	`DROPPED_NAMETAG_MYTHICS` INT(11) NOT NULL DEFAULT 0 ,\ 
+	`DROPPED_NAMETAG_RARE` INT(11) NOT NULL DEFAULT 0 ,\ 
+	`DROPPED_NAMETAG_COMMON` INT(11) NOT NULL DEFAULT 0 ,\ 
+	`DROPPED_GLOVE_CASES` INT(11) NOT NULL DEFAULT 0 ,\ 
+	`DROPPED_GLOVES` INT(11) NOT NULL DEFAULT 0 ,\ 
+	`DROPPED_GLOVE0` INT(11) NOT NULL DEFAULT 0 ,\ 
+	`DROPPED_GLOVE1` INT(11) NOT NULL DEFAULT 0 ,\ 
+	`DROPPED_GLOVE2` INT(11) NOT NULL DEFAULT 0 ,\ 
+	`DROPPED_GLOVE3` INT(11) NOT NULL DEFAULT 0 ,\ 
+	`DROPPED_GLOVE4` INT(11) NOT NULL DEFAULT 0 ,\ 
+	`TOTAL_UPGRADES` INT(11) NOT NULL DEFAULT 0 ,\ 
+	`TOTAL_DAILY_REWARDS` INT(11) NOT NULL DEFAULT 0 ,\ 
+	`TOTAL_GIFTS` INT(11) NOT NULL DEFAULT 0 ,\  
+	`TOTAL_TRADES` INT(11) NOT NULL DEFAULT 0 ,\  
+	`TOTAL_COINFLIPS` INT(11) NOT NULL DEFAULT 0 ,\ 
+	`TOTAL_GIVEAWAYS` INT(11) NOT NULL DEFAULT 0 ,\ 
+	`TOTAL_CONTRACTS` INT(11) NOT NULL DEFAULT 0 ,\ 
+	`TOTAL_ROULETTE` INT(11) NOT NULL DEFAULT 0 ,\ 
+	`MARKET_ITEMS_SOLD` INT(11) NOT NULL DEFAULT 0 ,\ 
+	`MARKET_ITEM_BOUGHT` INT(11) NOT NULL DEFAULT 0 ,\
 	PRIMARY KEY(id, uname));",
 
 
 	"(`server_key` VARCHAR(32) NOT NULL ,\
 	`DROPPED_SKINS` TEXT NOT NULL DEFAULT '0' ,\
 	`DROPPED_STT_SKINS` TEXT NOT NULL DEFAULT '0' ,\
-	`RECEIVED_MONEY` INT(11) NOT NULL DEFAULT 0 ,\
-	`RECEIVED_SCRAPS` INT(11) NOT NULL DEFAULT 0 ,\
-	`DROPPED_CASES` INT(11) NOT NULL DEFAULT 0 ,\
-	`DROPPED_KEYS` INT(11) NOT NULL DEFAULT 0 ,\
-	`DROPPED_NAMETAG_CAPSULES` INT(11) NOT NULL DEFAULT 0 ,\
-	`DROPPED_NAMETAG_MYTHICS` INT(11) NOT NULL DEFAULT 0 ,\
-	`DROPPED_NAMETAG_RARE` INT(11) NOT NULL DEFAULT 0 ,\
-	`DROPPED_NAMETAG_COMMON` INT(11) NOT NULL DEFAULT 0 ,\
-	`DROPPED_GLOVES` INT(11) NOT NULL DEFAULT 0 ,\
-	`DROPPED_GLOVE0` INT(11) NOT NULL DEFAULT 0 ,\
-	`DROPPED_GLOVE1` INT(11) NOT NULL DEFAULT 0 ,\
-	`DROPPED_GLOVE2` INT(11) NOT NULL DEFAULT 0 ,\
-	`DROPPED_GLOVE3` INT(11) NOT NULL DEFAULT 0 ,\
-	`DROPPED_GLOVE4` INT(11) NOT NULL DEFAULT 0 ,\
-	`TOTAL_UPGRADES` INT(11) NOT NULL DEFAULT 0 ,\
-	`TOTAL_DAILY_REWARDS` INT(11) NOT NULL DEFAULT 0 ,\
-	`TOTAL_GIFTS` INT(11) NOT NULL DEFAULT 0 ,\
-	`TOTAL_TRADES` INT(11) NOT NULL DEFAULT 0 ,\
-	`TOTAL_COINFLIPS` INT(11) NOT NULL DEFAULT 0 ,\
-	`TOTAL_GIVEAWAYS` INT(11) NOT NULL DEFAULT 0 ,\
-	`TOTAL_PLAYERS_JOINED_GIVEAWAY` INT(11) NOT NULL DEFAULT 0 ,\
-	`TOTAL_CONTRACTS` INT(11) NOT NULL DEFAULT 0 ,\
-	`TOTAL_JACKPOT` INT(11) NOT NULL DEFAULT 0 ,\
-	`TOTAL_RAFFLE` INT(11) NOT NULL DEFAULT 0 ,\
-	`TOTAL_ROULETTE` INT(11) NOT NULL DEFAULT 0 ,\
-	`MARKET_ITEMS_SOLD` INT(11) NOT NULL DEFAULT 0 ,\
+	`RECEIVED_MONEY` INT(11) NOT NULL DEFAULT 0 ,\ 
+	`RECEIVED_SCRAPS` INT(11) NOT NULL DEFAULT 0 ,\ 
+	`DROPPED_CASES` INT(11) NOT NULL DEFAULT 0 ,\ 
+	`DROPPED_KEYS` INT(11) NOT NULL DEFAULT 0 ,\ 
+	`DROPPED_NAMETAG_CAPSULES` INT(11) NOT NULL DEFAULT 0 ,\ 
+	`DROPPED_NAMETAG_MYTHICS` INT(11) NOT NULL DEFAULT 0 ,\ 
+	`DROPPED_NAMETAG_RARE` INT(11) NOT NULL DEFAULT 0 ,\ 
+	`DROPPED_NAMETAG_COMMON` INT(11) NOT NULL DEFAULT 0 ,\ 
+	`DROPPED_GLOVE_CASES` INT(11) NOT NULL DEFAULT 0 ,\ 
+	`DROPPED_GLOVES` INT(11) NOT NULL DEFAULT 0 ,\ 
+	`DROPPED_GLOVE0` INT(11) NOT NULL DEFAULT 0 ,\ 
+	`DROPPED_GLOVE1` INT(11) NOT NULL DEFAULT 0 ,\ 
+	`DROPPED_GLOVE2` INT(11) NOT NULL DEFAULT 0 ,\ 
+	`DROPPED_GLOVE3` INT(11) NOT NULL DEFAULT 0 ,\ 
+	`DROPPED_GLOVE4` INT(11) NOT NULL DEFAULT 0 ,\ 
+	`TOTAL_UPGRADES` INT(11) NOT NULL DEFAULT 0 ,\ 
+	`TOTAL_DAILY_REWARDS` INT(11) NOT NULL DEFAULT 0 ,\ 
+	`TOTAL_GIFTS` INT(11) NOT NULL DEFAULT 0 ,\  
+	`TOTAL_TRADES` INT(11) NOT NULL DEFAULT 0 ,\  
+	`TOTAL_COINFLIPS` INT(11) NOT NULL DEFAULT 0 ,\ 
+	`TOTAL_GIVEAWAYS` INT(11) NOT NULL DEFAULT 0 ,\ 
+	`TOTAL_CONTRACTS` INT(11) NOT NULL DEFAULT 0 ,\ 
+	`TOTAL_ROULETTE` INT(11) NOT NULL DEFAULT 0 ,\ 
+	`MARKET_ITEMS_SOLD` INT(11) NOT NULL DEFAULT 0 ,\ 
+	`MARKET_ITEM_BOUGHT` INT(11) NOT NULL DEFAULT 0 ,\
 	PRIMARY KEY(server_key));",
 }
 
@@ -827,7 +824,7 @@ g_CvarSilverVipNameTagChance,g_CvarScrapsDestroyNameTagSkin,g_CvarMoneyDestroyNa
 g_CvarRoundEndSounds,g_CvarGiveawayMinPlayers,g_CvarWeekendEvent,g_CvarWeekendFriday,g_CvarWeekendBonus,
 g_CvarShowSpecialSkins,g_CvarGloveDropChance,g_CvarGloveCaseDropChance,g_CvarCanUserDropVIPGloves,
 g_CvarCanUserUseVIPGloves,g_CvarRetrieveGlove,g_CvarWeekendHud,g_CvarMVPMaxMoney,g_CvarMVPMinMoney,g_CvarMVPMaxCases,
-g_CvarMVPMinCases,g_CvarMVPMaxKeys,g_CvarMVPMinKeys,g_CvarMVPMinScraps,g_CvarMVPMaxScraps,
+g_CvarMVPMinCases,g_CvarMVPMaxKeys,g_CvarMVPMinKeys,g_CvarMVPMinScraps,g_CvarMVPMaxScraps, g_CvarDailyMinRank,
 g_CvarSkinType, g_CvarSaveType, g_CvarKnifeKillScraps, g_CvarDoubleScope, g_CvarStatsCountCmds;
 new msgScreenFade;
 new g_hWeekBonus;
@@ -924,6 +921,7 @@ public plugin_init()
 			fw_ICD[i] = RegisterHam(Ham_CS_Item_CanDrop, g_szWeaponEntName[i], "Ham_Item_Can_Drop", 0)
 		}
 	}
+	
 	RegisterHam(Ham_Weapon_SecondaryAttack, g_szWeaponEntName[CSW_AWP], "Ham_Weapon_SecondaryAttack_Post", _:true)
 	RegisterHam(Ham_Weapon_PrimaryAttack, g_szWeaponEntName[CSW_AWP], "Ham_Weapon_PrimaryAttack_Post", _:true)
 	
@@ -952,10 +950,9 @@ public plugin_init()
 	RegisterCMDS()
 }
 
+
 stock AddStatistics(const id, const STATISTICS:type, const amount, const skinid = -1, const gloveid = -1)
 {
-	// static iServerOld, iUserOld
-
 	if(type == DROPPED_SKINS || type == DROPPED_STT_SKINS)
 	{
 		if(skinid == -1)
@@ -968,28 +965,16 @@ stock AddStatistics(const id, const STATISTICS:type, const amount, const skinid 
 		{
 			case DROPPED_SKINS:
 			{
-				// iServerOld = g_iServerSkinStatistics[iSkinID]
-				// iUserOld = g_iUserSkinStatistics[id][iSkinID]
-
 				g_iServerSkinStatistics[skinid] += amount
 				g_iUserSkinStatistics[id][skinid] += amount
 			}
 
 			case DROPPED_STT_SKINS:
 			{
-				// iServerOld = g_iServerSttSkinStatistics[iSkinID]
-				// iUserOld = g_iUserSttSkinStatistics[id][iSkinID]
-
 				g_iServerSttSkinStatistics[skinid] += amount
 				g_iUserSttSkinStatistics[id][skinid] += amount
 			}
 		}
-		
-		// static szSkinName[64]
-		// ArrayGetString(g_aSkinName, iSkinID, szSkinName, charsmax(szSkinName))
-
-		// server_print("[%s] %s%s has a server value of %i [old is %i]", g_szStatsName[_:sType], sType == DROPPED_STT_SKINS ? "StatTrack " : "", szSkinName, g_iServerSkinStatistics[iSkinID], iServerOld)
-		// server_print("[%s] %s%s has a value of %i [old is %i] for user %n", g_szStatsName[_:sType], sType == DROPPED_STT_SKINS ? "StatTrack " : "", szSkinName, g_iUserSttSkinStatistics[id][iSkinID], iUserOld, id)
 		return
 	}
 
@@ -1037,14 +1022,8 @@ stock AddStatistics(const id, const STATISTICS:type, const amount, const skinid 
 		return
 	}
 
-	// iServerOld = g_eServerStatistics[sType]
-	// iUserOld = g_eUserStatistics[id][sType]
-
 	g_eServerStatistics[type] += amount
 	g_eUserStatistics[id][type] += amount
-	
-	// server_print("[%s] has a server value of %i [old is %i]", g_szStatsName[_:sType] , g_eUserStatistics[id][sType], iServerOld)
-	// server_print("[%s] has a value of %i [old is %i] for user %n", g_szStatsName[_:sType] , g_eUserStatistics[id][sType], iUserOld, id)
 	
 	return
 }
@@ -1275,8 +1254,6 @@ public plugin_end()
 			}
 
 			iQueryLen += formatex(szQuery[iQueryLen], charsmax(szQuery), " WHERE `server_key` = '%s';", DB_SERVER_KEY)
-
-			log_to_file(LOG_FILE, "[%i] Query: %s", iQueryLen, szQuery)
 
 			SQL_ThreadQuery(g_SqlTuple, "FreeHandle", szQuery)
 			SQL_FreeHandle(g_SqlTuple)
@@ -1975,7 +1952,6 @@ _SaveData(id)
 
 saveSqlData(id)
 {
-	server_print("Time: %f", get_gametime())
 	enum
 	{
 		NON_STT,
@@ -2007,7 +1983,6 @@ saveSqlData(id)
 		if(g_iUserSelectedSkin[id][i] != -1)
 		{
 			ArrayGetString(g_aSkinName, g_iUserSelectedSkin[id][i], szSkinName, charsmax(szSkinName))
-			server_print("%s: %i [%s] ", g_szWeaponEntName[i], g_iUserSelectedSkin, szSkinName)
 		}
 		
 		iLen[0] += formatex(skinbuff[iLen[0]], charsmax(skinbuff), "%d,", g_iUserSelectedSkin[id][i]);
@@ -2076,8 +2051,6 @@ saveSqlData(id)
 	iQueryLen += formatex(szQuery[iQueryLen], charsmax(szQuery), " WHERE data.uname = '%s'", g_szSQLName[id]);
 
 	SQL_ThreadQuery(g_SqlTuple, "FreeHandle", szQuery);
-
-	server_print("Time: %f", get_gametime())
 }
 
 saveNvaultData(id)
@@ -2184,7 +2157,6 @@ getDataSQL(id)
 
 public GetUserData(FailState, Handle:Query, szError[], ErrorCode, szData[], iSize)
 {
-	server_print("Load time: %f", get_gametime())
 	if(FailState || ErrorCode)
 	{
 		log_to_file(LOG_FILE, "^nSQL ERROR: %s^n", szError);
@@ -2336,7 +2308,6 @@ public GetUserData(FailState, Handle:Query, szError[], ErrorCode, szData[], iSiz
 		for(new STATISTICS:iStat = RECEIVED_MONEY; iStat < STATISTICS; iStat++ )
 		{
 			g_eUserStatistics[id][iStat] = SQL_ReadResult(Query, SQL_FieldNameToNum(Query, g_szStatsName[_:iStat]))
-			server_print("[%s] %n: %i", g_szStatsName[_:iStat], id, g_eUserStatistics[id][iStat])
 		}
 
 		enum 
@@ -2372,7 +2343,6 @@ public GetUserData(FailState, Handle:Query, szError[], ErrorCode, szData[], iSiz
 	}
 
 	SQL_FreeHandle(Query);
-	server_print("Load time: %f", get_gametime())
 	
 	return;
 }
@@ -2380,20 +2350,17 @@ public GetUserData(FailState, Handle:Query, szError[], ErrorCode, szData[], iSiz
 stock SetUserSkin(const id, const skinid, const weaponid)
 {
 	static iBodyPart
-	
+
 	if(skinid == -1)
 	{
 		if(!g_bUserDefaultModels[id])
 		{
 			CalculateModelBodyIndex(-1, g_eDefaultModels[weaponid][PATH], g_eDefaultModels[weaponid][BODYINDEX] > -1 ? g_eDefaultModels[weaponid][BODYINDEX] : 0, iBodyPart);
-			cs_set_viewmodel_body(id, weaponid, iBodyPart)
 			cs_set_modelformat(id, weaponid, g_eDefaultModels[weaponid][PATH])
+			cs_set_viewmodel_body(id, weaponid, iBodyPart)
 		}
 		else 
 		{
-			cs_set_viewmodel_body(id, weaponid, -1)
-			cs_set_modelformat(id, weaponid, "")
-			
 			set_pev(id, pev_viewmodel2, g_szDefaultSkinModels[weaponid])
 		}
 	}
@@ -2403,8 +2370,8 @@ stock SetUserSkin(const id, const skinid, const weaponid)
 		ArrayGetString(g_aSkinModel, skinid, szModel, charsmax(szModel))
 
 		CalculateModelBodyIndex(g_iWeaponGloves[id][weaponid], szModel, ArrayGetCell(g_aSkinBody, skinid), iBodyPart)
-		cs_set_viewmodel_body(id, weaponid, iBodyPart)
 		cs_set_modelformat(id, weaponid, szModel)
+		cs_set_viewmodel_body(id, weaponid, iBodyPart)
 	}
 }
 
@@ -2878,7 +2845,6 @@ public concmd_password(id)
 }
 
 //showm
-
 new g_iMainMenuPage[MAX_PLAYERS + 1]
 new g_iMainMenuID[MAX_PLAYERS + 1]
 _ShowMainMenu(id)
@@ -2995,6 +2961,7 @@ stock add_main_menu_default_items(const id, const &menu)
 	{
 		formatex(temp, 95, "\w%L", id, "MENU_GIVEAWAY_OPEN");
 	}
+
 	menu_additem(menu, temp, "4");
 
 	formatex(temp, 95, "\w%L", id, "MENU_UPGRADE");
@@ -3017,9 +2984,21 @@ stock add_main_menu_default_items(const id, const &menu)
 	formatex(temp, 95, "\w%L", id, "MENU_PREVIEW");
 	menu_additem(menu, temp, "10");
 
-	formatex(temp, 95, "%s%L", (g_iUserDailyTime[id] <= get_systime()) ? "\y" : "\d", id, "MENU_DAILY");
-	menu_additem(menu, temp, "11");
-	
+	if(g_iUserRank[id] >= g_CvarDailyMinRank)
+	{
+		formatex(temp, 95, "%s%L", (g_iUserDailyTime[id] <= get_systime()) ? "\y" : "\d", id, "MENU_DAILY");
+		menu_additem(menu, temp, "11");
+	} 
+	else 
+	{
+		new szRankName[64]
+
+		ArrayGetString(g_aRankName, g_CvarDailyMinRank, szRankName, charsmax(szRankName))
+
+		formatex(temp, 95, "\d%l %l", "MENU_DAILY", "MENU_MIN_RANK_INFO", szRankName);
+		menu_additem(menu, temp, "11");
+	}
+
 	formatex(temp, 95, "\w%L", id, "MENU_SETTINGS_TITLE");
 	menu_additem(menu, temp, "12");
 }
@@ -5205,13 +5184,24 @@ public QuestsMenu_handler(id, menu, item)
 
 DailyReward(id)
 {
+	if(g_iUserRank[id] < g_CvarDailyMinRank)
+	{
+		new szRankName[64]
+
+		ArrayGetString(g_aRankName, g_CvarDailyMinRank, szRankName, charsmax(szRankName))
+
+		client_print_color(id, print_team_default, "%s %l", CHAT_PREFIX, "CHAT_MINIMUM_RANK", szRankName)
+		_ShowMainMenu(id)
+		return
+	}
+
 	if(g_iUserDailyTime[id] <= get_systime())
 	{
 		new menu = menu_create(fmt("%s %l", MENU_PREFIX, "DAILY_REWARD_MENU_TITLE"), "reward_handler" );
-		menu_additem(menu, fmt("%s", "DAILY_MONEY"));
-		menu_additem(menu, fmt("%s", "DAILY_KEYS"));
-		menu_additem(menu, fmt("%s", "DAILY_CASES"));
-		menu_additem(menu, fmt("%s", "DAILY_SCRAPS"));
+		menu_additem(menu, fmt("%l", "DAILY_MONEY"));
+		menu_additem(menu, fmt("%l", "DAILY_KEYS"));
+		menu_additem(menu, fmt("%l", "DAILY_CASES"));
+		menu_additem(menu, fmt("%l", "DAILY_SCRAPS"));
 		
 		menu_setprop(menu, MPROP_EXIT, MEXIT_ALL);
 
@@ -5232,6 +5222,8 @@ DailyReward(id)
 		client_print_color(id, id, "^4%s^1 %L", CHAT_PREFIX, id, "DAILY_ALREADY_GOT", iHours < 10 ? "0" : "", iHours,  iHours > 1 ? "s" : "", iMinutes < 10 ? "0" : "", iMinutes, iMinutes > 1 ? "s" : "")
 		_ShowMainMenu(id);
 	}
+
+	return
 }
 
 
@@ -5681,7 +5673,6 @@ _ShowSkinMenu(id)
 	{
 		formatex(szTitle, charsmax(szTitle), "%s %l", MENU_PREFIX, "MENU_SKINS_INV_TITLE", AddCommas(iUserTotalSkins), iUserTotalSkins > 1 ? "s" : "")
 		menu_setprop(iMenu, MPROP_TITLE, szTitle)
-		// menu_setprop(iMenu, MPROP_TITLE,  "CACA")
 		menu_display(id, iMenu)
 	}
 	else 
@@ -10306,7 +10297,6 @@ public GetServerStatistics(FailState, Handle:Query, szError[], ErrorCode, szData
 	for(new STATISTICS:iStat = RECEIVED_MONEY; iStat < STATISTICS; iStat++)
 	{
 		g_eServerStatistics[iStat] = SQL_ReadResult(Query, SQL_FieldNameToNum(Query, g_szStatsName[_:iStat]))
-		server_print("[%s] %i", g_szStatsName[_:iStat], g_eServerStatistics[iStat])
 	}
 
 	enum 
@@ -10420,7 +10410,7 @@ RegisterCVARS()
 	bind_pcvar_num(
 		create_cvar(
 				"giveaway_rounds",
-				"1",
+				"18",
 				FCVAR_NONE,
 				"Rounds played until giveaway starts",
 				true,
@@ -10661,7 +10651,7 @@ RegisterCVARS()
 	bind_pcvar_num(
 		create_cvar(
 				"warmup_duration",
-				"1",
+				"15",
 				FCVAR_NONE,
 				"Warmup duration in seconds"
 		),
@@ -10826,7 +10816,7 @@ RegisterCVARS()
 	)
 	bind_pcvar_num(
 		create_cvar(
-				"name_tag_capsule_gold_add",
+				"capsule_gold_chance_add",
 				"10",
 				FCVAR_NONE,
 				"Chance to add to nametag capsule drop for a Gold VIP",
@@ -10839,7 +10829,7 @@ RegisterCVARS()
 	)
 	bind_pcvar_num(
 		create_cvar(
-				"name_tag_capsule_silver_add",
+				"capsule_silver_chance_add",
 				"5",
 				FCVAR_NONE,
 				"Chance to add to nametag capsule drop for a Silver VIP (not FREE VIP)",
@@ -10865,7 +10855,7 @@ RegisterCVARS()
 	)
 	bind_pcvar_num(
 		create_cvar(
-				"name_tag_capsule_silver_add",
+				"name_tag_silver_chance_add",
 				"5",
 				FCVAR_NONE,
 				"Chance to add to nametag drop from capsule for a Silver VIP (not FREE VIP)",
@@ -11209,6 +11199,20 @@ RegisterCVARS()
 			1.0
 		),
 		g_CvarStatsCountCmds
+	)
+
+	bind_pcvar_num(
+		create_cvar(
+			"daily_bonus_min_rank",
+			"2",
+			FCVAR_NONE,
+			"If counting admin commands in statistics",
+			true,
+			0.0,
+			true,
+			1.0
+		),
+		g_CvarDailyMinRank
 	)
 
 	p_Freezetime = get_cvar_pointer("mp_freezetime")

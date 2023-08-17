@@ -1,0 +1,213 @@
+[en]
+MVP_MENU_TITLE = MVP Menu
+MVP_SHOW_MVP_COUNT = You were \r%d times\y MVP\w!
+MVP_CHOOSE_TRACK = Choose a track
+MVP_TRACK_LIST = View Tracks list
+MVP_SOUNDS_ON_OFF = MVP Sounds: \y%s
+MVP_TRACK_X_SELECTED = You have selected the track: ^4%s
+MVP_TRACK_X_DESELECTED = You have deselected the track: ^4%s
+MVP_TRACK_LIST_TITLE = Tracks List
+MVP_KILLER_SHOW_CHAT = Player of the round: ^3%s^1 for ^4killing %i players.
+MVP_KILLER_SHOW_HUD = Player of the round: %s for killing %i players.
+MVP_DEFUSER_SHOW_CHAT = Player of the round: ^3%s^1 for ^4defusing the bomb.
+MVP_DEFUSER_SHOW_HUD = Player of the round: %s for defusing the bomb.
+MVP_PLANTER_SHOW_CHAT = Player of the round: ^3%s^1 for ^4planting the bomb.
+MVP_PLANTER_SHOW_HUD = Player of the round: %s for planting the bomb.
+NO_MVP_SHOW_CHAT = Player of the round: ^3No Player^1 was ^4good enough this round.
+NO_MVP_SHOW_HUD = Player of the round: No Player was good enough this round.
+MVP_NO_TRACKS_LOADED = No tracks loaded.
+MVP_VIP_ONLY = \r[VIP Only]
+MVP_TRACK_VIP_ONLY = This track is only for ^4V.I.P^1 members
+MVP_PLAYING_TRACK = Playing Track:
+RESERVED_TRACK_CHAT = This track is reserved for^3 %s^1
+NOT_ENOUGH_MONEY = You need^3 %i$^1 to buy this track
+TRACK_BOUGHT = You bought^3 %s^1
+
+[ro]
+MVP_MENU_TITLE = Meniu MVP
+MVP_SHOW_MVP_COUNT = Ai fost de \r%d ori\y MVP\w!
+MVP_CHOOSE_TRACK = Alege o melodie
+MVP_TRACK_LIST = Vezi lista melodiilor
+MVP_SOUNDS_ON_OFF = Sunete MVP: \y%s
+MVP_TRACK_X_SELECTED = Ai selectat melodia: ^4%s
+MVP_TRACK_X_DESELECTED = Ai deselectat melodia: ^4%s
+MVP_TRACK_LIST_TITLE = Lista Melodiilor
+MVP_KILLER_SHOW_CHAT = Jucatorul acestei runde: ^3%s^1 pentru ^4uciderea a %i jucatori.
+MVP_KILLER_SHOW_HUD = Jucatorul acestei runde: %s pentru uciderea a %i jucatori.
+MVP_DEFUSER_SHOW_CHAT = Jucatorul acestei runde: ^3%s^1 pentru ^4dezamorsarea bombei.
+MVP_DEFUSER_SHOW_HUD = Jucatorul acestei runde: %s pentru dezamorsarea bombei.
+MVP_PLANTER_SHOW_CHAT = Jucatorul acestei runde: ^3%s^1 pentru ^4plantarea bombei.
+MVP_PLANTER_SHOW_HUD = Jucatorul acestei runde: %s pentru plantarea bombei.
+NO_MVP_SHOW_CHAT = Jucatorul acestei runde: ^3Niciun Jucator^1 nu a fost destul de ^4bun aceasta runda.
+NO_MVP_SHOW_HUD = Jucatorul acestei runde: Niciun Jucator nu a fost destul de bun aceasta runda.
+MVP_NO_TRACKS_LOADED =Nicio melodie incarcata.
+MVP_VIP_ONLY = \r[Doar VIP]
+MVP_TRACK_VIP_ONLY = Aceasta melodie este doar pentru membri ^4V.I.P^1.
+MVP_PLAYING_TRACK = Asculti melodia:
+RESERVED_TRACK_MENU = Acest track este rezervat pentru\y %s\d.
+NOT_ENOUGH_MONEY = Mai ai nevoie de^4 %i$^1 pentru a cumpara acest track.
+TRACK_BOUGHT = Ai cumparat^4 %s^1.
+
+// Thanks to [teol](https://forums.alliedmods.net/member.php?u=62500)
+[fr]
+MVP_MENU_TITLE = Menu MVP
+MVP_CHOOSE_TRACK = Choisir une piste audio
+MVP_TRACK_LIST = Voir liste de pistes audio
+MVP_SOUNDS_ON_OFF = Pistes audio MVP: \y%s
+MVP_TRACK_X_SELECTED = Vous avez sélectionné la piste: ^4%s
+MVP_TRACK_X_DESELECTED = Vous avez sélectionné la piste: ^4%s
+MVP_TRACK_LIST_TITLE = Liste de pistes audio
+MVP_KILLER_SHOW_CHAT = Joueur du round: ^3%s^1 pour avoir ^4tué %i joueurs.
+MVP_KILLER_SHOW_HUD = Joueur du round: %s pour avoir tué %i joueurs.
+MVP_DEFUSER_SHOW_CHAT = Joueur du round: ^3%s^1 pour avoir ^4désamorcé la bombe.
+MVP_DEFUSER_SHOW_HUD = Joueur du round: %s pour avoir désamorcé la bombe.
+MVP_PLANTER_SHOW_CHAT = Joueur du round: ^3%s^1 pour avoir ^4planté la bombe.
+MVP_PLANTER_SHOW_HUD = Joueur du round: %s pour avoir planté la bombe.
+NO_MVP_SHOW_CHAT = Joueur du round: ^3Aucun joueur^1 n'a été ^4assez bon pendant ce round.
+NO_MVP_SHOW_HUD = Joueur du round: Aucun joueur n'a été assez bon pendant ce round.
+MVP_NO_TRACKS_LOADED = Aucune piste audio chargée.
+
+// Thanks to [Rivotril](https://forums.alliedmods.net/member.php?u=246699)
+[es]
+MVP_MENU_TITLE = Menu de MVP
+MVP_CHOOSE_TRACK = Elegi una cancion
+MVP_TRACK_LIST = Ver lista de canciones
+MVP_SOUNDS_ON_OFF = Sonidos de MVP: \y%s
+MVP_TRACK_X_SELECTED = Elegiste la cancion: ^4%s
+MVP_TRACK_X_DESELECTED = Removiste la cancion: ^4%s
+MVP_TRACK_LIST_TITLE = Lista de Canciones
+MVP_KILLER_SHOW_CHAT = Jugador de la ronda: ^3%s^1 por ^4matar %i jugadores.
+MVP_KILLER_SHOW_HUD = Jugador de la ronda: %s por matar %i jugadores.
+MVP_DEFUSER_SHOW_CHAT = Jugador de la ronda: ^3%s^1 por ^4defusear la bomba.
+MVP_DEFUSER_SHOW_HUD = Jugador de la ronda: %s por defusear la bomba.
+MVP_PLANTER_SHOW_CHAT = Jugador de la ronda: ^3%s^1 por ^4plantar la bomba.
+MVP_PLANTER_SHOW_HUD = Jugador de la ronda: %s por plantar la bomba.
+NO_MVP_SHOW_CHAT = Jugador de la ronda: ^3Ningun jugador^1 fue lo ^4suficientemente bueno en esta ronda.
+NO_MVP_SHOW_HUD = Jugador de la ronda: Ningun jugador fue lo suficientemente bueno en esta ronda.
+MVP_NO_TRACKS_LOADED = No se cargo ninguna cancion.
+
+// Thanks to[Napoleon_be](https://forums.alliedmods.net/member.php?u=149700)
+[nl]
+MVP_MENU_TITLE = MVP Menu
+MVP_CHOOSE_TRACK = Kies een nummer
+MVP_TRACK_LIST = Bekijk nummer lijst
+MVP_SOUNDS_ON_OFF = MVP Geluiden: \y%s
+MVP_TRACK_X_SELECTED = Je hebt het volgende nummer geselecteerd: ^4%s
+MVP_TRACK_X_DESELECTED = Je hebt het volgende nummer gedeselecteerd: ^4%s
+MVP_TRACK_LIST_TITLE = Nummers lijst
+MVP_KILLER_SHOW_CHAT = Beste speler deze ronde: ^3%s^1 voor het ^4doden van %i spelers.
+MVP_KILLER_SHOW_HUD = Beste speler deze ronde: %s voor het doden van %i spelers.
+MVP_DEFUSER_SHOW_CHAT = Beste speler deze ronde: ^3%s^1 voor het ^4onschadelijk maken van de bom.
+MVP_DEFUSER_SHOW_HUD = Beste speler deze ronde: %s voor het onschadelijk maken van de bom.
+MVP_PLANTER_SHOW_CHAT = Beste speler deze ronde: ^3%s^1 voor het planten van de ^4bom.
+MVP_PLANTER_SHOW_HUD = Beste speler deze ronde: %s voor het planten van de bom.
+NO_MVP_SHOW_CHAT = Beste speler deze ronde: ^3Er was geen enkele speler^1 goed genoeg ^4deze ronde.
+NO_MVP_SHOW_HUD = Beste speler deze ronde: Er was geen enkele speler goed genoeg deze ronde.
+MVP_NO_TRACKS_LOADED = Geen nummers geladen.
+
+// Thanks to[Snake.](https://forums.alliedmods.net/member.php?u=280676)
+[tr]
+MVP_MENU_TITLE = Edo Menu
+MVP_CHOOSE_TRACK = Bir parca sec
+MVP_TRACK_LIST = Parca listesini gor
+MVP_SOUNDS_ON_OFF = EDO Sesleri: \y%s
+MVP_TRACK_X_SELECTED = Sectigin parca: ^4%s
+MVP_TRACK_X_DESELECTED = Secimini kaldirdigin parca: ^4%s
+MVP_TRACK_LIST_TITLE = Parca Listesi
+MVP_KILLER_SHOW_CHAT = Raundun oyuncusu: ^3% ^1(^4%i kill^1)
+MVP_KILLER_SHOW_HUD = Raundun oyuncusu: %s (%i kill)
+MVP_DEFUSER_SHOW_CHAT = Raundun oyuncusu: ^3%s ^1(^4bombayi cozme^1)
+MVP_DEFUSER_SHOW_HUD = Raundun oyuncusu: %s (bombayi cozme)
+MVP_PLANTER_SHOW_CHAT = Raundun oyuncusu: ^3%s ^1(^4bombayi yerlestirme^1)
+MVP_PLANTER_SHOW_HUD = Raundun oyuncusu: %s (bombayi yerlestirme)
+NO_MVP_SHOW_CHAT = Raundun oyuncusu: Bu raund ^4yeteri kadar iyi oyuncu ^1yoktu
+NO_MVP_SHOW_HUD = Raundun oyuncusu: Bu raund yeteri kadar iyi oyuncu yoktu
+MVP_NO_TRACKS_LOADED = Hic yuklu parca yok
+MVP_VIP_ONLY = \r[Sadece VIP]
+MVP_TRACK_VIP_ONLY = Bu parca sadece ^4V.I.P ^1uyeler icindir
+
+// Thanks to[Godofwar](https://forums.alliedmods.net/member.php?u=266045)
+[de]
+MVP_MENU_TITLE = MVP Menü
+MVP_CHOOSE_TRACK = Wähle einen Titel
+MVP_TRACK_LIST = Titelliste anzeigen 
+MVP_SOUNDS_ON_OFF = MVP Sounds: \y%s
+MVP_TRACK_X_SELECTED = Du hast folgenden Titel ausgewählt:  ^4%s
+MVP_TRACK_X_DESELECTED = Du hast folgenden Titel abgewählt: ^4%s
+MVP_TRACK_LIST_TITLE = Titelliste
+MVP_KILLER_SHOW_CHAT = ^3Spieler der Runde ist: %s ^1für das ^4töten von %i Spielern.
+MVP_KILLER_SHOW_HUD = ^3Spieler der Runde ist: %s ^1für das ^4töten von %i Spielern.
+MVP_DEFUSER_SHOW_CHAT = ^3Spieler der Runde ist%s ^1fürs ^4entschärfern der Bombe.
+MVP_DEFUSER_SHOW_HUD = Spieler der Runde ist: %s fürs entschärfen der Bombe.
+MVP_PLANTER_SHOW_CHAT = ^3Spieler der Runde ist: %s ^1fürs ^4legen der Bombe.
+MVP_PLANTER_SHOW_HUD = Spieler der Runde ist: %s fürs legen der Bombe.
+NO_MVP_SHOW_CHAT = Spieler der Runde: ^3Kein Spieler^1 war ^4gut genug in dieser Runde.
+NO_MVP_SHOW_HUD = Spieler der Runde: Kein Spieler war in dieser Runde gut genug.
+MVP_NO_TRACKS_LOADED = Keine Titel geladen.
+
+// Random guy from AlliedModders (https://forums.alliedmods.net/member.php?u=308640)
+[ru]
+MVP_MENU_TITLE = Меню MVP
+MVP_CHOOSE_TRACK = Выберите трек
+MVP_TRACK_LIST = Показать список треков
+MVP_SOUNDS_ON_OFF = Треки MVP: \y%s
+MVP_TRACK_X_SELECTED = Вы выбрали трек: ^4%s
+MVP_TRACK_X_DESELECTED = Вы отменили выбор трека: ^4%s
+MVP_TRACK_LIST_TITLE = Список треков
+MVP_KILLER_SHOW_CHAT = Самый ценный игрок: ^3%s ^1за ^4убийство %i игроков.
+MVP_KILLER_SHOW_HUD = Самый ценный игрок: %s за убийство %i игроков.
+MVP_DEFUSER_SHOW_CHAT = Самый ценный игрок: ^3%s ^1за ^4обезвреживание бомбы.
+MVP_DEFUSER_SHOW_HUD = Самый ценный игрок: %s за обезвреживание бомбы.
+MVP_PLANTER_SHOW_CHAT = Самый ценный игрок: ^3%s ^1за ^4закладку бомбы.
+MVP_PLANTER_SHOW_HUD = Самый ценный игрок: %s за закладку бомбы.
+NO_MVP_SHOW_CHAT = В этом раунде ^3не было ^4достаточно ценного игрока.
+NO_MVP_SHOW_HUD = В этом раунде не было достаточно ценного игрока.
+MVP_NO_TRACKS_LOADED = Нет загруженных треков.
+
+MVP_VIP_ONLY = \r[Только для VIP]
+MVP_TRACK_VIP_ONLY = Этот трек доступен только ^4VIP ^1игрокам.
+MVP_PLAYING_TRACK = Сейчас проигрывается: 
+
+// Thanks [YankoNL] (https://forums.alliedmods.net/member.php?u=289644)
+[bg]
+MVP_MENU_TITLE = MVP Menu
+MVP_CHOOSE_TRACK = Izberi melodiya
+MVP_TRACK_LIST = Vij spisuk s melodii
+MVP_SOUNDS_ON_OFF = MVP Zvuci: \y%s
+MVP_TRACK_X_SELECTED = Vie izbrahte: ^4%s
+MVP_TRACK_X_DESELECTED = Vie otkazahte izbora: ^4%s
+MVP_TRACK_LIST_TITLE = Spisuk s Melodii
+MVP_KILLER_SHOW_CHAT = Igrach na runda: ^3%s^1 ubi ^4 %i igracha.
+MVP_KILLER_SHOW_HUD = Igrach na runda: %s ubi %i igracha.
+MVP_DEFUSER_SHOW_CHAT = Igrach na runda: ^3%s^1 za ^4obezvrejdane na bombata.
+MVP_DEFUSER_SHOW_HUD = Igrach na runda: %s obezvredi bombata.
+MVP_PLANTER_SHOW_CHAT = Igrach na runda: ^3%s^1 za ^4zalagane na bombata.
+MVP_PLANTER_SHOW_HUD = Igrach na runda: %s zaloji bombata.
+NO_MVP_SHOW_CHAT = Igrach na runda: ^3Nikoi^1 ne beshe ^4dostatuchno dobur za tozi rund.
+NO_MVP_SHOW_HUD = Igrach na runda: Nikoi ne beshe dostatuchno dobur za tozi rund
+MVP_NO_TRACKS_LOADED = Nyama nalichni melodii.
+
+MVP_VIP_ONLY = \r[VIP Only]
+MVP_TRACK_VIP_ONLY = Tazi melodiya e samo za ^4V.I.P^1 igrachi.
+MVP_PLAYING_TRACK = Vuzproizvejda se Melodiya:
+
+[pl]
+MVP_MENU_TITLE = MVP Menu
+MVP_CHOOSE_TRACK = Wybierz utwor
+MVP_TRACK_LIST = Pokaz utwory
+MVP_SOUNDS_ON_OFF = Dzwieki MVP: \y%s
+MVP_TRACK_X_SELECTED = Wybrano utwor: ^4%s
+MVP_TRACK_X_DESELECTED = Utwor zostal odznaczony: ^4%s
+MVP_TRACK_LIST_TITLE = Lista utworow
+MVP_KILLER_SHOW_CHAT = Najlepszy gracz rundy: ^3%s^1 za ^4zabicie %i graczy.
+MVP_KILLER_SHOW_HUD = Najlepszy gracz rundy: %s za zabicie %i graczy.
+MVP_DEFUSER_SHOW_CHAT = Najlepszy gracz rundy: ^3%s^1 za ^4rozbrojenie bomby.
+MVP_DEFUSER_SHOW_HUD = Najlepszy gracz rundy: %s za rozbrojenie bomby.
+MVP_PLANTER_SHOW_CHAT = Najlepszy gracz rundy: ^3%s^1 za ^4podlozenie bomby.
+MVP_PLANTER_SHOW_HUD = Najlepszy gracz rundy: %s za podlozenie bomby.
+NO_MVP_SHOW_CHAT = ^3Zaden gracz ^1nie byl^4 wystarczajaco dobry w tej rundzie.^1
+NO_MVP_SHOW_HUD = Zaden gracz nie byl wystarczajaco dobry w tej rundzie.
+MVP_NO_TRACKS_LOADED = Utwory nie zostaly wczytane
+MVP_VIP_ONLY = \r[Tylko dla VIP-a]
+MVP_TRACK_VIP_ONLY = Wybrany utwor jest tylko dla graczy ^4VIP^1.
+MVP_PLAYING_TRACK = Odtwarzanie utworu:

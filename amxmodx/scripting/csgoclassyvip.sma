@@ -250,7 +250,8 @@ public plugin_init()
 	
 	RegisterHam(Ham_TakeDamage, "player", "ham_Player_TakeDamage_Post", 0)
 	RegisterHam(Ham_Player_PostThink, "player", "ham_Player_PostThink_Post", 1 )
-	RegisterHam(Ham_Killed,"player","fw_Ham_Player_Killed",1)
+	RegisterHam(Ham_Killed,"player","fw_Ham_Player_Killed_Post",1)
+	RegisterHam(Ham_Killed,"player","fw_Ham_Player_Killed_Pre")
 	RegisterHam(Ham_Spawn,"player","fwSpawn",1)
 	register_logevent("LogEvent_RoundStart", 2, "1=Round_Start" );
 	register_event("TextMsg","Event_RoundRestart","a","2&#Game_w")
@@ -262,6 +263,13 @@ public plugin_init()
 	LoadCfg()
 }
 
+public fw_Ham_Player_Killed_Pre(const iVictim)
+{
+	if(pev(iVictim, pev_flags) & FL_FROZEN)
+	{
+		remove_frozen(iVictim)
+	}
+}
 
 public show_hud(id)
 {
@@ -705,11 +713,11 @@ public VipItemsMenu(id)
 		
 	if(VIPMj[id] == 0)
 	{
-		menu_additem(szTittle, "Triple jump \r[1000 V$]")
+		menu_additem(szTittle, "Double jump \r[1000 V$]")
 	}	
 	else
 	{
-		menu_additem(szTittle, !g_bActived_Mj[id] ? "Triple jump \r[OFF]" : "Triple jump \y[ON]")
+		menu_additem(szTittle, !g_bActived_Mj[id] ? "Double jump \r[OFF]" : "Triple jump \y[ON]")
 	}
 			
 	if(VIPRegen[id] == 0)
@@ -721,14 +729,14 @@ public VipItemsMenu(id)
 		menu_additem(szTittle, !g_bActived_Regen[id] ? "HP Regeneration \r[OFF]" : "HP Regeneration \y[ON]")
 	}
 			
-	// if(VIPImm[id] == 0)
-	// {
-	// 	menu_additem(szTittle, "Freeze \r[3500 V$]")
-	// }	
-	// else
-	// {
-	// 	menu_additem(szTittle, !g_bActived_Imm[id] ? "Freeze \r[OFF]" : "Freeze \y[ON]")
-	// }
+	if(VIPImm[id] == 0)
+	{
+		menu_additem(szTittle, "Freeze \r[3500 V$]")
+	}	
+	else
+	{
+		menu_additem(szTittle, !g_bActived_Imm[id] ? "Freeze \r[OFF]" : "Freeze \y[ON]")
+	}
 			
 	if(VIPBh[id] == 0)
 	{
@@ -865,56 +873,56 @@ public vip_items_handler(id,menu,item)
 				}
 			}
 		}
-		// case 2:
-		// {
-		// 	if(VIPImm[id] == 0)
-		// 	{
-		// 		if(VIPMoney[id] >= 3500)
-		// 		{
-		// 			VIPImm[id] = 1
-		// 			VIPMoney[id] -= 3500
-		// 			VipItemsMenu(id)
-		// 		}
-		// 		else
-		// 		{
-		// 			client_print_color(id, id, "^4[CSGO Classy]^1 You do not have enough ^4V$^1, you need ^4%d more", 3500 - VIPMoney[id])
-		// 			VipItemsMenu(id)
-		// 		}
-		// 	}
-		// 	else
-		// 	{
-		// 		if(!g_bActived_NoDmg[id])
-		// 		{
-		// 			if(!g_bActived_Imm[id])
-		// 			{
-		// 				g_bActived_Imm[id] = true
-						
-		// 				if(task_exists(id+TASK_GODMOD))
-		// 					remove_task(id+TASK_GODMOD)
-							
-		// 				if(task_exists(id+TASK_HPREGEN))
-		// 					remove_task(id+TASK_HPREGEN)
-						
-		// 				g_bActived_Bhop[id] = false
-		// 				g_bActived_Mj[id] = false
-		// 				g_bActived_Regen[id] = false
-		// 				g_iSelectedPower[id] = 2;
-		// 				VipItemsMenu(id)
-		// 			}
-		// 			else
-		// 			{
-		// 				g_bActived_Imm[id] = false
-		// 				VipItemsMenu(id)
-		// 			}
-		// 		}
-		// 		else
-		// 		{
-		// 			client_print_color(id, id, "^4[CSGO Classy]^1 You can not use any ^4items^1 this round because you used ^4God mode")
-		// 			VipItemsMenu(id)
-		// 		}
-		// 	}
-		// }
 		case 2:
+		{
+			if(VIPImm[id] == 0)
+			{
+				if(VIPMoney[id] >= 3500)
+				{
+					VIPImm[id] = 1
+					VIPMoney[id] -= 3500
+					VipItemsMenu(id)
+				}
+				else
+				{
+					client_print_color(id, id, "^4[CSGO Classy]^1 You do not have enough ^4V$^1, you need ^4%d more", 3500 - VIPMoney[id])
+					VipItemsMenu(id)
+				}
+			}
+			else
+			{
+				if(!g_bActived_NoDmg[id])
+				{
+					if(!g_bActived_Imm[id])
+					{
+						g_bActived_Imm[id] = true
+						
+						if(task_exists(id+TASK_GODMOD))
+							remove_task(id+TASK_GODMOD)
+							
+						if(task_exists(id+TASK_HPREGEN))
+							remove_task(id+TASK_HPREGEN)
+						
+						g_bActived_Bhop[id] = false
+						g_bActived_Mj[id] = false
+						g_bActived_Regen[id] = false
+						g_iSelectedPower[id] = 2;
+						VipItemsMenu(id)
+					}
+					else
+					{
+						g_bActived_Imm[id] = false
+						VipItemsMenu(id)
+					}
+				}
+				else
+				{
+					client_print_color(id, id, "^4[CSGO Classy]^1 You can not use any ^4items^1 this round because you used ^4God mode")
+					VipItemsMenu(id)
+				}
+			}
+		}
+		case 3:
 		{
 			if(VIPBh[id] == 0)
 			{
@@ -964,7 +972,7 @@ public vip_items_handler(id,menu,item)
 				}
 			}
 		}
-		case 3:
+		case 4:
 		{
 			if(VIPNoDmg[id] == 0)
 			{
@@ -1009,7 +1017,7 @@ public vip_items_handler(id,menu,item)
 				}
 			}
 		}
-		case 4: ShowVIPMenu(id)
+		case 5: ShowVIPMenu(id)
 	}
 	return PLUGIN_HANDLED
 }
@@ -1618,7 +1626,7 @@ public fwSpawn(id)
 	return HAM_IGNORED 
 }
 
-public fw_Ham_Player_Killed(iVictim, iAttacker)
+public fw_Ham_Player_Killed_Post(const iVictim, const iAttacker)
 {
 	if(!iVictim || !iAttacker && !is_user_alive(iVictim) || !is_user_alive(iAttacker))
 		return HAM_IGNORED
@@ -1802,18 +1810,13 @@ public ham_Player_TakeDamage_Post(iVictim, iInfictor, iAttacker, Float:fDamage, 
 	if(!is_user_connected(iVictim) || !is_user_connected(iAttacker) || iVictim == iAttacker)
 		return HAM_IGNORED
 
-	if((floatround(fDamage) >= get_user_health(iVictim)) && pev(iVictim, pev_flags) & FL_FROZEN)
-	{
-		remove_frozen(iVictim)
-		return HAM_IGNORED
-	}
 	if(g_bActived_Imm[iAttacker])
 	{
 		if(cs_get_user_team(iAttacker) != cs_get_user_team(iVictim))
 		{
 			if(iDmgBits & DMG_BULLET || iDmgBits & (1<<24) || iDmgBits & DMG_SLASH)
 			{
-				new random = random_num(0, 6)
+				new random = random_num(0, 10)
 				
 				if(is_user_alive(iVictim) && random == 3 && !g_bActived_NoDmg[iVictim])
 				{
@@ -1953,7 +1956,7 @@ public CmdStart(id, uc_handle)
 	}
 	else if( flags & FL_ONGROUND )
 	{
-		g_iJumpCount[ id ] = g_bActived_Mj[id] ? 2 : 0
+		g_iJumpCount[ id ] = g_bActived_Mj[id] ? 1 : 0
 	}
 	return FMRES_IGNORED
 }
