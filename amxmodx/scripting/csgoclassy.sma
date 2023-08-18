@@ -15,7 +15,7 @@
 #pragma dynamic 32768
 #pragma compress 1
 
-#define VERSION "2.4c"
+#define VERSION "2.4D"
 /* SERVERS
 
 188.212.101.238:27015 - TEST ERAZER
@@ -71,6 +71,8 @@ static MODE = 0; // 1 - DNS, 0 - IP
 #define MAX_SKIN_TAG_LENGTH 15
 #define OPEN_DELAY 1
 #define MAX_GLOVES 5
+
+#define CS_MAX_WEAPONS MAX_WEAPONS - 1
 
 
 #define MIN_SKINS_TO_UPGRADE 5
@@ -233,6 +235,7 @@ enum STATISTICS
 {
 	DROPPED_SKINS, //done
 	DROPPED_STT_SKINS, //done
+	WEAPON_KILL,
 	RECEIVED_MONEY, //done
 	RECEIVED_SCRAPS, //done
 	DROPPED_CASES, //done
@@ -385,6 +388,7 @@ static const g_szStatsName[][] =
 {
 	"DROPPED_SKINS", 
 	"DROPPED_STT_SKINS", 
+	"WEAPON_KILLS",
 	"RECEIVED_MONEY", 
 	"RECEIVED_SCRAPS", 
 	"DROPPED_CASES", 
@@ -503,6 +507,7 @@ static const g_szTablesInfo[][] = {
 	`uname` VARCHAR(96) NOT NULL DEFAULT 'NONE' COLLATE utf8_bin,\
 	`DROPPED_SKINS` TEXT NOT NULL DEFAULT '0' ,\
 	`DROPPED_STT_SKINS` TEXT NOT NULL DEFAULT '0' ,\
+	`WEAPON_KILLS` TEXT NOT NULL DEFAULT '0' ,\
 	`RECEIVED_MONEY` INT(11) NOT NULL DEFAULT 0 ,\ 
 	`RECEIVED_SCRAPS` INT(11) NOT NULL DEFAULT 0 ,\ 
 	`DROPPED_CASES` INT(11) NOT NULL DEFAULT 0 ,\ 
@@ -534,6 +539,7 @@ static const g_szTablesInfo[][] = {
 	"(`server_key` VARCHAR(32) NOT NULL ,\
 	`DROPPED_SKINS` TEXT NOT NULL DEFAULT '0' ,\
 	`DROPPED_STT_SKINS` TEXT NOT NULL DEFAULT '0' ,\
+	`WEAPON_KILLS` TEXT NOT NULL DEFAULT '0' ,\
 	`RECEIVED_MONEY` INT(11) NOT NULL DEFAULT 0 ,\ 
 	`RECEIVED_SCRAPS` INT(11) NOT NULL DEFAULT 0 ,\ 
 	`DROPPED_CASES` INT(11) NOT NULL DEFAULT 0 ,\ 
@@ -651,7 +657,6 @@ new g_nVaultPlayerTags
 new g_nVaultNameTagsLevel
 new g_nVaultSkinTags
 
-
 new AMXX_CONFIG_DIRECTORY[64]
 new g_iKills[MAX_PLAYERS + 1]
 new g_iHS[MAX_PLAYERS + 1]
@@ -668,7 +673,6 @@ new g_iWeaponUsedInContract[MAX_PLAYERS + 1][MAX_SKINS]
 new g_iUserChance[MAX_PLAYERS + 1]
 new g_iUsedSttC[MAX_PLAYERS + 1][MAX_SKINS]
 new g_szAuthId[MAX_PLAYERS + 1][36]
-
 
 new g_status_sync
 new rankLevelBonus
@@ -873,8 +877,10 @@ new g_eServerStatistics[STATISTICS]
 new g_eUserStatistics[MAX_PLAYERS + 1][STATISTICS]
 new g_iServerSkinStatistics[TOTAL_SKINS]
 new g_iServerSttSkinStatistics[TOTAL_SKINS]
+new g_iServerWeaponKill[CS_MAX_WEAPONS]
 new g_iUserSkinStatistics[MAX_PLAYERS + 1][TOTAL_SKINS]
 new g_iUserSttSkinStatistics[MAX_PLAYERS + 1][TOTAL_SKINS]
+new g_iUserWeaponKill[MAX_PLAYERS + 1][CS_MAX_WEAPONS]
 
 public plugin_init()
 {
@@ -951,8 +957,19 @@ public plugin_init()
 }
 
 
-stock AddStatistics(const id, const STATISTICS:type, const amount, const skinid = -1, const gloveid = -1)
+stock AddStatistics(const id, const STATISTICS:type, const amount, const skinid = -1, const gloveid = -1, const weaponid = -1)
 {
+	if(type == WEAPON_KILL)
+	{
+		g_iUserWeaponKill[id][weaponid]++
+		g_iServerWeaponKill[weaponid]++
+
+		new name[64]
+		get_weaponname(weaponid, name, 63)
+
+		return
+	}
+
 	if(type == DROPPED_SKINS || type == DROPPED_STT_SKINS)
 	{
 		if(skinid == -1)
@@ -1233,7 +1250,8 @@ public plugin_end()
 			enum
 			{
 				NON_STT,
-				STT
+				STT,
+				WEAP_KILLS
 			}
 		
 			static szQuery[TOTAL_SKINS * 6], iQueryLen, iLen[2], szSkinData[2][TOTAL_SKINS * 3]
@@ -1246,7 +1264,15 @@ public plugin_end()
 				iLen[STT] 		+=		formatex(szSkinData[STT][iLen[STT]], 			charsmax(szSkinData[]),	 "%d,", g_iServerSttSkinStatistics[i])
 			}
 
-			iQueryLen += formatex(szQuery[iQueryLen], charsmax(szQuery), " `%s` = '%s', `%s` = '%s'", g_szStatsName[NON_STT], szSkinData[NON_STT], g_szStatsName[STT], szSkinData[STT])
+			iQueryLen += formatex(szQuery[iQueryLen], charsmax(szQuery), " `%s` = '", g_szStatsName[WEAP_KILLS])
+			
+			for(new i = 1; i < CS_MAX_WEAPONS; i++)
+			{
+				iQueryLen += formatex(szQuery[iQueryLen], charsmax(szQuery), "%d,", g_iServerWeaponKill[i])
+			}
+
+			iQueryLen += formatex(szQuery[iQueryLen], charsmax(szQuery), "'")
+			iQueryLen += formatex(szQuery[iQueryLen], charsmax(szQuery), ", `%s` = '%s', `%s` = '%s'", g_szStatsName[NON_STT], szSkinData[NON_STT], g_szStatsName[STT], szSkinData[STT])
 
 			for(new STATISTICS:iStats = RECEIVED_MONEY; iStats < STATISTICS; iStats++)
 			{
@@ -1405,6 +1431,7 @@ public client_connect(id)
 		}
 
 		g_iUserSelectedSkin[id][i] = -1;
+		g_iUserWeaponKill[id][i] = 0
 	}
 
 	for(new i; i < MAX_SKINS; i++)
@@ -1857,6 +1884,8 @@ public Ham_Player_Killed_Post(id, iKiller)
 	iUserWeaponId = get_user_weapon(iKiller);
 	iUserSkinId = g_iUserSelectedSkin[iKiller][iUserWeaponId];
 
+	AddStatistics(iKiller, WEAPON_KILL, 1, .weaponid = iUserWeaponId)
+
 	if(iUserSkinId != -1)
 	{			
 		if(g_bIsWeaponStattrak[iKiller][iUserSkinId] && g_bShallUseStt[iKiller][iUserWeaponId])
@@ -1958,7 +1987,7 @@ saveSqlData(id)
 		STT
 	}
 
-	static szQuery[TOTAL_SKINS * 10], iTotalInventoryValue, iQueryLen;
+	static szQuery[TOTAL_SKINS * 10], iTotalInventoryValue, iQueryLen, weaponkill[4096];
 	static droppedskins[2][TOTAL_SKINS * 6], weapbuff[TOTAL_SKINS * 6], stattrackkill[TOTAL_SKINS * 6], stattrackskins[TOTAL_SKINS * 6];
 	new skinbuff[200], stattrakbuff[200], iLen[5]
 
@@ -1975,10 +2004,11 @@ saveSqlData(id)
 
 	iLen[0] = 0
 	iLen[1] = 0
+	iLen[2] = 0
 
 	new szSkinName[256]
 
-	for(new i = 1; i < 31; i++)
+	for(new i = 1; i < CS_MAX_WEAPONS; i++)
 	{
 		if(g_iUserSelectedSkin[id][i] != -1)
 		{
@@ -1987,6 +2017,7 @@ saveSqlData(id)
 		
 		iLen[0] += formatex(skinbuff[iLen[0]], charsmax(skinbuff), "%d,", g_iUserSelectedSkin[id][i]);
 		iLen[1] += formatex(stattrakbuff[iLen[1]], charsmax(stattrakbuff), "%d,", _:g_bShallUseStt[id][i])
+		iLen[2] += formatex(weaponkill[iLen[2]], charsmax(weaponkill), "%d,", g_iUserWeaponKill[id][i])
 	}
 
 	iQueryLen = formatex(szQuery, charsmax(szQuery), "UPDATE %s AS data \
@@ -2016,7 +2047,8 @@ saveSqlData(id)
 		`selected_skins` = '%s', \
 		`using_stattrak` = '%s', \
 		`DROPPED_SKINS` = '%s', \
-		`DROPPED_STT_SKINS` = '%s'",
+		`DROPPED_STT_SKINS` = '%s', \
+		`WEAPON_KILLS` = '%s'",
 		g_szTables[PLAYER_DATA], g_szTables[PLAYER_SKINS], g_szTables[USERS_STATISTICS],
 		g_iUserMoney[id],
 		g_iUserScraps[id],
@@ -2041,14 +2073,15 @@ saveSqlData(id)
 		skinbuff,
 		stattrakbuff,
 		droppedskins[NON_STT],
-		droppedskins[STT]);
+		droppedskins[STT],
+		weaponkill);
 
 	for(new STATISTICS:iStats = RECEIVED_MONEY; iStats < STATISTICS; iStats++)
 	{
 		iQueryLen += formatex(szQuery[iQueryLen], charsmax(szQuery), ", `%s` = %i", g_szStatsName[_:iStats], g_eUserStatistics[id][iStats]);
 	}
 
-	iQueryLen += formatex(szQuery[iQueryLen], charsmax(szQuery), " WHERE data.uname = '%s'", g_szSQLName[id]);
+	formatex(szQuery[iQueryLen], charsmax(szQuery), " WHERE data.uname = '%s'", g_szSQLName[id]);
 
 	SQL_ThreadQuery(g_SqlTuple, "FreeHandle", szQuery);
 }
@@ -2332,6 +2365,15 @@ public GetUserData(FailState, Handle:Query, szError[], ErrorCode, szData[], iSiz
 		{
 			g_iUserSttSkinStatistics[id][j] = str_to_num(szValue);
 			j++;
+		}
+
+		SQL_ReadResult(Query, SQL_FieldNameToNum(Query, g_szStatsName[_:WEAPON_KILL]), szQueryData, charsmax(szQueryData))
+		j = 1
+
+		while(j < CS_MAX_WEAPONS && szQueryData[0] && strtok2(szQueryData, szValue, charsmax(szValue), szQueryData, charsmax(szQueryData), ','))
+		{
+			g_iUserWeaponKill[id][j] = str_to_num(szValue[0])
+			j++
 		}
 
 		g_bWaitingSkins[id] = false
@@ -3086,7 +3128,14 @@ public main_menu_handler(id, menu, item)
 		}
 		case 4:
 		{
-			joinGiveaway(id);
+			if(!g_bGiveAwayStarted)
+			{
+				joinGiveaway(id);
+			}
+			else 
+			{
+				_ShowMainMenu(id);
+			}
 		}
 		case 5:
 		{
@@ -3431,10 +3480,10 @@ toggle_default_skins(id)
 
 public open_skin_tag_menu(id)
 {
-	new iMenu = menu_create(fmt("%s %l", MENU_PREFIX, "MENU_SKIN_TAGS_TITLE"), "open_skin_tag_menu_handler");
+	new iMenu = menu_create(fmt("%s %l", MENU_PREFIX, "MENU_SKIN_TAGS_TITLE", g_iNameTagCapsule[id], g_iNameTagCapsule[id] > 1 ? "s" : ""), "open_skin_tag_menu_handler");
 
 	new szItem[64];
-	formatex(szItem, charsmax(szItem), "%l", "OPEN_NAMETAG_CAPSULE_ITEM", g_iNameTagCapsule[id])
+	formatex(szItem, charsmax(szItem), "%l", "OPEN_NAMETAG_CAPSULE_ITEM")
 	menu_additem(iMenu, szItem);
 
 	menu_additem(iMenu, fmt("%l", "SET_NAMETAG_ITEM"));
@@ -5202,6 +5251,7 @@ DailyReward(id)
 		menu_additem(menu, fmt("%l", "DAILY_KEYS"));
 		menu_additem(menu, fmt("%l", "DAILY_CASES"));
 		menu_additem(menu, fmt("%l", "DAILY_SCRAPS"));
+		menu_additem(menu, fmt("%l", "DAILY_CAPSULE"));
 		
 		menu_setprop(menu, MPROP_EXIT, MEXIT_ALL);
 
@@ -5266,6 +5316,12 @@ public reward_handler(id, menu, item)
 			g_iUserScraps[id] += rand
 			AddStatistics(id, RECEIVED_SCRAPS, rand)
 			client_print_color(id, id, "%s %l", CHAT_PREFIX, "DAILY_GOT_SCRAPS", rand, rand == 1 ? "" : "s" );
+		}
+		case 4:
+		{
+			g_iNameTagCapsule[id]++
+			AddStatistics(id, DROPPED_NAMETAG_CAPSULES, rand)
+			client_print_color(id, id, "%s %l", CHAT_PREFIX, "DAILY_GOT_CAPSULE");
 		}
 	}
 
@@ -10305,7 +10361,7 @@ public GetServerStatistics(FailState, Handle:Query, szError[], ErrorCode, szData
 		STT
 	}
 
-	static szData[2][4086]
+	static szData[2][6086]
 
 	SQL_ReadResult(Query, SQL_FieldNameToNum(Query, g_szStatsName[_:DROPPED_SKINS]), szData[NON_STT], charsmax(szData[]))
 	SQL_ReadResult(Query, SQL_FieldNameToNum(Query, g_szStatsName[_:DROPPED_STT_SKINS]), szData[STT], charsmax(szData[]))
@@ -10313,15 +10369,24 @@ public GetServerStatistics(FailState, Handle:Query, szError[], ErrorCode, szData
 	new szValue[2][16], i
 
 	while(
-		strtok2(szData[NON_STT], szValue[NON_STT], charsmax(szValue[]), szData[NON_STT], charsmax(szData[]))
-		&& strtok2(szData[STT], szValue[STT], charsmax(szValue[]), szData[STT], charsmax(szData[]))
+		(strtok2(szData[NON_STT], szValue[NON_STT], charsmax(szValue[]), szData[NON_STT], charsmax(szData[]), ',') || strtok2(szData[STT], szValue[STT], charsmax(szValue[]), szData[STT], charsmax(szData[]), ','))
 		&& i < g_iSkinsNum
-		&& szData[NON_STT][0]
-		&& szData[NON_STT][1]
+		&& (szData[NON_STT][0] || szData[STT][0])
 		)
 	{
 		g_iServerSkinStatistics[i] = str_to_num(szValue[NON_STT])
 		g_iServerSttSkinStatistics[i] = str_to_num(szValue[STT])
+
+		i++
+	}
+
+	SQL_ReadResult(Query, SQL_FieldNameToNum(Query, g_szStatsName[_:WEAPON_KILL]), szData[0], charsmax(szData[]))
+
+	i = 1
+	while(i < CS_MAX_WEAPONS && szData[0][0] && strtok2(szData[0], szValue[0], charsmax(szValue[]), szData[0], charsmax(szData[]), ','))
+	{
+		g_iServerWeaponKill[i] = str_to_num(szValue[0])
+		i++
 	}
 
 	SQL_FreeHandle(Query)
@@ -11206,11 +11271,9 @@ RegisterCVARS()
 			"daily_bonus_min_rank",
 			"2",
 			FCVAR_NONE,
-			"If counting admin commands in statistics",
+			"Minimum rank to get daily bonus",
 			true,
-			0.0,
-			true,
-			1.0
+			0.0
 		),
 		g_CvarDailyMinRank
 	)

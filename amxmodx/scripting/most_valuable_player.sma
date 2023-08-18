@@ -243,6 +243,7 @@ public csgo_menu_item_selected(const id, const MenuCode:menu_id, const itemid)
 
 public user_log_in_post(const id)
 {
+	LoadPlayerData(id);
 	updateInventoryValue(id)
 }
 
@@ -545,8 +546,6 @@ public client_putinserver(id)
 	{
 		g_bUserTracks[id][i] = false
 	}
-
-	LoadPlayerData(id)
 }
 
 public client_disconnected(id)
@@ -666,8 +665,6 @@ public RG_SetClientUserInfoName_Post(id, infobuffer[], szNewName[])
 		}
 
 		copy(g_szName[id], charsmax(g_szName[]), szNewName)
-
-		LoadPlayerData(id)
 	}
 }
 
@@ -769,8 +766,6 @@ public Fw_ClientUserInfoChanged_Post(id)
 		}
 
 		copy(g_szName[id], charsmax(g_szName[]), szNewName)
-
-		LoadPlayerData(id)
 	}
 }
 #endif
@@ -813,7 +808,10 @@ public Task_Check_Scenario()
 			{
 				g_iPlayerMVP[g_eMVPlayer[iPlanter]] += 1
 
-				PlayTrack(g_eMVPlayer[iPlanter])
+				if(is_user_logged(iPlanter))
+				{
+					PlayTrack(g_eMVPlayer[iPlanter])
+				}
 
 				ShowMVP(TERO_MVP)
 
@@ -828,7 +826,10 @@ public Task_Check_Scenario()
 			{
 				g_iPlayerMVP[g_eMVPlayer[iDefuser]] += 1
 
-				PlayTrack(g_eMVPlayer[iDefuser])
+				if(is_user_logged(iDefuser))
+				{
+					PlayTrack(g_eMVPlayer[iDefuser])
+				}
 
 				ShowMVP(CT_MVP)
 
@@ -914,13 +915,17 @@ public Clcmd_MVPMenu(id)
 	formatex(szTemp, charsmax(szTemp), "\w%L", LANG_PLAYER, "MVP_CHOOSE_TRACK")
 	menu_additem(menu, szTemp)
 
-	formatex(szTemp, charsmax(szTemp), "\w%L", LANG_PLAYER, "MVP_TRACK_LIST")
-	menu_additem(menu, szTemp)
-
 	formatex(szTemp, charsmax(szTemp), "\w%L", LANG_PLAYER, "MVP_SOUNDS_ON_OFF", g_bDisableTracks[id] ? "OFF" : "ON")
 	menu_additem(menu, szTemp)
 
-	menu_display(id, menu)
+	if(is_user_connected(id))
+	{
+		menu_display(id, menu)
+	}
+	else 
+	{
+		menu_destroy(menu)
+	}
 }
 
 public Mvp_Menu_Handle(id, menu, item)
@@ -930,7 +935,7 @@ public Mvp_Menu_Handle(id, menu, item)
 		if(g_bOpenedFromCSGO[id])
 		{
 			g_bOpenedFromCSGO[id] = false
-			display_menu(id, MenuCode:MENU_MAIN)
+			display_menu(id, MenuCode:MENU_INVENTORY)
 		}
 
 		return MenuExit(menu)
@@ -950,10 +955,6 @@ public Mvp_Menu_Handle(id, menu, item)
 		}
 		case 1:
 		{
-			Clcmd_TrackList(id)
-		}
-		case 2:
-		{
 			g_bDisableTracks[id] = !g_bDisableTracks[id]
 			
 			Clcmd_MVPMenu(id)
@@ -966,7 +967,7 @@ public Clcmd_ChooseTrack(id)
 {
 	new szTemp[128], eTrack[Tracks], szSecTemp[32]
 
-	formatex(szTemp, charsmax(szTemp), "\r%s \w%L", g_szPrefix[PREFIX_MENU], LANG_PLAYER, "MVP_CHOOSE_TRACK")
+	formatex(szTemp, charsmax(szTemp), "\r%s \w%L", g_szPrefix[PREFIX_MENU], LANG_PLAYER, "MVP_CHOOSE_TRACK_TITLE", AddCommas(get_user_money(id)))
 	new menu = menu_create(szTemp, "Choose_Track_Handle")
 
 	if(g_bExistTracks)
@@ -979,16 +980,16 @@ public Clcmd_ChooseTrack(id)
 
 			if(eTrack[iPrice] > 0)
 			{
-				formatex(szPrice, charsmax(szPrice), "\r[\w%i\y$\r]", eTrack[iPrice])
+				formatex(szPrice, charsmax(szPrice), "\r[\d%i\y$\r]", eTrack[iPrice])
 			}
 
 			if(equali(eTrack[szUserName], NO_USER) || !eTrack[szUserName][0])
 			{
-				formatex(szTemp, charsmax(szTemp), "\w%s %s\y%s \r%s", eTrack[szNAME], eTrack[iVipOnly] ? szSecTemp : "", g_bUserTracks[id][i] ? "" : eTrack[iPrice] > 0 ? szPrice : "[FREE]", (i == g_iUserSelectedTrack[id]) ? "#" : "")
+				formatex(szTemp, charsmax(szTemp), "\w%s %s\y%s \r%s", eTrack[szNAME], eTrack[iVipOnly] ? szSecTemp : "", g_bUserTracks[id][i] ? "" : eTrack[iPrice] > 0 ? szPrice : "\r[\dFREE\r]", (i == g_iUserSelectedTrack[id]) ? "#" : "")
 			}
 			else
 			{
-				formatex(szTemp, charsmax(szTemp), "\w%s %s\y%s \r%s", eTrack[szNAME], eTrack[iVipOnly] ? szSecTemp : "", g_bUserTracks[id][i] ? "" : eTrack[iPrice] > 0 ? szPrice : "[FREE]", (i == g_iUserSelectedTrack[id]) ? "#" : "")
+				formatex(szTemp, charsmax(szTemp), "\y%s %s\y%s \r%s", eTrack[szNAME], eTrack[iVipOnly] ? szSecTemp : "", g_bUserTracks[id][i] ? "" : eTrack[iPrice] > 0 ? szPrice : "\r[\dFREE\r]", (i == g_iUserSelectedTrack[id]) ? "#" : "")
 			}
 			menu_additem(menu, szTemp)
 		}
@@ -999,14 +1000,22 @@ public Clcmd_ChooseTrack(id)
 		menu_additem(menu, szTemp)
 	}
 
-	menu_setprop(menu, MPROP_EXIT, MEXIT_ALL)
-	menu_display(id, menu)
+	if(is_user_connected(id))
+	{
+		menu_setprop(menu, MPROP_EXIT, MEXIT_ALL)
+		menu_display(id, menu)
+	}
+	else 
+	{
+		menu_destroy(menu)
+	}
 }
 
 public Choose_Track_Handle(id, menu, item)
 {
 	if(item == MENU_EXIT || !is_user_connected(id) || !g_bExistTracks)
 	{
+		Clcmd_MVPMenu(id)
 		goto __EXIT
 	}
 
@@ -1075,54 +1084,6 @@ public Choose_Track_Handle(id, menu, item)
 	return MenuExit(menu)
 }
 
-public Clcmd_TrackList(id)
-{
-	new szTemp[128], eTrack[Tracks], szSecTemp[32]
-
-	formatex(szTemp, charsmax(szTemp), "%s %L", g_szPrefix[PREFIX_MENU], LANG_PLAYER, "MVP_TRACK_LIST_TITLE")
-	new menu = menu_create(szTemp, "Clcmd_Tracklist_Handle")
-
-	if(g_bExistTracks)
-	{
-		formatex(szSecTemp, charsmax(szSecTemp), "%L", LANG_PLAYER, "MVP_VIP_ONLY")
-
-		for(new i; i < g_iTracksNum; i++)
-		{
-			ArrayGetArray(g_aTracks, i, eTrack)
-
-			formatex(szTemp, charsmax(szTemp), "\w%s %s", eTrack[szNAME], eTrack[iVipOnly] ? szSecTemp : "")
-			menu_additem(menu, szTemp)
-		}
-	}
-	else 
-	{
-		formatex(szTemp, charsmax(szTemp), "\w%L", LANG_PLAYER, "MVP_NO_TRACKS_LOADED")
-		menu_additem(menu, szTemp)
-	}
-	menu_display(id, menu)
-}
-
-public Clcmd_Tracklist_Handle(id, menu, item)
-{
-	if(item == MENU_EXIT || !is_user_connected(id))
-	{
-		return MenuExit(menu)
-	}
-
-	switch(item)
-	{
-		default:
-		{
-			if(g_bExistTracks)
-			{
-				Clcmd_MVPMenu(id)
-			} 
-		}
-	}
-
-	return MenuExit(menu)
-}
-
 DetectSaveType()
 {
 	switch(g_iSaveType)
@@ -1188,7 +1149,7 @@ DetectSaveType()
 
 LoadPlayerData(id)
 {
-	if(is_user_bot(id) && is_user_hltv(id))
+	if(is_user_bot(id) && is_user_hltv(id) || !is_user_logged(id))
 	{
 		return
 	}
@@ -1206,15 +1167,11 @@ LoadPlayerData(id)
 				#endif
 
 				strtok2(szData, szData, charsmax(szData), szUserTracks, charsmax(szUserTracks), '#', TRIM_FULL)
-				
-				#if defined TESTING
-				server_print("--^nUser info: %s^nUser tracks: %s", szData, szUserTracks)
-				#endif
 
 				parse(szData, szBuffer[0], charsmax(szBuffer[]), szBuffer[1], charsmax(szBuffer[]), szBuffer[2], charsmax(szBuffer[]))
 
 				#if defined TESTING
-				server_print("^nParsed data:^nmvp_num: %s^nselected_track: %s^ndisabled_tracks: %s", szBuffer[0], szBuffer[1], szBuffer[2])
+				server_print("^nParsed data: mvp_num: %s selected_track: %s  disabled_tracks: %s", szBuffer[0], szBuffer[1], szBuffer[2])
 				#endif
 
 				g_iPlayerMVP[id] = str_to_num(szBuffer[0])
@@ -1295,18 +1252,16 @@ ParseUserTracks(const id, szUserTracks[], const iLength)
 
 SavePlayerData(id)
 {
-	if(is_user_bot(id) && is_user_hltv(id))
+	if(!is_user_connected(id) || is_user_bot(id) && is_user_hltv(id) || !is_user_logged(id))
 	{
 		return
 	}
 
 	new szUserTracks[MAX_TRACKS * 2 + 1]
-
-	formatex(szUserTracks, charsmax(szUserTracks), "%i", _:g_bUserTracks[id][0])
 	
-	for(new i = 1; i < ArraySize(g_aTracks); i++)
+	for(new i = 0, iLen; i < ArraySize(g_aTracks); i++)
 	{
-		format(szUserTracks, charsmax(szUserTracks), "%s,%i", szUserTracks, _:g_bUserTracks[id][i])
+		iLen += formatex(szUserTracks[iLen], charsmax(szUserTracks), "%d,", _:g_bUserTracks[id][i])
 	}
 
 	switch(g_iSaveType)
@@ -1315,7 +1270,7 @@ SavePlayerData(id)
 		{
 			new szData[1024]
 
-			formatex(szData, charsmax(szData), "%i %i %i#%s", g_iPlayerMVP[id], g_iUserSelectedTrack[id], _:g_bDisableTracks[id], szUserTracks)
+			formatex(szData, charsmax(szData), "%d %d %d#%s", g_iPlayerMVP[id], g_iUserSelectedTrack[id], _:g_bDisableTracks[id], szUserTracks)
 
 			#if defined TESTING
 			server_print("Saved data: %s", szData)
@@ -1380,7 +1335,10 @@ CalculateTopKiller(WinScenario:status)
 		{
 			g_iPlayerMVP[g_eMVPlayer[iTopKiller]] += 1
 
-			PlayTrack(g_eMVPlayer[iTopKiller])
+			if(is_user_logged(iTopKiller))
+			{
+				PlayTrack(g_eMVPlayer[iTopKiller])
+			}
 
 			ShowMVP(KILLER_MVP)
 		}

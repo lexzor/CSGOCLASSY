@@ -20,7 +20,6 @@
 #define NULLENT -1
 #define OBS_IN_EYE 4
 
-#define MAXPLAYERS 32
 #define TRUE 1
 #define FALSE 0
 
@@ -144,7 +143,8 @@ new WeaponNames[][] = { "weapon_knife", "weapon_glock18", "weapon_ak47", "weapon
 	"weapon_fiveseven", "weapon_flashbang", "weapon_g3sg1", "weapon_galil", "weapon_hegrenade", "weapon_m3", "weapon_xm1014", "weapon_m4a1", "weapon_m249", "weapon_mac10", 
 	"weapon_mp5navy", "weapon_p90", "weapon_p228", "weapon_scout", "weapon_sg550", "weapon_sg552", "weapon_smokegrenade", "weapon_tmp", "weapon_ump45", "weapon_usp" }
 
-new iBodyIndex[MAXPLAYERS + 1][50]
+new iBodyIndex[MAX_PLAYERS + 1][50]
+new g_lasttime[MAX_PLAYERS + 1]
 
 public plugin_init()
 {
@@ -175,9 +175,6 @@ public plugin_init()
 	register_forward(FM_PlaybackEvent, "Forward_PlaybackEvent");
 	register_forward(FM_ClientUserInfoChanged, "Forward_ClientUserInfoChanged");
 }
-#define TASK_DELAY 1233321
-
-new g_lasttime[33]
 
 public HamF_Item_Deploy_Post(iEnt)
 {

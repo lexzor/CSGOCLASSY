@@ -86,6 +86,7 @@ enum _:TEAMS
 //////////
 //PLUGIN//
 //////////
+new g_szCSGODirectory[64]
 new g_szChatTag[64]
 new g_szMenuTag[64]
 new g_TSkin[MAX_SKINS][TEROR];
@@ -179,12 +180,11 @@ public plugin_end()
 public plugin_precache()
 {
     new szFileDirector[64], iFilePointer;
-    new szCSGODirectory[64]
 
-    csgo_directory(szCSGODirectory, charsmax(szCSGODirectory))
+    csgo_directory(g_szCSGODirectory, charsmax(g_szCSGODirectory))
 
     get_configsdir(szFileDirector, charsmax(szFileDirector));
-    formatex(g_szFile, charsmax(g_szFile), "%s/%s/%s", szFileDirector, szCSGODirectory,g_szFileName);
+    formatex(g_szFile, charsmax(g_szFile), "%s/%s/%s", szFileDirector, g_szCSGODirectory,g_szFileName);
     
     new iFile = file_exists(g_szFile);
 
@@ -216,7 +216,6 @@ public plugin_precache()
         new szValue[124];
         new szParseData[5][64];
         new iSection;
-        new szCfgDir[32];
         new i = 0;
         new z = 0;
 
@@ -273,7 +272,8 @@ public plugin_precache()
                         copy(g_TSkin[i-1][szTModelName], charsmax(g_TSkin[][szTModelName]), szParseData[0]);
                         g_iTSkinPrice[i-1] = str_to_num(szParseData[4]);
 
-                        formatex(g_TSkin[i-1][szTModelPreview], charsmax(g_TSkin[][szTModelPreview]), "%s/%s/%s", szCfgDir, g_szMOTDFolder, szParseData[2]);
+
+                        formatex(g_TSkin[i-1][szTModelPreview], charsmax(g_TSkin[][szTModelPreview]), "%s/%s/%s/%s", szFileDirector, g_szCSGODirectory, g_szMOTDFolder, szParseData[2]);
                         formatex(g_TSkin[i-1][szTModelLocation], charsmax(g_TSkin[][szTModelLocation]), "models/player/%s/%s", szParseData[1], szParseData[1]);
 
                         g_TSkin[i-1][iTVIPOnly] = str_to_num(szParseData[3]);
@@ -304,7 +304,7 @@ public plugin_precache()
                         copy(g_CTSkin[z-1][szCTModelName], charsmax(g_CTSkin[][szCTModelName]), szParseData[0]);
                         g_iCTSkinPrice[z-1] = str_to_num(szParseData[4]);
 
-                        formatex(g_CTSkin[z-1][szCTModelPreview], charsmax(g_CTSkin[][szCTModelPreview]), "%s/%s/%s", szCfgDir, g_szMOTDFolder, szParseData[2]);
+                        formatex(g_CTSkin[z-1][szCTModelPreview], charsmax(g_CTSkin[][szCTModelPreview]), "%s/%s/%s/%s", szFileDirector, g_szCSGODirectory, g_szMOTDFolder, szParseData[2]);
                         formatex(g_CTSkin[z-1][szCTModelLocation], charsmax(g_CTSkin[][szCTModelLocation]), "models/player/%s/%s", szParseData[1], szParseData[1]);
                         formatex(g_CTSkin[z-1][szCTModelLocation], charsmax(g_CTSkin[][szCTModelLocation]), "models/player/%s/%s", szParseData[1], szParseData[1]);
 
@@ -846,7 +846,7 @@ public terrorists_preview_menu_handler(id, menu, item)
         return PLUGIN_HANDLED;
     }
 
-    show_motd(id, g_CTSkin[item][szCTModelPreview]);
+    show_motd(id, g_TSkin[item][szTModelPreview]);
 
     preview_terrorist_agents(id);
 
