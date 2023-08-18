@@ -1246,25 +1246,18 @@ public plugin_end()
 	switch(g_CvarSaveType)
 	{
 		case SQL:
-		{
-			enum
-			{
-				NON_STT,
-				STT,
-				WEAP_KILLS
-			}
-		
+		{		
 			static szQuery[TOTAL_SKINS * 6], iQueryLen, iLen[2], szSkinData[2][TOTAL_SKINS * 3]
 
 			iQueryLen = formatex(szQuery[iQueryLen], charsmax(szQuery), "UPDATE `%s` SET", g_szTables[SERVER_STATISTICS])
 
 			for(new i = 0; i < g_iSkinsNum; i++)
 			{
-				iLen[NON_STT] 	+=		formatex(szSkinData[NON_STT][iLen[NON_STT]], 	charsmax(szSkinData[]),	 "%d,", g_iServerSkinStatistics[i])
-				iLen[STT] 		+=		formatex(szSkinData[STT][iLen[STT]], 			charsmax(szSkinData[]),	 "%d,", g_iServerSttSkinStatistics[i])
+				iLen[_:DROPPED_SKINS] 	+=		formatex(szSkinData[_:DROPPED_SKINS][iLen[_:DROPPED_SKINS]], 	charsmax(szSkinData[]),	 "%d,", g_iServerSkinStatistics[i])
+				iLen[_:DROPPED_STT_SKINS] 		+=		formatex(szSkinData[_:DROPPED_STT_SKINS][iLen[_:DROPPED_STT_SKINS]], 			charsmax(szSkinData[]),	 "%d,", g_iServerSttSkinStatistics[i])
 			}
 
-			iQueryLen += formatex(szQuery[iQueryLen], charsmax(szQuery), " `%s` = '", g_szStatsName[WEAP_KILLS])
+			iQueryLen += formatex(szQuery[iQueryLen], charsmax(szQuery), " `%s` = '", g_szStatsName[_:WEAPON_KILL])
 			
 			for(new i = 1; i < CS_MAX_WEAPONS; i++)
 			{
@@ -1272,7 +1265,7 @@ public plugin_end()
 			}
 
 			iQueryLen += formatex(szQuery[iQueryLen], charsmax(szQuery), "'")
-			iQueryLen += formatex(szQuery[iQueryLen], charsmax(szQuery), ", `%s` = '%s', `%s` = '%s'", g_szStatsName[NON_STT], szSkinData[NON_STT], g_szStatsName[STT], szSkinData[STT])
+			iQueryLen += formatex(szQuery[iQueryLen], charsmax(szQuery), ", `%s` = '%s', `%s` = '%s'", g_szStatsName[_:DROPPED_SKINS], szSkinData[_:DROPPED_SKINS], g_szStatsName[_:DROPPED_STT_SKINS], szSkinData[_:DROPPED_STT_SKINS])
 
 			for(new STATISTICS:iStats = RECEIVED_MONEY; iStats < STATISTICS; iStats++)
 			{
@@ -1981,12 +1974,6 @@ _SaveData(id)
 
 saveSqlData(id)
 {
-	enum
-	{
-		NON_STT,
-		STT
-	}
-
 	static szQuery[TOTAL_SKINS * 10], iTotalInventoryValue, iQueryLen, weaponkill[4096];
 	static droppedskins[2][TOTAL_SKINS * 6], weapbuff[TOTAL_SKINS * 6], stattrackkill[TOTAL_SKINS * 6], stattrackskins[TOTAL_SKINS * 6];
 	new skinbuff[200], stattrakbuff[200], iLen[5]
@@ -1997,8 +1984,8 @@ saveSqlData(id)
 	{
 		iLen[0] += formatex(stattrackskins[iLen[0]], 		charsmax(stattrackskins), 	"%d,", 	_:g_bIsWeaponStattrak[id][iSkinID])
 		iLen[1] += formatex(stattrackkill[iLen[1]], 		charsmax(stattrackkill), 	"%d,", 	g_iUserStattrakKillCount[id][iSkinID])
-		iLen[2] += formatex(droppedskins[NON_STT][iLen[2]], charsmax(droppedskins[]), 	"%d,",	g_iUserSkinStatistics[id][iSkinID])
-		iLen[3] += formatex(droppedskins[STT][iLen[3]], 	charsmax(droppedskins[]), 	"%d,", 	g_iUserSttSkinStatistics[id][iSkinID])
+		iLen[2] += formatex(droppedskins[_:DROPPED_SKINS][iLen[2]], charsmax(droppedskins[]), 	"%d,",	g_iUserSkinStatistics[id][iSkinID])
+		iLen[3] += formatex(droppedskins[_:DROPPED_STT_SKINS][iLen[3]], 	charsmax(droppedskins[]), 	"%d,", 	g_iUserSttSkinStatistics[id][iSkinID])
 		iLen[4] += formatex(weapbuff[iLen[4]], 				charsmax(weapbuff), 		"%d,", 	g_iUserSkins[id][iSkinID]);
 	}
 
@@ -2072,8 +2059,8 @@ saveSqlData(id)
 		stattrackkill,
 		skinbuff,
 		stattrakbuff,
-		droppedskins[NON_STT],
-		droppedskins[STT],
+		droppedskins[_:DROPPED_SKINS],
+		droppedskins[_:DROPPED_STT_SKINS],
 		weaponkill);
 
 	for(new STATISTICS:iStats = RECEIVED_MONEY; iStats < STATISTICS; iStats++)
@@ -2343,13 +2330,7 @@ public GetUserData(FailState, Handle:Query, szError[], ErrorCode, szData[], iSiz
 			g_eUserStatistics[id][iStat] = SQL_ReadResult(Query, SQL_FieldNameToNum(Query, g_szStatsName[_:iStat]))
 		}
 
-		enum 
-		{
-			NON_STT,
-			STT
-		}
-
-		SQL_ReadResult(Query, SQL_FieldNameToNum(Query, g_szStatsName[NON_STT]), szQueryData, charsmax(szQueryData))
+		SQL_ReadResult(Query, SQL_FieldNameToNum(Query, g_szStatsName[_:DROPPED_SKINS]), szQueryData, charsmax(szQueryData))
 		j = 0;
 
 		while(j < g_iSkinsNum && szQueryData[0] && strtok2(szQueryData, szValue, charsmax(szValue), szQueryData, charsmax(szQueryData), ','))
@@ -2358,7 +2339,7 @@ public GetUserData(FailState, Handle:Query, szError[], ErrorCode, szData[], iSiz
 			j++;
 		}
 
-		SQL_ReadResult(Query, SQL_FieldNameToNum(Query, g_szStatsName[STT]), szQueryData, charsmax(szQueryData))
+		SQL_ReadResult(Query, SQL_FieldNameToNum(Query, g_szStatsName[_:DROPPED_STT_SKINS]), szQueryData, charsmax(szQueryData))
 		j = 0;
 
 		while(j < g_iSkinsNum && szQueryData[0] && strtok2(szQueryData, szValue, charsmax(szValue), szQueryData, charsmax(szQueryData), ','))
@@ -10355,27 +10336,21 @@ public GetServerStatistics(FailState, Handle:Query, szError[], ErrorCode, szData
 		g_eServerStatistics[iStat] = SQL_ReadResult(Query, SQL_FieldNameToNum(Query, g_szStatsName[_:iStat]))
 	}
 
-	enum 
-	{
-		NON_STT,
-		STT
-	}
-
 	static szData[2][6086]
 
-	SQL_ReadResult(Query, SQL_FieldNameToNum(Query, g_szStatsName[_:DROPPED_SKINS]), szData[NON_STT], charsmax(szData[]))
-	SQL_ReadResult(Query, SQL_FieldNameToNum(Query, g_szStatsName[_:DROPPED_STT_SKINS]), szData[STT], charsmax(szData[]))
+	SQL_ReadResult(Query, SQL_FieldNameToNum(Query, g_szStatsName[_:DROPPED_SKINS]), szData[_:DROPPED_SKINS], charsmax(szData[]))
+	SQL_ReadResult(Query, SQL_FieldNameToNum(Query, g_szStatsName[_:DROPPED_STT_SKINS]), szData[_:DROPPED_STT_SKINS], charsmax(szData[]))
 
 	new szValue[2][16], i
 
 	while(
-		(strtok2(szData[NON_STT], szValue[NON_STT], charsmax(szValue[]), szData[NON_STT], charsmax(szData[]), ',') || strtok2(szData[STT], szValue[STT], charsmax(szValue[]), szData[STT], charsmax(szData[]), ','))
+		(strtok2(szData[_:DROPPED_SKINS], szValue[_:DROPPED_SKINS], charsmax(szValue[]), szData[_:DROPPED_SKINS], charsmax(szData[]), ',') || strtok2(szData[_:DROPPED_STT_SKINS], szValue[_:DROPPED_STT_SKINS], charsmax(szValue[]), szData[_:DROPPED_STT_SKINS], charsmax(szData[]), ','))
 		&& i < g_iSkinsNum
-		&& (szData[NON_STT][0] || szData[STT][0])
+		&& (szData[_:DROPPED_SKINS][0] || szData[_:DROPPED_STT_SKINS][0])
 		)
 	{
-		g_iServerSkinStatistics[i] = str_to_num(szValue[NON_STT])
-		g_iServerSttSkinStatistics[i] = str_to_num(szValue[STT])
+		g_iServerSkinStatistics[i] = str_to_num(szValue[_:DROPPED_SKINS])
+		g_iServerSttSkinStatistics[i] = str_to_num(szValue[_:DROPPED_STT_SKINS])
 
 		i++
 	}
