@@ -248,9 +248,9 @@ public plugin_init()
     ConfigurePlugin();
 }
 
-public csgo_menu_item_selected(const id, const MenuCode:menu_code, const menuid)
+public csgo_menu_item_selected(const id, const MenuCode:menu_code, const itemid)
 {
-    if(menu_code != MenuCode:MENU_MAIN && menuid != g_iMenuID)
+    if(menu_code != MenuCode:MENU_MAIN || g_iMenuID != itemid)
     {
         return
     }
@@ -342,7 +342,7 @@ _SaveUserData(id)
 
 public user_log_in_post(const id)
 {
-    new eEvent[EVDATA];
+    static eEvent[EVDATA];
     for(new i; i < ArraySize(g_aEvents); i++)
     {
         ArrayGetArray(g_aEvents, i, eEvent);

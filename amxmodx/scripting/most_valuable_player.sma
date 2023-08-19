@@ -229,7 +229,7 @@ public plugin_init()
 
 public csgo_menu_item_selected(const id, const MenuCode:menu_id, const itemid)
 {
-	if(menu_id != MenuCode:MENU_MAIN && g_iMenuID != itemid)
+	if(menu_id != MenuCode:MENU_MAIN || g_iMenuID != itemid)
 	{
 		return 
 	}
@@ -808,7 +808,7 @@ public Task_Check_Scenario()
 			{
 				g_iPlayerMVP[g_eMVPlayer[iPlanter]] += 1
 
-				if(is_user_logged(iPlanter))
+				if(is_user_logged(iPlanter) && g_iUserSelectedTrack[g_eMVPlayer[iPlanter]])
 				{
 					PlayTrack(g_eMVPlayer[iPlanter])
 				}
@@ -826,7 +826,7 @@ public Task_Check_Scenario()
 			{
 				g_iPlayerMVP[g_eMVPlayer[iDefuser]] += 1
 
-				if(is_user_logged(iDefuser))
+				if(is_user_logged(iDefuser) && g_iUserSelectedTrack[g_eMVPlayer[iDefuser]])
 				{
 					PlayTrack(g_eMVPlayer[iDefuser])
 				}
@@ -1335,7 +1335,7 @@ CalculateTopKiller(WinScenario:status)
 		{
 			g_iPlayerMVP[g_eMVPlayer[iTopKiller]] += 1
 
-			if(is_user_logged(iTopKiller))
+			if(is_user_logged(iTopKiller) && g_iUserSelectedTrack[g_eMVPlayer[iTopKiller]] != -1)
 			{
 				PlayTrack(g_eMVPlayer[iTopKiller])
 			}

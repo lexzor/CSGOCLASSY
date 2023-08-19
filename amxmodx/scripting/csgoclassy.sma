@@ -18,11 +18,8 @@
 #define VERSION "2.4D"
 /* SERVERS
 
-188.212.101.238:27015 - TEST ERAZER
-
 51.75.87.38:27015 - go16.elders.ro 
 93.114.82.249:27015 - csgo.arenag.ro
-188.212.101.21:27015 - csgo.erazer.ro 
 188.212.102.30:27015 - csgo.darkland.ro
 141.95.93.16:27015 - cs.csblackdevil.com 
 172.18.0.3:27015 - csgo.legioncs.ro // DNS MODE 1
@@ -47,11 +44,14 @@
 51.38.104.190:27015 -> csgo.kranci.ro
 89.40.233.106:27015 -> robert
 93.114.82.106:27015 -> sandu
+
+188.212.101.238:27015 - TEST ERAZER
+188.212.101.21:27015 - csgo.erazer.ro 
 */
 
-#define LICENSED_IP "188.212.101.238:27015"
+#define LICENSED_IP "188.212.101.21:27015"
 #define TOTAL_SKINS 1025
-static MODE = 0; // 1 - DNS, 0 - IP
+static const MODE = 0; // 1 - DNS, 0 - IP
 
 #define MENU_PREFIX "\y[\dCSGO Classy\y]\w"
 #define CHAT_PREFIX "^4[^3CSGO Classy^4]^1"
@@ -69,11 +69,10 @@ static MODE = 0; // 1 - DNS, 0 - IP
 #define MAX_SKINS 10
 
 #define MAX_SKIN_TAG_LENGTH 15
-#define OPEN_DELAY 1
+// #define OPEN_DELAY 1
 #define MAX_GLOVES 5
 
 #define CS_MAX_WEAPONS MAX_WEAPONS - 1
-
 
 #define MIN_SKINS_TO_UPGRADE 5
 #define GLOVES_FILE_NAME "gloves.cfg"
@@ -930,11 +929,14 @@ public plugin_init()
 	
 	RegisterHam(Ham_Weapon_SecondaryAttack, g_szWeaponEntName[CSW_AWP], "Ham_Weapon_SecondaryAttack_Post", _:true)
 	RegisterHam(Ham_Weapon_PrimaryAttack, g_szWeaponEntName[CSW_AWP], "Ham_Weapon_PrimaryAttack_Post", _:true)
+
+	RegisterHam(Ham_Weapon_SecondaryAttack, g_szWeaponEntName[CSW_AWP], "Ham_Weapon_SecondaryAttack_Post", _:true)
+	RegisterHam(Ham_Weapon_PrimaryAttack, g_szWeaponEntName[CSW_AWP], "Ham_Weapon_PrimaryAttack_Post", _:true)
 	
 	register_cvar("csgo_classy_enhanced", VERSION, FCVAR_SERVER|FCVAR_EXTDLL|FCVAR_UNLOGGED|FCVAR_SPONLY)
 
 	g_status_sync = CreateHudSyncObj()
-	RegisterHam(Ham_Spawn, "player", "fwHamPlayerSpawnPost", 1);
+	RegisterHam(Ham_Spawn, "player", "Ham_Spawn_Post", 1);
 
 	g_eForwards[LOGIN] = CreateMultiForward("user_log_in_post", ET_IGNORE, FP_CELL)
 	g_eForwards[REGISTER] = CreateMultiForward("user_register_post", ET_IGNORE, FP_CELL)
@@ -955,7 +957,6 @@ public plugin_init()
 	ReadINIFile()
 	RegisterCMDS()
 }
-
 
 stock AddStatistics(const id, const STATISTICS:type, const amount, const skinid = -1, const gloveid = -1, const weaponid = -1)
 {
@@ -1214,6 +1215,48 @@ public plugin_natives()
 	register_native("updateWeaponSkin", "_update");
 	register_native("set_user_randomskin", "_setRandom");
 	register_native("force_user_login", "_allow")
+	register_native("aug_sg_unscope", "native_aug_sg_unscope")
+}
+
+public native_aug_sg_unscope(iPluginID, iParams)
+{
+	new iOwner = get_param(1)
+	if(is_user_alive(iOwner))
+	{
+		new iWeaponID = get_user_weapon(iOwner)
+		new iBodyPart
+
+		if(!g_bLogged[iOwner])
+		{
+			set_entvar(iOwner, var_viewmodel, g_szDefaultSkinModels[iWeaponID])
+			return
+		}
+
+
+		if(g_iUserSelectedSkin[iOwner][iWeaponID] != -1)
+		{
+			new szModel[256]
+			ArrayGetString(g_aSkinModel, g_iUserSelectedSkin[iOwner][iWeaponID], szModel, charsmax(szModel))
+
+			CalculateModelBodyIndex(g_iWeaponGloves[iOwner][iWeaponID], szModel, ArrayGetCell(g_aSkinBody, g_iUserSelectedSkin[iOwner][iWeaponID]), iBodyPart)
+			
+			set_entvar(iOwner, var_viewmodel, szModel)
+			set_entvar(iOwner, var_body, iBodyPart)
+		}
+		else 
+		{
+			if(!g_bUserDefaultModels[iOwner])
+			{
+				CalculateModelBodyIndex(-1, g_eDefaultModels[iWeaponID][PATH], g_eDefaultModels[iWeaponID][BODYINDEX] > -1 ? g_eDefaultModels[iWeaponID][BODYINDEX] : 0, iBodyPart);
+				set_entvar(iOwner, var_viewmodel, g_eDefaultModels[iWeaponID][PATH])
+				set_entvar(iOwner, var_body, iBodyPart)
+			}
+			else 
+			{
+				set_entvar(iOwner, var_viewmodel, g_szDefaultSkinModels[iWeaponID])
+			}
+		}
+	}
 }
 
 public plugin_end()
@@ -1443,7 +1486,7 @@ public client_connect(id)
 	return PLUGIN_CONTINUE;
 }
 
-public fwHamPlayerSpawnPost(id)
+public Ham_Spawn_Post(id)
 {
 	if(is_user_alive(id))
 	{
@@ -2370,24 +2413,11 @@ public GetUserData(FailState, Handle:Query, szError[], ErrorCode, szData[], iSiz
 	return;
 }
 
-stock SetUserSkin(const id, const skinid, const weaponid)
+public SetUserSkin(const id, const skinid, const weaponid)
 {
 	static iBodyPart
 
-	if(skinid == -1)
-	{
-		if(!g_bUserDefaultModels[id])
-		{
-			CalculateModelBodyIndex(-1, g_eDefaultModels[weaponid][PATH], g_eDefaultModels[weaponid][BODYINDEX] > -1 ? g_eDefaultModels[weaponid][BODYINDEX] : 0, iBodyPart);
-			cs_set_modelformat(id, weaponid, g_eDefaultModels[weaponid][PATH])
-			cs_set_viewmodel_body(id, weaponid, iBodyPart)
-		}
-		else 
-		{
-			set_pev(id, pev_viewmodel2, g_szDefaultSkinModels[weaponid])
-		}
-	}
-	else 
+	if(skinid != -1)
 	{
 		static szModel[128]
 		ArrayGetString(g_aSkinModel, skinid, szModel, charsmax(szModel))
@@ -2395,6 +2425,19 @@ stock SetUserSkin(const id, const skinid, const weaponid)
 		CalculateModelBodyIndex(g_iWeaponGloves[id][weaponid], szModel, ArrayGetCell(g_aSkinBody, skinid), iBodyPart)
 		cs_set_modelformat(id, weaponid, szModel)
 		cs_set_viewmodel_body(id, weaponid, iBodyPart)
+
+		return
+	}
+
+	if(!g_bUserDefaultModels[id])
+	{
+		CalculateModelBodyIndex(-1, g_eDefaultModels[weaponid][PATH], g_eDefaultModels[weaponid][BODYINDEX] > -1 ? g_eDefaultModels[weaponid][BODYINDEX] : 0, iBodyPart);
+		cs_set_modelformat(id, weaponid, g_eDefaultModels[weaponid][PATH])
+		cs_set_viewmodel_body(id, weaponid, iBodyPart)
+	}
+	else 
+	{
+		set_pev(id, pev_viewmodel2, g_szDefaultSkinModels[weaponid])
 	}
 }
 
@@ -3010,17 +3053,16 @@ stock add_main_menu_default_items(const id, const &menu)
 	if(g_iUserRank[id] >= g_CvarDailyMinRank)
 	{
 		formatex(temp, 95, "%s%L", (g_iUserDailyTime[id] <= get_systime()) ? "\y" : "\d", id, "MENU_DAILY");
-		menu_additem(menu, temp, "11");
 	} 
 	else 
 	{
 		new szRankName[64]
-
 		ArrayGetString(g_aRankName, g_CvarDailyMinRank, szRankName, charsmax(szRankName))
 
 		formatex(temp, 95, "\d%l %l", "MENU_DAILY", "MENU_MIN_RANK_INFO", szRankName);
-		menu_additem(menu, temp, "11");
 	}
+
+	menu_additem(menu, temp, "11");
 
 	formatex(temp, 95, "\w%L", id, "MENU_SETTINGS_TITLE");
 	menu_additem(menu, temp, "12");
@@ -3201,13 +3243,20 @@ ShowInventoryMenu(const id)
 	}
 }
 
-stock getTotalInventoryValue(const id, &iTotalInventoryValue, &iTotalSkinsValue = 0, &iTotalNameTagValue = 0, &iTotalGlovesValue = 0)
+stock getTotalInventoryValue(const id, &iTotalInventoryValue, &iTotalSkinsValue = -1, &iTotalNameTagValue = -1, &iTotalGlovesValue = -1)
 {
 	new iTotalDynamicInvValue 		=		getDynamicInvValue(id)
 	iTotalSkinsValue 				=		getUserTotalSkinsValue(id)
-	iTotalGlovesValue 				=		g_bActiveGloveSystem ? getUserTotalGlovesValue(id) : 0
-	iTotalNameTagValue 				=		getUserTotalNametagValue(id)
-
+	
+	if(iTotalNameTagValue != -1)
+	{
+		iTotalNameTagValue 				=		getUserTotalNametagValue(id)
+	} else iTotalNameTagValue = 0
+	
+	if(iTotalGlovesValue != -1)
+	{
+		iTotalGlovesValue 				=		g_bActiveGloveSystem ? getUserTotalGlovesValue(id) : 0
+	} else iTotalGlovesValue = 0
 
 	iTotalInventoryValue = iTotalSkinsValue + iTotalGlovesValue + iTotalNameTagValue + iTotalDynamicInvValue
 }
@@ -10341,12 +10390,12 @@ public GetServerStatistics(FailState, Handle:Query, szError[], ErrorCode, szData
 	SQL_ReadResult(Query, SQL_FieldNameToNum(Query, g_szStatsName[_:DROPPED_SKINS]), szData[_:DROPPED_SKINS], charsmax(szData[]))
 	SQL_ReadResult(Query, SQL_FieldNameToNum(Query, g_szStatsName[_:DROPPED_STT_SKINS]), szData[_:DROPPED_STT_SKINS], charsmax(szData[]))
 
-	new szValue[2][16], i
+	new szValue[2][32], i
 
 	while(
-		(strtok2(szData[_:DROPPED_SKINS], szValue[_:DROPPED_SKINS], charsmax(szValue[]), szData[_:DROPPED_SKINS], charsmax(szData[]), ',') || strtok2(szData[_:DROPPED_STT_SKINS], szValue[_:DROPPED_STT_SKINS], charsmax(szValue[]), szData[_:DROPPED_STT_SKINS], charsmax(szData[]), ','))
-		&& i < g_iSkinsNum
+		i < g_iSkinsNum
 		&& (szData[_:DROPPED_SKINS][0] || szData[_:DROPPED_STT_SKINS][0])
+		&& (strtok2(szData[_:DROPPED_SKINS], szValue[_:DROPPED_SKINS], charsmax(szValue[]), szData[_:DROPPED_SKINS], charsmax(szData[]), ',') || strtok2(szData[_:DROPPED_STT_SKINS], szValue[_:DROPPED_STT_SKINS], charsmax(szValue[]), szData[_:DROPPED_STT_SKINS], charsmax(szData[]), ','))
 		)
 	{
 		g_iServerSkinStatistics[i] = str_to_num(szValue[_:DROPPED_SKINS])
@@ -11644,7 +11693,7 @@ public ev_DeathMsg()
 	if(random_num(1, 100) <= g_CvarGloveCaseDropChance && !gotbonus && g_bActiveGloveSystem)
 	{
 		g_iGlovesCases[killer]++;
-		formatex(szMessage, charsmax(szMessage), "^4[CSGO Classy] %s^1 dropped a^4 Glove Case", g_szName[killer]);
+		formatex(szMessage, charsmax(szMessage), "^4%s^3 %s^1 dropped a^4 Glove Case", CHAT_PREFIX, g_szName[killer]);
 		send_message(killer, szMessage);
 		gotbonus = true;
 
@@ -11658,9 +11707,12 @@ public ev_DeathMsg()
 		new money;
 		new i;
 
-		while (c_RankUpBonus[i] != '|')
+		new szTempRankBonus[16]
+		copy(szTempRankBonus, charsmax(szTempRankBonus), c_RankUpBonus)
+
+		while (szTempRankBonus[i] != '|')
 		{
-			switch (c_RankUpBonus[i])
+			switch (szTempRankBonus[i])
 			{
 				case 'c':
 				{
@@ -11675,10 +11727,10 @@ public ev_DeathMsg()
 			i++
 		}
 		new temp[8];
-		strtok(c_RankUpBonus, temp, 7, c_RankUpBonus, 15, '|', 0);
-		if (c_RankUpBonus[0])
+		strtok(szTempRankBonus, temp, 7, szTempRankBonus, 15, '|');
+		if (szTempRankBonus[0])
 		{
-			money = str_to_num(c_RankUpBonus);
+			money = str_to_num(szTempRankBonus);
 		}
 		if (0 < keys)
 		{
@@ -13666,14 +13718,7 @@ public any:native_set_user_skins(iPluginID, iParamNum)
 
 public any:native_is_user_logged(iPluginID, iParamNum)
 {
-	new id = get_param(1)
-	if (!IsValidPlayer(id) || !is_user_connected(id))
-	{
-		log_error(AMX_ERR_NATIVE, "[CSGO Classy] Player is not connected [%d]", id);
-		return NativeErrorCode:USER_NOT_CONNECTED;
-	}
-
-	return g_bLogged[id];
+	return g_bLogged[get_param(1)];
 }
 
 public _allow()

@@ -90,7 +90,7 @@ public client_disconnected(id)
 
 _LoadData(id)
 {
-    static szData[5], iTs;
+    new szData[5], iTs;
     if(nvault_lookup(g_nVault, g_szName[id], szData, charsmax(szData), iTs))
     {
         g_bActiveHud[id] = bool:str_to_num(szData);
@@ -188,7 +188,7 @@ public ShowUserInfo(id)
                         case 1:
                         {
                             formatex(szMessage, charsmax(szMessage), "[%s%s%sCase%s: %i|Key%s: %i|Scrap%s: %i|VIP Status: %s]^n[Capsule%s: %i|Common: %i|Rare: %i|Mythic: %i]",
-                            g_cvar[show_name] == 1 ? g_szNameField : "", g_cvar[show_name] == 1 ? g_szName[id] : "", g_cvar[show_name] ? "|" : "",
+                            g_cvar[show_name] == 1 ? g_szNameField : "", g_cvar[show_name] == 1 ? g_szName[iSpecPlayer] : "", g_cvar[show_name] ? "|" : "",
                             g_szName[iSpecPlayer], iCases > 1 ? "s" : "", iCases, iKeys > 1 ? "s" : "", iKeys, iScraps > 1 ? "s" : "", iScraps, g_szVIPNames[iVipLevel], iCapsules > 1 ? "s" : "", iCapsules,
                             iCommon, iRare, iMythic);
                         }

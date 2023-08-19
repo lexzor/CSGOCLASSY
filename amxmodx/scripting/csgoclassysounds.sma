@@ -144,6 +144,8 @@ public Fw_TraceAttack_World(victim, attacker, Float:damage, Float:direction[3], 
 	return HAM_IGNORED
 }
 
+
+
 public Fw_UpdateClientData_Post(id, sendweapons, cd_handle)
 {
 	if(!is_user_alive(id))

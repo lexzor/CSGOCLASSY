@@ -51,7 +51,7 @@ public plugin_init()
 
 public csgo_menu_item_selected(const id, const MenuCode:menu_code, const itemid)
 {
-    if(menu_code != MenuCode:MENU_MAIN && itemid != g_iMenuID)
+    if(menu_code != MenuCode:MENU_MAIN || itemid != g_iMenuID)
     {
         return 
     }
