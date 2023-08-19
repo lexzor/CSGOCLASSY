@@ -929,9 +929,6 @@ public plugin_init()
 	
 	RegisterHam(Ham_Weapon_SecondaryAttack, g_szWeaponEntName[CSW_AWP], "Ham_Weapon_SecondaryAttack_Post", _:true)
 	RegisterHam(Ham_Weapon_PrimaryAttack, g_szWeaponEntName[CSW_AWP], "Ham_Weapon_PrimaryAttack_Post", _:true)
-
-	RegisterHam(Ham_Weapon_SecondaryAttack, g_szWeaponEntName[CSW_AWP], "Ham_Weapon_SecondaryAttack_Post", _:true)
-	RegisterHam(Ham_Weapon_PrimaryAttack, g_szWeaponEntName[CSW_AWP], "Ham_Weapon_PrimaryAttack_Post", _:true)
 	
 	register_cvar("csgo_classy_enhanced", VERSION, FCVAR_SERVER|FCVAR_EXTDLL|FCVAR_UNLOGGED|FCVAR_SPONLY)
 
