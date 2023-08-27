@@ -229,7 +229,7 @@ public plugin_init()
 
 public csgo_menu_item_selected(const id, const MenuCode:menu_id, const itemid)
 {
-	if(menu_id != MenuCode:MENU_MAIN || g_iMenuID != itemid)
+	if(menu_id != MenuCode:MENU_INVENTORY || g_iMenuID != itemid)
 	{
 		return 
 	}
@@ -565,8 +565,11 @@ public client_disconnected(id)
 		g_eMVPlayer[iPlanter] = -1
 	}
 
-	SavePlayerData(id)
-
+	if(!g_iSaveInstant)
+	{
+		SavePlayerData(id)
+	}
+	
 	g_iKills[id] = 0
 
 	arrayset(g_iDamage[id], 0, sizeof(g_iDamage[]))
@@ -793,6 +796,8 @@ public Logev_Roundstart()
 
 public Task_Check_Scenario()
 {
+	g_szPlayingTrack[0] = '^0'
+	
 	switch(g_iScenario)
 	{
 		case NO_SCENARIO:
@@ -808,7 +813,7 @@ public Task_Check_Scenario()
 			{
 				g_iPlayerMVP[g_eMVPlayer[iPlanter]] += 1
 
-				if(is_user_logged(iPlanter) && g_iUserSelectedTrack[g_eMVPlayer[iPlanter]])
+				if(g_iUserSelectedTrack[g_eMVPlayer[iPlanter]] != -1)
 				{
 					PlayTrack(g_eMVPlayer[iPlanter])
 				}
@@ -826,7 +831,7 @@ public Task_Check_Scenario()
 			{
 				g_iPlayerMVP[g_eMVPlayer[iDefuser]] += 1
 
-				if(is_user_logged(iDefuser) && g_iUserSelectedTrack[g_eMVPlayer[iDefuser]])
+				if(g_iUserSelectedTrack[g_eMVPlayer[iDefuser]] != -1)
 				{
 					PlayTrack(g_eMVPlayer[iDefuser])
 				}
@@ -1038,7 +1043,7 @@ public Choose_Track_Handle(id, menu, item)
 	{
 		if(!equal(g_szName[id], eTracks[szUserName]))
 		{
-			CC_SendMessage(id, "%L", LANG_PLAYER, "RESERVED_TRACK_CHAT", eTracks[szUserName])
+			CC_SendMessage(id, "%L", LANG_PLAYER, "MVP_RESERVED_TRACK_CHAT", eTracks[szUserName])
 			Clcmd_ChooseTrack(id)
 			goto __EXIT
 		}
@@ -1049,13 +1054,13 @@ public Choose_Track_Handle(id, menu, item)
 		new iMoney = get_user_money(id)
 		if(iMoney - eTracks[iPrice] < 0)
 		{
-			CC_SendMessage(id, "%L", LANG_PLAYER, "NOT_ENOUGH_MONEY", eTracks[iPrice] - iMoney)
+			CC_SendMessage(id, "%L", LANG_PLAYER, "MVP_NOT_ENOUGH_MONEY", eTracks[iPrice] - iMoney)
 			Clcmd_ChooseTrack(id)
 			goto __EXIT
 		}
 		else 
 		{
-			CC_SendMessage(id, "%L", LANG_PLAYER, "TRACK_BOUGHT", eTracks[szNAME])
+			CC_SendMessage(id, "%L", LANG_PLAYER, "MVP_TRACK_BOUGHT", eTracks[szNAME])
 			g_bUserTracks[id][item] = true
 			set_user_money(id, iMoney - eTracks[iPrice])
 			updateInventoryValue(id)
@@ -1130,10 +1135,10 @@ DetectSaveType()
 
 			new Handle:iQueries = SQL_PrepareQuery(g_iSqlConnection, "CREATE TABLE IF NOT EXISTS `%s`\
 				(`AuthID` VARCHAR(32) NOT NULL,\
-				`Player MVP` INT NOT NULL,\
-				`Track` INT NOT NULL,\
-				`Disabled` INT NOT NULL,\
-				`UserTracks` TEXT NOT NULL,\
+				`Player MVP` INT NOT NULL DEFAULT 0 ,\
+				`Track` INT NOT NULL DEFAULT -1 ,\
+				`Disabled` INT NOT NULL DEFAULT 0,\
+				`UserTracks` TEXT NOT NULL DEFAULT '0',\
 				PRIMARY KEY(AuthID));", g_eDBConfig[MYSQL_TABLE])
 		
 			if(!SQL_Execute(iQueries))
@@ -1200,7 +1205,7 @@ LoadPlayerData(id)
 			new bool:bFoundData = SQL_NumResults( iQuery ) > 0 ? true : false
    			if(!bFoundData)
    			{
-   				formatex(szQuery, charsmax(szQuery), "INSERT INTO `%s` (`AuthID`, `Player MVP`, `Track`, `Disabled`, `UserTracks`) VALUES (^"%s^", '0', '0', '0', '0');", g_eDBConfig[MYSQL_TABLE], g_szName[id])
+   				formatex(szQuery, charsmax(szQuery), "INSERT INTO `%s` (`AuthID`) VALUES (^"%s^");", g_eDBConfig[MYSQL_TABLE], g_szName[id])
    			}
    			else
    			{
@@ -1335,7 +1340,7 @@ CalculateTopKiller(WinScenario:status)
 		{
 			g_iPlayerMVP[g_eMVPlayer[iTopKiller]] += 1
 
-			if(is_user_logged(iTopKiller) && g_iUserSelectedTrack[g_eMVPlayer[iTopKiller]] != -1)
+			if(g_iUserSelectedTrack[g_eMVPlayer[iTopKiller]] != -1)
 			{
 				PlayTrack(g_eMVPlayer[iTopKiller])
 			}
@@ -1382,17 +1387,17 @@ ShowMVP(WinScenario:iScenario)
 				case MVP_CHAT_MSG:
 				{
 					CC_SendMessage(0, "^1%L", LANG_SERVER, "MVP_PLANTER_SHOW_CHAT", g_szName[g_eMVPlayer[iPlanter]])
-					CC_SendMessage(0, "%L ^4%s", LANG_SERVER, (g_bExistTracks ? "MVP_PLAYING_TRACK" : "MVP_NO_TRACKS_LOADED"), g_szPlayingTrack)
+					CC_SendMessage(0, "%L ^4%s", LANG_SERVER, (g_iUserSelectedTrack[g_eMVPlayer[iPlanter]] == -1) ? "MVP_NO_TRACK_SELECTED" : (g_bExistTracks ? "MVP_PLAYING_TRACK" : "MVP_NO_TRACKS_LOADED"), g_szPlayingTrack)
 				}
 				case MVP_DHUD_MSG:
 				{
 					set_dhudmessage(g_iHudColor[HudColorR], g_iHudColor[HudColorG], g_iHudColor[HudColorB], g_fHudPos[HudPosX], g_fHudPos[HudPosY], 1)
-					show_dhudmessage(0, "%s %L^n%L %s", g_szPrefix[PREFIX_HUD], LANG_SERVER, "MVP_PLANTER_SHOW_HUD", g_szName[g_eMVPlayer[iPlanter]], LANG_SERVER, (g_bExistTracks ? "MVP_PLAYING_TRACK" : "MVP_NO_TRACKS_LOADED"), g_szPlayingTrack)
+					show_dhudmessage(0, "%s %L^n%L %s", g_szPrefix[PREFIX_HUD], LANG_SERVER, "MVP_PLANTER_SHOW_HUD", g_szName[g_eMVPlayer[iPlanter]], LANG_SERVER, (g_iUserSelectedTrack[g_eMVPlayer[iPlanter]] == -1) ? "MVP_NO_TRACK_SELECTED" : (g_bExistTracks ? "MVP_PLAYING_TRACK" : "MVP_NO_TRACKS_LOADED"), g_szPlayingTrack)
 				}
 				case MVP_HUD_MSG:
 				{
 					set_hudmessage(g_iHudColor[HudColorR], g_iHudColor[HudColorG], g_iHudColor[HudColorB], g_fHudPos[HudPosX], g_fHudPos[HudPosY], 1)
-					show_hudmessage(0, "%s %L^n%L %s", g_szPrefix[PREFIX_HUD], LANG_SERVER, "MVP_PLANTER_SHOW_HUD", g_szName[g_eMVPlayer[iPlanter]], LANG_SERVER, (g_bExistTracks ? "MVP_PLAYING_TRACK" : "MVP_NO_TRACKS_LOADED"), g_szPlayingTrack)
+					show_hudmessage(0, "%s %L^n%L %s", g_szPrefix[PREFIX_HUD], LANG_SERVER, "MVP_PLANTER_SHOW_HUD", g_szName[g_eMVPlayer[iPlanter]], LANG_SERVER, (g_iUserSelectedTrack[g_eMVPlayer[iPlanter]] == -1) ? "MVP_NO_TRACK_SELECTED" : (g_bExistTracks ? "MVP_PLAYING_TRACK" : "MVP_NO_TRACKS_LOADED"), g_szPlayingTrack)
 				}
 			}
 		}
@@ -1403,17 +1408,17 @@ ShowMVP(WinScenario:iScenario)
 				case MVP_CHAT_MSG:
 				{
 					CC_SendMessage(0, "^1%L", LANG_SERVER, "MVP_DEFUSER_SHOW_CHAT", g_szName[g_eMVPlayer[iDefuser]])
-					CC_SendMessage(0, "%L ^4%s", LANG_SERVER, (g_bExistTracks ? "MVP_PLAYING_TRACK" : "MVP_NO_TRACKS_LOADED"), g_szPlayingTrack)
+					CC_SendMessage(0, "%L ^4%s", LANG_SERVER, (g_iUserSelectedTrack[g_eMVPlayer[iDefuser]] == -1) ? "MVP_NO_TRACK_SELECTED" : (g_bExistTracks ? "MVP_PLAYING_TRACK" : "MVP_NO_TRACKS_LOADED"), g_szPlayingTrack)
 				}
 				case MVP_DHUD_MSG:
 				{
 					set_dhudmessage(g_iHudColor[HudColorR], g_iHudColor[HudColorG], g_iHudColor[HudColorB], g_fHudPos[HudPosX], g_fHudPos[HudPosY], 1)
-					show_dhudmessage(0, "%s %L^n%L %s", g_szPrefix[PREFIX_HUD], LANG_SERVER, "MVP_DEFUSER_SHOW_HUD", g_szName[g_eMVPlayer[iDefuser]], LANG_SERVER, (g_bExistTracks ? "MVP_PLAYING_TRACK" : "MVP_NO_TRACKS_LOADED"), g_szPlayingTrack)
+					show_dhudmessage(0, "%s %L^n%L %s", g_szPrefix[PREFIX_HUD], LANG_SERVER, "MVP_DEFUSER_SHOW_HUD", g_szName[g_eMVPlayer[iDefuser]], LANG_SERVER, (g_iUserSelectedTrack[g_eMVPlayer[iDefuser]] == -1) ? "MVP_NO_TRACK_SELECTED" : (g_bExistTracks ? "MVP_PLAYING_TRACK" : "MVP_NO_TRACKS_LOADED"), g_szPlayingTrack)
 				}
 				case MVP_HUD_MSG:
 				{
 					set_hudmessage(g_iHudColor[HudColorR], g_iHudColor[HudColorG], g_iHudColor[HudColorB], g_fHudPos[HudPosX], g_fHudPos[HudPosY], 1)
-					show_hudmessage(0, "%s %L^n%L %s", g_szPrefix[PREFIX_HUD], LANG_SERVER, "MVP_DEFUSER_SHOW_HUD", g_szName[g_eMVPlayer[iDefuser]], LANG_SERVER, (g_bExistTracks ? "MVP_PLAYING_TRACK" : "MVP_NO_TRACKS_LOADED"), g_szPlayingTrack)
+					show_hudmessage(0, "%s %L^n%L %s", g_szPrefix[PREFIX_HUD], LANG_SERVER, "MVP_DEFUSER_SHOW_HUD", g_szName[g_eMVPlayer[iDefuser]], LANG_SERVER, (g_iUserSelectedTrack[g_eMVPlayer[iDefuser]] == -1) ? "MVP_NO_TRACK_SELECTED" : (g_bExistTracks ? "MVP_PLAYING_TRACK" : "MVP_NO_TRACKS_LOADED"), g_szPlayingTrack)
 				}
 			}
 		}
@@ -1424,17 +1429,17 @@ ShowMVP(WinScenario:iScenario)
 				case MVP_CHAT_MSG:
 				{
 					CC_SendMessage(0, "^1%L", LANG_SERVER, "MVP_KILLER_SHOW_CHAT", g_szName[g_eMVPlayer[iTopKiller]], g_iKills[g_eMVPlayer[iTopKiller]])
-					CC_SendMessage(0, "%L ^4%s", LANG_SERVER, (g_bExistTracks ? "MVP_PLAYING_TRACK" : "MVP_NO_TRACKS_LOADED"), g_szPlayingTrack)
+					CC_SendMessage(0, "%L ^4%s", LANG_SERVER, (g_iUserSelectedTrack[g_eMVPlayer[iTopKiller]] == -1) ? "MVP_NO_TRACK_SELECTED" : (g_bExistTracks ? "MVP_PLAYING_TRACK" : "MVP_NO_TRACKS_LOADED"), g_szPlayingTrack)
 				}
 				case MVP_DHUD_MSG:
 				{
 					set_dhudmessage(g_iHudColor[HudColorR], g_iHudColor[HudColorG], g_iHudColor[HudColorB], g_fHudPos[HudPosX], g_fHudPos[HudPosY], 1)
-					show_dhudmessage(0, "%s %L^n%L %s", g_szPrefix[PREFIX_HUD], LANG_SERVER, "MVP_KILLER_SHOW_HUD", g_szName[g_eMVPlayer[iTopKiller]], g_iKills[g_eMVPlayer[iTopKiller]], LANG_SERVER, (g_bExistTracks ? "MVP_PLAYING_TRACK" : "MVP_NO_TRACKS_LOADED") , g_szPlayingTrack)
+					show_dhudmessage(0, "%s %L^n%L %s", g_szPrefix[PREFIX_HUD], LANG_SERVER, "MVP_KILLER_SHOW_HUD", g_szName[g_eMVPlayer[iTopKiller]], g_iKills[g_eMVPlayer[iTopKiller]], LANG_SERVER, (g_iUserSelectedTrack[g_eMVPlayer[iTopKiller]] == -1) ? "MVP_NO_TRACK_SELECTED" : (g_bExistTracks ? "MVP_PLAYING_TRACK" : "MVP_NO_TRACKS_LOADED") , g_szPlayingTrack)
 				}
 				case MVP_HUD_MSG:
 				{
 					set_hudmessage(g_iHudColor[HudColorR], g_iHudColor[HudColorG], g_iHudColor[HudColorB], g_fHudPos[HudPosX], g_fHudPos[HudPosY], 1)
-					show_hudmessage(0, "%s %L^n%L %s", g_szPrefix[PREFIX_HUD], LANG_SERVER, "MVP_KILLER_SHOW_HUD", g_szName[g_eMVPlayer[iTopKiller]], g_iKills[g_eMVPlayer[iTopKiller]], LANG_SERVER, (g_bExistTracks ? "MVP_PLAYING_TRACK" : "MVP_NO_TRACKS_LOADED"), g_szPlayingTrack)
+					show_hudmessage(0, "%s %L^n%L %s", g_szPrefix[PREFIX_HUD], LANG_SERVER, "MVP_KILLER_SHOW_HUD", g_szName[g_eMVPlayer[iTopKiller]], g_iKills[g_eMVPlayer[iTopKiller]], LANG_SERVER, (g_iUserSelectedTrack[g_eMVPlayer[iTopKiller]] == -1) ? "MVP_NO_TRACK_SELECTED" : (g_bExistTracks ? "MVP_PLAYING_TRACK" : "MVP_NO_TRACKS_LOADED"), g_szPlayingTrack)
 				}
 			}
 		}

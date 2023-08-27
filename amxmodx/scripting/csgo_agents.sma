@@ -140,6 +140,7 @@ public csgo_menu_item_selected(const id, const MenuCode:menu_code, const itemid)
     {
         return
     }
+
     agents_menu(id)
 
     return

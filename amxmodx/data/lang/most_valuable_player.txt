@@ -20,9 +20,10 @@ MVP_NO_TRACKS_LOADED = No tracks loaded.
 MVP_VIP_ONLY = \r[\dVIP Only\r]
 MVP_TRACK_VIP_ONLY = This track is only for ^4V.I.P^1 members
 MVP_PLAYING_TRACK = Playing Track:
-RESERVED_TRACK_CHAT = This track is reserved for^3 %s^1
-NOT_ENOUGH_MONEY = You need^3 %i$^1 more to buy this track
-TRACK_BOUGHT = You bought^3 %s^1
+MVP_NO_TRACK_SELECTED = User doesn't have a selected or bought track.
+MVP_RESERVED_TRACK_CHAT = This track is reserved for^3 %s^1
+MVP_NOT_ENOUGH_MONEY = You need^3 %i$^1 more to buy this track
+MVP_TRACK_BOUGHT = You bought^3 %s^1
 
 [ro]
 MVP_MENU_TITLE = Meniu MVP

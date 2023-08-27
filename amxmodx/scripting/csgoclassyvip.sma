@@ -717,7 +717,7 @@ public VipItemsMenu(id)
 	}	
 	else
 	{
-		menu_additem(szTittle, !g_bActived_Mj[id] ? "Double jump \r[OFF]" : "Triple jump \y[ON]")
+		menu_additem(szTittle, !g_bActived_Mj[id] ? "Double jump \r[OFF]" : "Double jump \y[ON]")
 	}
 			
 	if(VIPRegen[id] == 0)

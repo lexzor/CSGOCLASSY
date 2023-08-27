@@ -45,11 +45,12 @@
 89.40.233.106:27015 -> robert
 93.114.82.106:27015 -> sandu
 
+188.212.102.180:27015 - CSGO.NEBUNATICII.RO
 188.212.101.238:27015 - TEST ERAZER
 188.212.101.21:27015 - csgo.erazer.ro 
 */
 
-#define LICENSED_IP "188.212.101.21:27015"
+#define LICENSED_IP "188.212.101.238:27015"
 #define TOTAL_SKINS 1025
 static const MODE = 0; // 1 - DNS, 0 - IP
 
@@ -57,7 +58,7 @@ static const MODE = 0; // 1 - DNS, 0 - IP
 #define CHAT_PREFIX "^4[^3CSGO Classy^4]^1"
 #define CONSOLE_PREFIX "[CSGO Classy]"
 
-#define MAIN_MENU_DEFAULT_ITEMS_COUNT 13
+#define MAIN_MENU_DEFAULT_ITEMS_COUNT 14
 #define INVENTORY_DEFAULT_ITEMS_COUNT 3
 #define GAMBLING_DEFAULT_ITEMS_COUNT 4
 #define SETTINGS_DEFAULT_ITEMS_COUNT 2
@@ -567,6 +568,38 @@ static const g_szTablesInfo[][] = {
 	PRIMARY KEY(server_key));",
 }
 
+static const g_szStatsLang[][] =
+{
+	"MENU_DROPPED_SKINS", 
+	"MENU_DROPPED_STT_SKINS", 
+	"MENU_WEAPON_KILLS",
+	"MENU_RECEIVED_MONEY", 
+	"MENU_RECEIVED_SCRAPS", 
+	"MENU_DROPPED_CASES", 
+	"MENU_DROPPED_KEYS", 
+	"MENU_DROPPED_NAMETAG_CAPSULES", 
+	"MENU_DROPPED_NAMETAG_MYTHICS", 
+	"MENU_DROPPED_NAMETAG_RARE", 
+	"MENU_DROPPED_NAMETAG_COMMON", 
+	"MENU_DROPPED_GLOVE_CASES", 
+	"MENU_DROPPED_GLOVES", 
+	"MENU_DROPPED_GLOVE0", 
+	"MENU_DROPPED_GLOVE1", 
+	"MENU_DROPPED_GLOVE2", 
+	"MENU_DROPPED_GLOVE3", 
+	"MENU_DROPPED_GLOVE4", 
+	"MENU_TOTAL_UPGRADES", 
+	"MENU_TOTAL_DAILY_REWARDS", 
+	"MENU_TOTAL_GIFTS",
+	"MENU_TOTAL_TRADES",
+	"MENU_TOTAL_COINFLIPS",
+	"MENU_TOTAL_GIVEAWAYS", 
+	"MENU_TOTAL_CONTRACTS", 
+	"MENU_TOTAL_ROULETTE", 
+	"MENU_MARKET_ITEMS_SOLD", 
+	"MENU_MARKET_ITEM_BOUGHT" 
+}
+
 static const g_WeapMenu[][WEAPONS] =
 {
 	{"Knives", CSW_KNIFE},
@@ -820,8 +853,8 @@ new Array:g_aJackPotSttSkins
 new Array:g_aJackpotUsers
 new Array:g_aeMenus[MENU_ITEMS]
 
-new Float:g_CvarBuyTime,g_CvarKnifeWarmup,g_CvarCapsuleChance,g_CvarCommonNameTagChance,
-g_CvarRareNameTagChance,g_CvarMythicNameTagChance,g_CvarCommonPrice,g_CvarRarePrice,
+new Float:g_CvarBuyTime,g_CvarKnifeWarmup,g_CvarCapsuleChance,g_CvarCommonNameTagChance, g_CvarMVPSystem,
+g_CvarRareNameTagChance,g_CvarMythicNameTagChance,g_CvarCommonPrice,g_CvarRarePrice, g_CvarUndroppableChance,
 g_CvarMythicPrice,g_CvarGoldVipCapsuleChance,g_CvarSilverVipCapsuleChance,g_CvarGoldVipNameTagChance,
 g_CvarSilverVipNameTagChance,g_CvarScrapsDestroyNameTagSkin,g_CvarMoneyDestroyNameTagSkin,g_CvarPreviewTime,
 g_CvarRoundEndSounds,g_CvarGiveawayMinPlayers,g_CvarWeekendEvent,g_CvarWeekendFriday,g_CvarWeekendBonus,
@@ -1028,6 +1061,10 @@ stock AddStatistics(const id, const STATISTICS:type, const amount, const skinid 
 				g_eUserStatistics[id][DROPPED_GLOVE4] += amount
 			}
 		}
+
+		g_eServerStatistics[DROPPED_GLOVES] += amount
+		g_eUserStatistics[id][DROPPED_GLOVES] += amount
+		
 		return
 	}
 
@@ -1097,35 +1134,32 @@ public AWPNextPrimaryAttack(iOwner)
 		set_entvar(iOwner, var_viewmodel, "")
 	}
 }
-
 stock ToggleAWPSkin(const iOwner)
 {
 	static iBodyPart
-	iBodyPart = 0
 
 	if(g_iUserSelectedSkin[iOwner][CSW_AWP] != -1)
 	{
-		static szModel[256]
+		static szModel[128]
 		ArrayGetString(g_aSkinModel, g_iUserSelectedSkin[iOwner][CSW_AWP], szModel, charsmax(szModel))
-
 		CalculateModelBodyIndex(g_iWeaponGloves[iOwner][CSW_AWP], szModel, ArrayGetCell(g_aSkinBody, g_iUserSelectedSkin[iOwner][CSW_AWP]), iBodyPart)
-		
 		set_entvar(iOwner, var_viewmodel, szModel)
+		set_entvar(iOwner, var_body, iBodyPart)
+		return
+	}
+
+	if(!g_bUserDefaultModels[iOwner])
+	{
+		CalculateModelBodyIndex(-1, g_eDefaultModels[CSW_AWP][PATH], g_eDefaultModels[CSW_AWP][BODYINDEX] > -1 ? g_eDefaultModels[CSW_AWP][BODYINDEX] : 0, iBodyPart);
+		set_entvar(iOwner, var_viewmodel, g_eDefaultModels[CSW_AWP][PATH])
 		set_entvar(iOwner, var_body, iBodyPart)
 	}
 	else 
 	{
-		if(!g_bUserDefaultModels[iOwner])
-		{
-			CalculateModelBodyIndex(-1, g_eDefaultModels[CSW_AWP][PATH], g_eDefaultModels[CSW_AWP][BODYINDEX] > -1 ? g_eDefaultModels[CSW_AWP][BODYINDEX] : 0, iBodyPart);
-			set_entvar(iOwner, var_viewmodel, g_eDefaultModels[CSW_AWP][PATH])
-			set_entvar(iOwner, var_body, iBodyPart)
-		}
-		else 
-		{
-			set_entvar(iOwner, var_viewmodel, g_szDefaultSkinModels[CSW_AWP])
-		}
+		set_entvar(iOwner, var_viewmodel, g_szDefaultSkinModels[CSW_AWP])
 	}
+
+	return
 }
 
 public plugin_cfg()
@@ -1220,39 +1254,35 @@ public native_aug_sg_unscope(iPluginID, iParams)
 	new iOwner = get_param(1)
 	if(is_user_alive(iOwner))
 	{
-		new iWeaponID = get_user_weapon(iOwner)
+		new iWeaponID = cs_get_user_weapon(iOwner)
 		new iBodyPart
-
-		if(!g_bLogged[iOwner])
-		{
-			set_entvar(iOwner, var_viewmodel, g_szDefaultSkinModels[iWeaponID])
-			return
-		}
-
 
 		if(g_iUserSelectedSkin[iOwner][iWeaponID] != -1)
 		{
-			new szModel[256]
+			new szModel[128]
 			ArrayGetString(g_aSkinModel, g_iUserSelectedSkin[iOwner][iWeaponID], szModel, charsmax(szModel))
 
 			CalculateModelBodyIndex(g_iWeaponGloves[iOwner][iWeaponID], szModel, ArrayGetCell(g_aSkinBody, g_iUserSelectedSkin[iOwner][iWeaponID]), iBodyPart)
-			
-			set_entvar(iOwner, var_viewmodel, szModel)
-			set_entvar(iOwner, var_body, iBodyPart)
+			cs_set_viewmodel_body(iOwner, iWeaponID, iBodyPart)
+			cs_set_modelformat(iOwner, iWeaponID, szModel)
+
+			return
+		}
+
+		if(!g_bUserDefaultModels[iOwner])
+		{
+			CalculateModelBodyIndex(-1, g_eDefaultModels[iWeaponID][PATH], g_eDefaultModels[iWeaponID][BODYINDEX] > -1 ? g_eDefaultModels[iWeaponID][BODYINDEX] : 0, iBodyPart);
+			cs_set_viewmodel_body(iOwner, iWeaponID, iBodyPart)
+			cs_set_modelformat(iOwner, iWeaponID, g_eDefaultModels[iWeaponID][PATH])
 		}
 		else 
 		{
-			if(!g_bUserDefaultModels[iOwner])
-			{
-				CalculateModelBodyIndex(-1, g_eDefaultModels[iWeaponID][PATH], g_eDefaultModels[iWeaponID][BODYINDEX] > -1 ? g_eDefaultModels[iWeaponID][BODYINDEX] : 0, iBodyPart);
-				set_entvar(iOwner, var_viewmodel, g_eDefaultModels[iWeaponID][PATH])
-				set_entvar(iOwner, var_body, iBodyPart)
-			}
-			else 
-			{
-				set_entvar(iOwner, var_viewmodel, g_szDefaultSkinModels[iWeaponID])
-			}
+			cs_set_modelformat(iOwner, iWeaponID, "")
+			cs_set_viewmodel_body(iOwner, iWeaponID, -1)
+
+			set_pev(iOwner, pev_viewmodel2, g_szDefaultSkinModels[iWeaponID])
 		}
+
 	}
 }
 
@@ -2420,8 +2450,8 @@ public SetUserSkin(const id, const skinid, const weaponid)
 		ArrayGetString(g_aSkinModel, skinid, szModel, charsmax(szModel))
 
 		CalculateModelBodyIndex(g_iWeaponGloves[id][weaponid], szModel, ArrayGetCell(g_aSkinBody, skinid), iBodyPart)
-		cs_set_modelformat(id, weaponid, szModel)
 		cs_set_viewmodel_body(id, weaponid, iBodyPart)
+		cs_set_modelformat(id, weaponid, szModel)
 
 		return
 	}
@@ -2429,11 +2459,14 @@ public SetUserSkin(const id, const skinid, const weaponid)
 	if(!g_bUserDefaultModels[id])
 	{
 		CalculateModelBodyIndex(-1, g_eDefaultModels[weaponid][PATH], g_eDefaultModels[weaponid][BODYINDEX] > -1 ? g_eDefaultModels[weaponid][BODYINDEX] : 0, iBodyPart);
-		cs_set_modelformat(id, weaponid, g_eDefaultModels[weaponid][PATH])
 		cs_set_viewmodel_body(id, weaponid, iBodyPart)
+		cs_set_modelformat(id, weaponid, g_eDefaultModels[weaponid][PATH])
 	}
 	else 
 	{
+		cs_set_modelformat(id, weaponid, "")
+		cs_set_viewmodel_body(id, weaponid, -1)
+
 		set_pev(id, pev_viewmodel2, g_szDefaultSkinModels[weaponid])
 	}
 }
@@ -3063,6 +3096,9 @@ stock add_main_menu_default_items(const id, const &menu)
 
 	formatex(temp, 95, "\w%L", id, "MENU_SETTINGS_TITLE");
 	menu_additem(menu, temp, "12");
+
+	formatex(temp, 95, "\w%L", id, "MENU_STATISTICS_TITLE");
+	menu_additem(menu, temp, "13");
 }
 
 stock format_menu_rank(const id, szMenuItem[], iLen)
@@ -3088,16 +3124,9 @@ stock format_menu_rank(const id, szMenuItem[], iLen)
 		ArrayGetString(g_aRankName, g_iUserRank[id] + 1, szRank, charsmax(szRank))
 		iStringLen = formatex(szMenuItem, iLen, "%l", "MENU_NEXT_RANK_INFO",
 		szRank, AddCommas(g_iUserKills[id]), AddCommas(iNeededKills))
-
-
-		// formatex(szMenuItem, iLen, "%s\r [%d\d/\r%d]^n\d%s\r [%d\d/\r%d]",
-		// szRank, g_iUserKills[id], iNeededKills, ranks_names[rank[id]], xp[id], xp_num[level[id]]);
 	}
 	else
-	{ 
-		// formatex(szMenuItem, iLen, "%s\r [MAX]^n\w%s\r [%d\d/\r%d]",
-		// szRank, ranks_names[rank[id]], xp[id], xp_num[level[id]]);
-	
+	{ 	
 		iStringLen = formatex(szMenuItem, iLen, "%l", "MENU_MAX_RANK")
 	}
 
@@ -3195,6 +3224,11 @@ public main_menu_handler(id, menu, item)
 			OpenSettingsMenu(id)
 		}
 
+		case 13:
+		{
+			OpenStatisticsMenu(id)
+		}
+
 		default:
 		{
 			new ret;
@@ -3203,6 +3237,140 @@ public main_menu_handler(id, menu, item)
 	}
 	
 	return
+}
+
+OpenStatisticsMenu(const id)
+{
+	new iMenu = menu_create(fmt("%s %l", MENU_PREFIX, "MENU_STATISTICS_TITLE"), "statistics_menu_handler")
+
+	menu_additem(iMenu, fmt("%l", "MENU_STATISTICS_SERVER"))
+	menu_additem(iMenu, fmt("%l", "MENU_STATISTICS_USER"))
+
+	menu_setprop(iMenu, MPROP_EXIT, MEXIT_ALL)
+
+	if(is_user_connected(id))
+	{
+		menu_display(id, iMenu)
+	}
+	else 
+	{
+		menu_destroy(iMenu)
+	}
+}
+
+public statistics_menu_handler(const id, const menu, const item)
+{
+	menu_destroy(menu)
+
+	if(item == MENU_EXIT)
+	{
+		_ShowMainMenu(id)
+		return
+	}
+
+	ShowStatsMenu(id, bool:item)
+
+	return
+}
+
+ShowStatsMenu(const id, const bool:bUser)
+{
+	new iMenu = menu_create(fmt("%s %l %l", MENU_PREFIX, bUser ? "MENU_STATISTICS_USER" : "MENU_STATISTICS_SERVER", "MENU_STATISTICS_TITLE"), "show_stats_handler")
+
+	menu_additem(iMenu, fmt("%l", "MENU_SKINS_STATISTICS"), bUser ? "user" : "server")
+	menu_additem(iMenu, fmt("%l", "MENU_WEAPON_KILLS"), 	bUser ? "user" : "server")
+
+	for(new STATISTICS:iStats = RECEIVED_MONEY, eGlove[GLOVESINFO]; iStats < STATISTICS; iStats++)
+	{
+		if(iStats == RECEIVED_MONEY)
+		{
+			menu_additem(iMenu, fmt("%l^n%l\y$", g_szStatsLang[_:iStats], "MENU_STATISTICS_DESCRIPTION", AddCommas(bUser ? g_eUserStatistics[id][iStats] : g_eServerStatistics[iStats])))
+			continue
+		}
+
+		switch(iStats)
+		{
+			case DROPPED_GLOVE0:
+			{
+				ArrayGetArray(g_aGloves, GLOVE0, eGlove, sizeof(eGlove))
+				menu_additem(iMenu, fmt("%l^n%l", g_szStatsLang[_:iStats], eGlove[szGloveName], "MENU_STATISTICS_DESCRIPTION", AddCommas(bUser ? g_eUserStatistics[id][iStats] : g_eServerStatistics[iStats])))
+			}
+
+			case DROPPED_GLOVE1:
+			{
+				ArrayGetArray(g_aGloves, GLOVE1, eGlove, sizeof(eGlove))
+				menu_additem(iMenu, fmt("%l^n%l", g_szStatsLang[_:iStats], eGlove[szGloveName], "MENU_STATISTICS_DESCRIPTION", AddCommas(bUser ? g_eUserStatistics[id][iStats] : g_eServerStatistics[iStats])))
+			}
+
+			case DROPPED_GLOVE2:
+			{
+				ArrayGetArray(g_aGloves, GLOVE2, eGlove, sizeof(eGlove))
+				menu_additem(iMenu, fmt("%l^n%l", g_szStatsLang[_:iStats], eGlove[szGloveName], "MENU_STATISTICS_DESCRIPTION", AddCommas(bUser ? g_eUserStatistics[id][iStats] : g_eServerStatistics[iStats])))
+			}
+
+			case DROPPED_GLOVE3:
+			{
+				ArrayGetArray(g_aGloves, GLOVE3, eGlove, sizeof(eGlove))
+				menu_additem(iMenu, fmt("%l^n%l", g_szStatsLang[_:iStats], eGlove[szGloveName], "MENU_STATISTICS_DESCRIPTION", AddCommas(bUser ? g_eUserStatistics[id][iStats] : g_eServerStatistics[iStats])))
+			}
+
+			case DROPPED_GLOVE4:
+			{
+				ArrayGetArray(g_aGloves, GLOVE4, eGlove, sizeof(eGlove))
+				menu_additem(iMenu, fmt("%l^n%l", g_szStatsLang[_:iStats], eGlove[szGloveName], "MENU_STATISTICS_DESCRIPTION", AddCommas(bUser ? g_eUserStatistics[id][iStats] : g_eServerStatistics[iStats])))
+			}
+
+			default:
+			{
+				menu_additem(iMenu, fmt("%l^n%l", g_szStatsLang[_:iStats], "MENU_STATISTICS_DESCRIPTION", AddCommas(bUser ? g_eUserStatistics[id][iStats] : g_eServerStatistics[iStats]))) 
+			}
+		}
+	}
+
+	menu_setprop(iMenu, MPROP_EXIT, MEXIT_ALL)
+
+	if(is_user_connected(id))
+	{
+		menu_display(id, iMenu)
+	}
+	else 
+	{
+		menu_destroy(iMenu)
+	}
+}
+
+public show_stats_handler(const id, const menu, const item)
+{
+	if(item == MENU_EXIT)
+	{
+		OpenStatisticsMenu(id)
+		return
+	}
+	
+	enum 
+	{
+		ITEM_SKINS,
+		ITEM_WEAPON_KILLS
+	}
+
+	new szData[7]
+	menu_item_getinfo(menu, item, _, szData, charsmax(szData), _, _, _)
+
+	new bool:bUser = bool:equal(szData, "user")
+	
+	if(item == ITEM_SKINS || item == ITEM_WEAPON_KILLS)
+	{
+		
+		ShowStatsMenu(id, bUser)
+
+		client_print_color(id, print_team_default, "%s Not available for moment", CHAT_PREFIX)
+
+		menu_destroy(menu)
+		return
+	}
+
+	menu_destroy(menu)
+	ShowStatsMenu(id, bUser)
 }
 
 ShowInventoryMenu(const id)
@@ -3557,16 +3725,6 @@ public open_skin_tag_menu_handler(id, menu, item)
 
 public open_name_tag_capsule(id)
 {
-	// new iSysTime = get_systime();
-
-	// if(iSysTime - g_iOpenDelay[id] < OPEN_DELAY)
-	// {
-	// 	open_skin_tag_menu(id);
-	// 	return PLUGIN_HANDLED;
-	// }
-	
-	// g_iOpenDelay[id] = iSysTime;
-
 	if(g_iNameTagCapsule[id] < 1)
 	{
 		client_print_color(id, print_team_default, "%s %l", CHAT_PREFIX, "NOT_ENOUGH_NAMETAG_CAPSULES_MSG");
@@ -4377,17 +4535,6 @@ public open_gloves_menu_handler(id, menu, item)
 	{
 		case 0:
 		{	
-			// new iSysTime = get_systime();
-
-			// if(iSysTime - g_iOpenDelay[id] < OPEN_DELAY)
-			// {
-			// 	menu_destroy(menu);
-			// 	open_gloves_menu(id);
-			// 	return PLUGIN_HANDLED;
-			// }
-
-			// g_iOpenDelay[id] = iSysTime;
-
 			if(g_iGlovesCases[id] == 0 || g_iUserKeys[id] == 0)
 			{
 				open_gloves_menu(id);
@@ -4702,8 +4849,6 @@ stock CalculateModelBodyIndex(gloves_id, const model_name[], skin_id, &body)
 		body = skin_id 
 		return	
 	}
-
-	//log_amx("Error! Model ^"%s^" does not corespond with any model from csgoclassy.ini [Check %s, models must be the same]", model_name, GLOVES_FILE_NAME);
 
 	if(amount_of_models == -1)
 	{
@@ -5705,28 +5850,24 @@ public confirmation_handler(id, menu, item)
 
 contractitem()
 {
-		new bool:bFoundSkin = false;
-		new iRandomSkin;
+	new bool:bFoundSkin = false;
+	new iRandomSkin, iChance;
 
-		while(!bFoundSkin)
+	while(!bFoundSkin)
+	{
+		iRandomSkin = random_num(0, g_iSkinsNum - 1);
+		iChance = ArrayGetCell(g_aSkinChance, iRandomSkin)
+
+		if((g_CvarUndroppableChance != -1 && iChance >= g_CvarUndroppableChance) || (iChance == 101))
 		{
-			iRandomSkin = random_num(0, g_iSkinsNum - 1);
-
-			if(ArrayGetCell(g_aSkinChance, iRandomSkin) == 101)
-				continue;
-			else 
-			{
-				bFoundSkin = true;
-				break;
-			}
+			continue
 		}
-
-		if(bFoundSkin == true)
-			return iRandomSkin;
-
-		return PLUGIN_CONTINUE;
+		
+		bFoundSkin = true;
+	}
+	
+	return iRandomSkin;
 }
-
 
 _ShowSkinMenu(id)
 {
@@ -5995,7 +6136,7 @@ public skin_menu_handler(id, menu, item)
 			{
 				g_iUserSelectedSkin[id][wid] = -1;
 				
-				SetUserSkin(id, g_iUserSelectedSkin[id][wid], wid)
+				SetUserSkin(id, SET_DEFAULT_MODEL, wid)
 					
 				_ShowSkinMenu(id);
 			}
@@ -7146,15 +7287,7 @@ public oc_craft_menu_handler(id, menu, item)
 
 _OpenCase(id)
 {
-	new szMessage[191];
-	// new iSysTime = get_systime();
-
-	// if(iSysTime - g_iOpenDelay[id] < OPEN_DELAY)
-	// {
-	// 	return PLUGIN_HANDLED;
-	// }
-	// g_iOpenDelay[id] = iSysTime;
-	
+	new szMessage[191];	
 	new bool:succes;
 	new rSkin = -1;
 	new rChance;
@@ -7162,9 +7295,10 @@ _OpenCase(id)
 
 	new bool:bNoSkinSelected = true;
 	new bool:bSkinTypeMode = bool:g_CvarSkinType;
+
 	while(bNoSkinSelected)
 	{
-		rSkin = random_num(0, g_iSkinsNum - 1);
+		rSkin = random(g_iSkinsNum - 1);
 
 		if(bSkinTypeMode)
 		{
@@ -7175,6 +7309,11 @@ _OpenCase(id)
 		rChance = random_num(1, 100);
 		wChance = ArrayGetCell(g_aSkinChance, rSkin);
 		
+		if(g_CvarUndroppableChance != -1 && wChance >= g_CvarUndroppableChance)
+		{
+			continue
+		}
+
 		if(wChance == 101)
 		{
 			continue;
@@ -7222,14 +7361,14 @@ _OpenCase(id)
 				if((random_num(1, 100) <= STATTRAK_CHANCE) && !g_bIsWeaponStattrak[id][rSkin])
 				{
 					g_bIsWeaponStattrak[id][rSkin] = true
-					formatex(szMessage, charsmax(szMessage), "^4[CSGO Classy] %s ^1opened ^4StatTrak (TM) %s^1 with a ^4chance of %d percent",
-					g_szName[id], Skin, 100 - wChance)
+					formatex(szMessage, charsmax(szMessage), "%s^3 %s ^1opened ^4StatTrak (TM) %s^1 with a ^4chance of %d percent",
+					CHAT_PREFIX, g_szName[id], Skin, 100 - wChance)
 					AddStatistics(id, DROPPED_STT_SKINS, 1, rSkin)
 				}
 				else 
 				{
-					formatex(szMessage, charsmax(szMessage), "^4[CSGO Classy] %s^1 opened ^4%s^1 with a ^4chance of %d percent",
-					g_szName[id], Skin, 100 - wChance)
+					formatex(szMessage, charsmax(szMessage), "%s^3 %s^1 opened ^4%s^1 with a ^4chance of %d percent",
+					CHAT_PREFIX, g_szName[id], Skin, 100 - wChance)
 					AddStatistics(id, DROPPED_SKINS, 1, rSkin)
 				}
 
@@ -7266,13 +7405,6 @@ send_message(id, msg[])
 
 _CraftSkin(id)
 {
-	// new iSysTime = get_systime();
-
-	// if(iSysTime - g_iOpenDelay[id] < OPEN_DELAY)
-	// {
-	// 	return PLUGIN_HANDLED;
-	// }
-	// g_iOpenDelay[id] = iSysTime;
 	new bool:succes;
 	new rSkin;
 	new rChance;
@@ -7294,12 +7426,12 @@ _CraftSkin(id)
 		rChance = random_num(1, 100);
 		wChance = ArrayGetCell(g_aSkinChance, rSkin);
 
-		if(wChance == 101)
+		if((wChance == 101) || (g_CvarUndroppableChance != -1 && wChance >= g_CvarUndroppableChance))
 		{
-			continue;
+			continue
 		}
 
-		if (rChance >= wChance)
+		if (rChance < wChance)
 		{
 			succes = true
 		}
@@ -10175,8 +10307,9 @@ public ReadINIFile()
 	new weapontype[5];
 	new szTemp[2][64];
 
-	while(fgets(fp, buff, charsmax(buff)))
+	while(!feof(fp))
 	{
+		fgets(fp, buff, charsmax(buff))
 		trim(buff);
 
 		if(buff[0] == ';' || buff[0] == EOS || buff[0] == '#' || buff[0] == ' ')
@@ -11297,6 +11430,30 @@ RegisterCVARS()
 			0.0
 		),
 		g_CvarDailyMinRank
+	)
+
+	bind_pcvar_num(
+		create_cvar(
+			"undroppable_skin_chance",
+			"-1",
+			FCVAR_NONE,
+			"Chance of some skins to make them undroppable. Disabled: -1"
+		),
+		g_CvarUndroppableChance
+	)
+
+	bind_pcvar_num(
+		create_cvar(
+			"mvp_active",
+			"1",
+			FCVAR_NONE,
+			"If MVP System is enabled/disabled. Disable if you are using a MVP plugin",
+			true,
+			0.0,
+			true,
+			1.0
+		),
+		g_CvarMVPSystem
 	)
 
 	p_Freezetime = get_cvar_pointer("mp_freezetime")
@@ -13662,11 +13819,6 @@ public any:native_csgo_add_inventory_item_value(iPluginID, iParams)
 
 	ArrayGetArray(g_aeMenus[MENU_ITEMS:menu_code], iMenuID - g_cItemCounter[_:menu_code], eMenuData)
 	
-	// if(eMenuData[tUserMenuData] == Invalid_Trie )
-	// {
-	// 	eMenuData[tUserMenuData] = TrieCreate()
-	// }
-
 	new eUserMenuData[USER_MENU_DATA]
 	eUserMenuData[iInventoryValue] = get_param(3)
 
@@ -14435,22 +14587,23 @@ checkInstantDefault(id, iItemID)
 //lexzor
 getGiveawaySkin(szSkinName[])
 {
-	new bool:bFoundSkin = false;
-	new iRandomSkin;
+	new iRandomSkin = -1;
 	new model[256];
+	new iChance
 
-	while(!bFoundSkin)
+	while(!szSkinName[0])
 	{
 		iRandomSkin = random_num(0, g_iSkinsNum - 1);
+		iChance = ArrayGetCell(g_aSkinChance, iRandomSkin)
 
-		if(ArrayGetCell(g_aSkinChance, iRandomSkin) == 101)
-			continue;
-		else 
+		if((g_CvarUndroppableChance != -1 && iChance >= g_CvarUndroppableChance) || (iChance == 101))
 		{
-			ArrayGetString(g_aSkinName, iRandomSkin, model, charsmax(model))
-			copy(szSkinName, 100, model);
-			bFoundSkin = true;
+			continue
 		}
+
+		ArrayGetString(g_aSkinName, iRandomSkin, model, charsmax(model))
+		copy(szSkinName, 100, model);
+		break
 	}
 
 	return iRandomSkin;
@@ -14514,18 +14667,22 @@ public OnPlayerKilled()
 
 public OnRoundEnd()
 {
-    new id = get_best_player()
-    
-    if(id == -1)
-        return
-        
-    _GiveBonus(id, 1)
+	new id = get_best_player()
+	
+	if(id == -1)
+		return
+		
 
-    arrayset(g_iKills, 0, sizeof(g_iKills))
-    arrayset(g_iHS, 0, sizeof(g_iHS))
-    
-    for(new i; i < sizeof(g_fDmg); i++)
-        g_fDmg[i] = 0.0
+	if(g_CvarMVPSystem)
+	{
+		_GiveBonus(id, 1)
+	}
+	
+	arrayset(g_iKills, 0, sizeof(g_iKills))
+	arrayset(g_iHS, 0, sizeof(g_iHS))
+	
+	for(new i; i < sizeof(g_fDmg); i++)
+		g_fDmg[i] = 0.0
 }
 
 get_best_player()
