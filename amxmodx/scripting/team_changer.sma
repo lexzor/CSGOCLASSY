@@ -23,9 +23,9 @@ public plugin_init()
     register_clcmd("say", "sayHook", iFlags)
     register_clcmd("say_team", "sayHook", iFlags)
 
-    register_clcmd("amxx_t", "changeTeam", iFlags)
-    register_clcmd("amxx_ct", "changeTeam", iFlags)
-    register_clcmd("amxx_spec", "changeTeam", iFlags)
+    register_clcmd("amx_t", "changeTeam", iFlags, "<name>")
+    register_clcmd("amx_ct", "changeTeam", iFlags, "<name>")
+    register_clcmd("amx_spec", "changeTeam", iFlags, "<name>")
 
     csgo_get_prefixes(CHAT_PREFIX, charsmax(CHAT_PREFIX))
 }
@@ -47,19 +47,19 @@ public sayHook(id)
         {
             case 't':
             {
-                amxclient_cmd(id, "amxx_t", szName)
+                amxclient_cmd(id, "amx_t", szName)
                 return PLUGIN_HANDLED
             }
 
             case 'c':
             {
-                amxclient_cmd(id, "amxx_ct", szName)
+                amxclient_cmd(id, "amx_ct", szName)
                 return PLUGIN_HANDLED            
             }
 
             case 's':
             {
-                amxclient_cmd(id, "amxx_spec", szName)
+                amxclient_cmd(id, "amx_spec", szName)
                 return PLUGIN_HANDLED
             }
         }
@@ -86,9 +86,7 @@ public changeTeam(id, level, cid)
         get_user_name(id, szName, charsmax(szName))
     }
 
-    replace_all(szCmd, charsmax(szCmd), "amxx_", "")
-
-    server_print("%s %s", szCmd, szName)
+    replace_all(szCmd, charsmax(szCmd), "amx_", "")
 
     new TeamName:tnTeam
 
@@ -104,7 +102,7 @@ public changeTeam(id, level, cid)
         }
     }
 
-    new iTarget = find_player_ex(FindPlayer_MatchNameSubstring, szName)
+    new iTarget = cmd_target(id, szName, CMDTARGET_ALLOW_SELF | CMDTARGET_NO_BOTS)
 
     if(!iTarget)
     {

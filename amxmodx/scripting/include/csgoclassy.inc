@@ -47,6 +47,70 @@ enum MenuCode
 	---------------------------------------------------------------------------------------
 */  
 
+/**
+* Called after a player have been logged in.
+*
+* @param id        Player index.
+*
+* @noreturn 
+*/
+forward user_log_in_post(const id);
+
+
+/**
+* Called after a player have been registered.
+*
+* @param id        Player index.
+*
+* @noreturn
+*/
+forward user_register_post(const id);
+
+
+/**
+* Called when a dynamic item from the menu has been selected.
+*
+* @param id        	Player index.
+* @param menucode		The menu from where the item has been selected.
+* @param itemid		Menu item id.	
+*
+* @noreturn
+*/
+forward csgo_menu_item_selected(const id, const MenuCode:menu_code, const itemid);
+
+
+/**
+* Called when a dynamic item from the menu has been selected.
+*
+* @note		This forward is called after de csgoclassy.cfg have been executed	
+*
+* @noreturn
+*/
+forward csgo_config_executed();
+
+/**
+	---------------------------------------------------------------------------------------
+	Natives of the CSGO Classy mode. Can be used external and may be changed in the future.
+	Not all of them are documented here, so this file may be changed in the future.
+	
+	*NOTES:
+		- 'get_' 	natives are made to be used after the user is connected
+		- 'set_' 	natives are made to be used after user has been logged in (already connected)
+					use ther with specific post login/register forwards
+					
+	---------------------------------------------------------------------------------------
+*/  
+
+
+/**
+* Retrieve CSGO Classy config directory name.
+*
+* @param buffer 			Buffer to copy name value in.
+* @param bufferlen 		Size of the buffer.
+*			
+* @noreturn						
+*/
+native csgo_directory(buffer[], bufferlen);
 
 
 /**
@@ -94,63 +158,6 @@ native any:csgo_add_inventory_item_value(const id, const item_id, const new_valu
 * @return				1 on success or NativeErrorCode value on error.		
 */
 native any:csgo_additional_menu_name(const MenuCode:menu_code, const item_id, const id, const additional_name[]);
-
-
-/**
-* Called after a player have been logged in.
-*
-* @param id        Player index.
-*
-* @noreturn 
-*/
-forward user_log_in_post(const id);
-
-
-/**
-* Called after a player have been registered.
-*
-* @param id        Player index.
-*
-* @noreturn
-*/
-forward user_register_post(const id);
-
-
-/**
-* Called when a dynamic item from the menu has been selected.
-*
-* @param id        	Player index.
-* @param menucode		The menu from where the item has been selected.
-* @param itemid		Menu item id.	
-*
-* @noreturn
-*/
-forward csgo_menu_item_selected(const id, const MenuCode:menu_code, const itemid);
-
-/**
-	---------------------------------------------------------------------------------------
-	Natives of the CSGO Classy mode. Can be used external and may be changed in the future.
-	Not all of them are documented here, so this file may be changed in the future.
-	
-	*NOTES:
-		- 'get_' 	natives are made to be used after the user is connected
-		- 'set_' 	natives are made to be used after user has been logged in (already connected)
-					use ther with specific post login/register forwards
-					
-	---------------------------------------------------------------------------------------
-*/  
-
-
-/**
-* Retrieve CSGO Classy config directory name.
-*
-* @param buffer 			Buffer to copy name value in.
-* @param bufferlen 		Size of the buffer.
-*			
-* @noreturn						
-*/
-native csgo_directory(buffer[], bufferlen);
-
 
 
 /**

@@ -143,8 +143,41 @@ enum _:PlayerType
 	iTopKiller
 }
 
-new WinScenario:g_iScenario = NO_SCENARIO
+enum _:BONUS_TYPE
+{
+	MONEY,
+	KEYS,
+	CASES,
+	SCRAPS
+}
 
+enum _:CVARS
+{
+	MAX_MONEY,
+	MIN_MONEY,
+	MAX_CASES,
+	MIN_CASES,
+	MAX_KEYS,
+	MIN_KEYS,
+	MAX_SCRAPS,
+	MIN_SCRAPS
+}
+
+static const CSGO_MVP_CVAR_LIST[][] =
+{
+	"mvp_max_money",
+	"mvp_min_money",
+	"mvp_max_cases",
+	"mvp_min_cases",
+	"mvp_max_keys",
+	"mvp_min_keys",
+	"mvp_max_scraps",
+	"mvp_min_scraps"
+}
+
+new g_eMVPCvars[CVARS]
+
+new WinScenario:g_iScenario = NO_SCENARIO
 new Array:g_aTracks
 
 new bool:g_bAuthData
@@ -225,6 +258,14 @@ public plugin_init()
 	g_iMaxPlayers = get_maxplayers()
 
 	g_iMenuID = csgo_register_menu(MenuCode:MENU_INVENTORY, fmt("%l", "MVP_MENU_TITLE"))
+}
+
+public csgo_config_executed()
+{
+	for(new iCvar; iCvar < CVARS; iCvar++)
+	{
+		g_eMVPCvars[iCvar] = get_cvar_num(CSGO_MVP_CVAR_LIST[iCvar])
+	}
 }
 
 public csgo_menu_item_selected(const id, const MenuCode:menu_id, const itemid)
@@ -1358,6 +1399,46 @@ CalculateTopKiller(WinScenario:status)
 
 ShowMVP(WinScenario:iScenario)
 {
+	new iRandomBonus = random(BONUS_TYPE)
+	new iBonusValue, szTextMessage[64]
+
+	switch(iRandomBonus)
+	{
+		case MONEY:
+		{
+			iBonusValue = random_num(g_eMVPCvars[MIN_MONEY], g_eMVPCvars[MAX_MONEY])
+
+			if(iBonusValue > 0)
+				formatex(szTextMessage, charsmax(szTextMessage), "%l$", "MVP_BONUS_TEXT", iBonusValue)
+		}
+
+		case CASES:
+		{
+			iBonusValue = random_num(g_eMVPCvars[MIN_CASES], g_eMVPCvars[MAX_CASES])
+			
+			if(iBonusValue > 0)
+				formatex(szTextMessage, charsmax(szTextMessage), "%l case%s", "MVP_BONUS_TEXT", iBonusValue, iBonusValue > 1 ? "s" : "")
+		}
+
+		case KEYS:
+		{
+			iBonusValue = random_num(g_eMVPCvars[MIN_KEYS], g_eMVPCvars[MAX_KEYS])
+			
+			if(iBonusValue > 0)
+				formatex(szTextMessage, charsmax(szTextMessage), "%l key%s", "MVP_BONUS_TEXT", iBonusValue, iBonusValue > 1 ? "s" : "")
+		}
+
+		case SCRAPS:
+		{
+			iBonusValue = random_num(g_eMVPCvars[MIN_SCRAPS], g_eMVPCvars[MAX_SCRAPS])
+		
+			if(iBonusValue > 0)
+				formatex(szTextMessage, charsmax(szTextMessage), "%l scrap%s", "MVP_BONUS_TEXT", iBonusValue, iBonusValue > 1 ? "s" : "")
+		}
+	}
+
+	new iMVP
+
 	switch(iScenario)
 	{
 		case NO_SCENARIO:
@@ -1392,14 +1473,17 @@ ShowMVP(WinScenario:iScenario)
 				case MVP_DHUD_MSG:
 				{
 					set_dhudmessage(g_iHudColor[HudColorR], g_iHudColor[HudColorG], g_iHudColor[HudColorB], g_fHudPos[HudPosX], g_fHudPos[HudPosY], 1)
-					show_dhudmessage(0, "%s %L^n%L %s", g_szPrefix[PREFIX_HUD], LANG_SERVER, "MVP_PLANTER_SHOW_HUD", g_szName[g_eMVPlayer[iPlanter]], LANG_SERVER, (g_iUserSelectedTrack[g_eMVPlayer[iPlanter]] == -1) ? "MVP_NO_TRACK_SELECTED" : (g_bExistTracks ? "MVP_PLAYING_TRACK" : "MVP_NO_TRACKS_LOADED"), g_szPlayingTrack)
+					show_dhudmessage(0, "%s %L^n%L %s%s%s", g_szPrefix[PREFIX_HUD], LANG_SERVER, "MVP_PLANTER_SHOW_HUD", g_szName[g_eMVPlayer[iPlanter]], LANG_SERVER, (g_iUserSelectedTrack[g_eMVPlayer[iPlanter]] == -1) ? "MVP_NO_TRACK_SELECTED" : (g_bExistTracks ? "MVP_PLAYING_TRACK" : "MVP_NO_TRACKS_LOADED"), g_szPlayingTrack, g_szPlayingTrack[0] ? ". " : "", szTextMessage)
 				}
 				case MVP_HUD_MSG:
 				{
 					set_hudmessage(g_iHudColor[HudColorR], g_iHudColor[HudColorG], g_iHudColor[HudColorB], g_fHudPos[HudPosX], g_fHudPos[HudPosY], 1)
-					show_hudmessage(0, "%s %L^n%L %s", g_szPrefix[PREFIX_HUD], LANG_SERVER, "MVP_PLANTER_SHOW_HUD", g_szName[g_eMVPlayer[iPlanter]], LANG_SERVER, (g_iUserSelectedTrack[g_eMVPlayer[iPlanter]] == -1) ? "MVP_NO_TRACK_SELECTED" : (g_bExistTracks ? "MVP_PLAYING_TRACK" : "MVP_NO_TRACKS_LOADED"), g_szPlayingTrack)
+					show_hudmessage(0, "%s %L^n%L %s%s%s", g_szPrefix[PREFIX_HUD], LANG_SERVER, "MVP_PLANTER_SHOW_HUD", g_szName[g_eMVPlayer[iPlanter]], LANG_SERVER, (g_iUserSelectedTrack[g_eMVPlayer[iPlanter]] == -1) ? "MVP_NO_TRACK_SELECTED" : (g_bExistTracks ? "MVP_PLAYING_TRACK" : "MVP_NO_TRACKS_LOADED"), g_szPlayingTrack, g_szPlayingTrack[0] ? ". " : "", szTextMessage)
 				}
+
 			}
+
+			iMVP = g_eMVPlayer[iPlanter]
 		}
 		case CT_MVP:
 		{
@@ -1413,14 +1497,16 @@ ShowMVP(WinScenario:iScenario)
 				case MVP_DHUD_MSG:
 				{
 					set_dhudmessage(g_iHudColor[HudColorR], g_iHudColor[HudColorG], g_iHudColor[HudColorB], g_fHudPos[HudPosX], g_fHudPos[HudPosY], 1)
-					show_dhudmessage(0, "%s %L^n%L %s", g_szPrefix[PREFIX_HUD], LANG_SERVER, "MVP_DEFUSER_SHOW_HUD", g_szName[g_eMVPlayer[iDefuser]], LANG_SERVER, (g_iUserSelectedTrack[g_eMVPlayer[iDefuser]] == -1) ? "MVP_NO_TRACK_SELECTED" : (g_bExistTracks ? "MVP_PLAYING_TRACK" : "MVP_NO_TRACKS_LOADED"), g_szPlayingTrack)
+					show_dhudmessage(0, "%s %L^n%L %s%s%s", g_szPrefix[PREFIX_HUD], LANG_SERVER, "MVP_DEFUSER_SHOW_HUD", g_szName[g_eMVPlayer[iDefuser]], LANG_SERVER, (g_iUserSelectedTrack[g_eMVPlayer[iDefuser]] == -1) ? "MVP_NO_TRACK_SELECTED" : (g_bExistTracks ? "MVP_PLAYING_TRACK" : "MVP_NO_TRACKS_LOADED"), g_szPlayingTrack, g_szPlayingTrack[0] ? ". " : "", szTextMessage)
 				}
 				case MVP_HUD_MSG:
 				{
 					set_hudmessage(g_iHudColor[HudColorR], g_iHudColor[HudColorG], g_iHudColor[HudColorB], g_fHudPos[HudPosX], g_fHudPos[HudPosY], 1)
-					show_hudmessage(0, "%s %L^n%L %s", g_szPrefix[PREFIX_HUD], LANG_SERVER, "MVP_DEFUSER_SHOW_HUD", g_szName[g_eMVPlayer[iDefuser]], LANG_SERVER, (g_iUserSelectedTrack[g_eMVPlayer[iDefuser]] == -1) ? "MVP_NO_TRACK_SELECTED" : (g_bExistTracks ? "MVP_PLAYING_TRACK" : "MVP_NO_TRACKS_LOADED"), g_szPlayingTrack)
+					show_hudmessage(0, "%s %L^n%L %s%s%s", g_szPrefix[PREFIX_HUD], LANG_SERVER, "MVP_DEFUSER_SHOW_HUD", g_szName[g_eMVPlayer[iDefuser]], LANG_SERVER, (g_iUserSelectedTrack[g_eMVPlayer[iDefuser]] == -1) ? "MVP_NO_TRACK_SELECTED" : (g_bExistTracks ? "MVP_PLAYING_TRACK" : "MVP_NO_TRACKS_LOADED"), g_szPlayingTrack, g_szPlayingTrack[0] ? ". " : "", szTextMessage)
 				}
 			}
+
+			iMVP = g_eMVPlayer[iDefuser]
 		}
 		case KILLER_MVP:
 		{
@@ -1434,14 +1520,27 @@ ShowMVP(WinScenario:iScenario)
 				case MVP_DHUD_MSG:
 				{
 					set_dhudmessage(g_iHudColor[HudColorR], g_iHudColor[HudColorG], g_iHudColor[HudColorB], g_fHudPos[HudPosX], g_fHudPos[HudPosY], 1)
-					show_dhudmessage(0, "%s %L^n%L %s", g_szPrefix[PREFIX_HUD], LANG_SERVER, "MVP_KILLER_SHOW_HUD", g_szName[g_eMVPlayer[iTopKiller]], g_iKills[g_eMVPlayer[iTopKiller]], LANG_SERVER, (g_iUserSelectedTrack[g_eMVPlayer[iTopKiller]] == -1) ? "MVP_NO_TRACK_SELECTED" : (g_bExistTracks ? "MVP_PLAYING_TRACK" : "MVP_NO_TRACKS_LOADED") , g_szPlayingTrack)
+					show_dhudmessage(0, "%s %L^n%L %s%s%s", g_szPrefix[PREFIX_HUD], LANG_SERVER, "MVP_KILLER_SHOW_HUD", g_szName[g_eMVPlayer[iTopKiller]], g_iKills[g_eMVPlayer[iTopKiller]], LANG_SERVER, (g_iUserSelectedTrack[g_eMVPlayer[iTopKiller]] == -1) ? "MVP_NO_TRACK_SELECTED" : (g_bExistTracks ? "MVP_PLAYING_TRACK" : "MVP_NO_TRACKS_LOADED") , g_szPlayingTrack, g_szPlayingTrack[0] ? ". " : "", szTextMessage)
 				}
 				case MVP_HUD_MSG:
 				{
 					set_hudmessage(g_iHudColor[HudColorR], g_iHudColor[HudColorG], g_iHudColor[HudColorB], g_fHudPos[HudPosX], g_fHudPos[HudPosY], 1)
-					show_hudmessage(0, "%s %L^n%L %s", g_szPrefix[PREFIX_HUD], LANG_SERVER, "MVP_KILLER_SHOW_HUD", g_szName[g_eMVPlayer[iTopKiller]], g_iKills[g_eMVPlayer[iTopKiller]], LANG_SERVER, (g_iUserSelectedTrack[g_eMVPlayer[iTopKiller]] == -1) ? "MVP_NO_TRACK_SELECTED" : (g_bExistTracks ? "MVP_PLAYING_TRACK" : "MVP_NO_TRACKS_LOADED"), g_szPlayingTrack)
+					show_hudmessage(0, "%s %L^n%L %s%s%s", g_szPrefix[PREFIX_HUD], LANG_SERVER, "MVP_KILLER_SHOW_HUD", g_szName[g_eMVPlayer[iTopKiller]], g_iKills[g_eMVPlayer[iTopKiller]], LANG_SERVER, (g_iUserSelectedTrack[g_eMVPlayer[iTopKiller]] == -1) ? "MVP_NO_TRACK_SELECTED" : (g_bExistTracks ? "MVP_PLAYING_TRACK" : "MVP_NO_TRACKS_LOADED"), g_szPlayingTrack, g_szPlayingTrack[0] ? ". " : "", szTextMessage)
 				}
 			}
+
+			iMVP = g_eMVPlayer[iTopKiller]
+		}
+	}
+
+	if(is_user_connected(iMVP))
+	{
+		switch(iRandomBonus)
+		{
+			case MONEY: 	set_user_money(iMVP, get_user_money(iMVP) + iBonusValue)
+			case CASES: 	set_user_cases(iMVP, get_user_cases(iMVP) + iBonusValue)
+			case KEYS: 		set_user_keys(iMVP, get_user_keys(iMVP) + iBonusValue)
+			case SCRAPS: 	set_user_scraps(iMVP, get_user_scraps(iMVP) + iBonusValue)
 		}
 	}
 }

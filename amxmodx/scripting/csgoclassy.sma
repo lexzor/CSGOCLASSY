@@ -50,7 +50,7 @@
 188.212.101.21:27015 - csgo.erazer.ro 
 */
 
-#define LICENSED_IP "188.212.101.238:27015"
+#define LICENSED_IP "188.212.101.21:27015"
 #define TOTAL_SKINS 1025
 static const MODE = 0; // 1 - DNS, 0 - IP
 
@@ -215,7 +215,8 @@ enum _:FORWARDS
 {
 	LOGIN,
 	REGISTER,
-	MENU_ITEM_SELECTED
+	MENU_ITEM_SELECTED,
+	CONFIG_EXECUTED
 }
 
 enum _:SQLDATA 
@@ -614,6 +615,9 @@ static const g_WeapMenu[][WEAPONS] =
 	{"AUG", CSW_AUG},
 	{"SSG", CSW_SCOUT},
 	{"SG552", CSW_SG552},
+	{"SG550", CSW_SG550},
+	{"G3SG1", CSW_G3SG1},
+	{"Negev", CSW_M249},
 	{"MP7", CSW_MP5NAVY},
 	{"MP9", CSW_TMP},
 	{"UMP-45", CSW_UMP45},
@@ -822,7 +826,6 @@ new g_iMostDamage[MAX_PLAYERS + 1]
 new g_iDamage[MAX_PLAYERS + 1][MAX_PLAYERS + 1]
 new ScopeData[MAX_PLAYERS + 1][PlayerScopeData]
 new PluginForwardQuick
-new g_iReturn
 new g_quick_enable
 new g_quick_type
 new g_iMenuToOpen[MAX_PLAYERS + 1]
@@ -971,6 +974,7 @@ public plugin_init()
 	g_eForwards[LOGIN] = CreateMultiForward("user_log_in_post", ET_IGNORE, FP_CELL)
 	g_eForwards[REGISTER] = CreateMultiForward("user_register_post", ET_IGNORE, FP_CELL)
 	g_eForwards[MENU_ITEM_SELECTED] = CreateMultiForward("csgo_menu_item_selected", ET_IGNORE, FP_CELL, FP_CELL, FP_CELL)
+	g_eForwards[CONFIG_EXECUTED] = CreateMultiForward("csgo_config_executed", ET_IGNORE)
 
 	if(weekend_event() && g_CvarWeekendHud)
 	{
@@ -1381,11 +1385,12 @@ public plugin_end()
 	DisableHamForward(fw_K1);
 	DisableHamForward(fw_K2);
 
-	DestroyForward(g_eForwards[LOGIN])
-	DestroyForward(g_eForwards[REGISTER])
-	DestroyForward(g_eForwards[MENU_ITEM_SELECTED])
-	DestroyForward(PluginForwardQuick)
+	for(new iForward; iForward < FORWARDS; iForward++)
+	{
+		DestroyForward(g_eForwards[iForward])
+	}
 
+	DestroyForward(PluginForwardQuick)
 	unregister_forward(122, fw_CUIC, 0);
 }
 
@@ -1543,8 +1548,14 @@ public ev_NewRound(id)
 
 	if(g_iRoundNum == g_iRoundsToPlay + 1)
 	{
-		server_cmd("gal_startvote");
-		server_exec();
+		new szNextmap[32]
+		get_cvar_string("amx_nextmap", szNextmap, charsmax(szNextmap))
+		
+		if(equali(szNextmap, "[not yet voted on]"))
+		{
+			server_cmd("gal_startvote");
+			server_exec();
+		}
 	}	
 	
 	arrayset(g_iRoundKills, 0, sizeof(g_iRoundKills));
@@ -2029,8 +2040,7 @@ registerUser(id)
 		g_szTables[USERS_STATISTICS], g_szSQLName[id]);
 	SQL_ThreadQuery(g_SqlTuple, "FreeHandle", szQuery)
 
-	new ret;
-	ExecuteForward(g_eForwards[REGISTER], ret, id);
+	ExecuteForward(g_eForwards[REGISTER], _, id);
 }
 
 _SaveData(id)
@@ -2740,8 +2750,7 @@ public reg_menu_handler(id, menu, item)
 
 				fadescreen(id, 70, 2);
 				_ShowMainMenu(id);
-				new ret;
-				ExecuteForward(g_eForwards[LOGIN], ret, id);
+				ExecuteForward(g_eForwards[LOGIN], _, id);
 			
 				set_task_ex(1.0, "playerAddTime", id + TASK_PLAYED_TIME, .flags = SetTask_Repeat)
 			}
@@ -3231,8 +3240,7 @@ public main_menu_handler(id, menu, item)
 
 		default:
 		{
-			new ret;
-			ExecuteForward(g_eForwards[MENU_ITEM_SELECTED], ret, id, _:MENU_MAIN, iMenuInfo)
+			ExecuteForward(g_eForwards[MENU_ITEM_SELECTED], _, id, _:MENU_MAIN, iMenuInfo)
 		}
 	}
 	
@@ -3584,8 +3592,7 @@ public inventory_menu_handler(const id, const menu, const item)
 
 		default:
 		{
-			new ret;
-			ExecuteForward(g_eForwards[MENU_ITEM_SELECTED], ret, id, _:MENU_INVENTORY, iMenuInfo)
+			ExecuteForward(g_eForwards[MENU_ITEM_SELECTED], _, id, _:MENU_INVENTORY, iMenuInfo)
 		}
 	}
 
@@ -3643,8 +3650,7 @@ public settings_menu_handler(const id, const menu, const item)
 
 		default:
 		{
-			new ret;
-			ExecuteForward(g_eForwards[MENU_ITEM_SELECTED], ret, id, _:MENU_SETTINGS, iMenuInfo)
+			ExecuteForward(g_eForwards[MENU_ITEM_SELECTED], _, id, _:MENU_SETTINGS, iMenuInfo)
 			return
 		}
 	}
@@ -9786,8 +9792,7 @@ public games_menu_handler(id, menu, item)
 		}
 		default:
 		{
-			new ret;
-			ExecuteForward(g_eForwards[MENU_ITEM_SELECTED], ret, id, _:MENU_GAMBLING, iMenuInfo)
+			ExecuteForward(g_eForwards[MENU_ITEM_SELECTED], _, id, _:MENU_GAMBLING, iMenuInfo)
 		}
 	}
 	menu_destroy(menu)
@@ -10275,6 +10280,8 @@ ExecConfigFile()
 		server_cmd("exec %s", szConfigFile)
 		server_exec()
 	}
+
+	ExecuteForward(g_eForwards[CONFIG_EXECUTED])
 }
 
 public ReadINIFile()
@@ -12115,7 +12122,7 @@ read_gloves_file()
 
 		if(iCount == 0) 
 		{
-			server_print("%s Gloves system has been disabled due to no gloves configurations for models.", CONSOLE_PREFIX);
+			server_print("%s Gloves system has been disabled due to no gloves configuration.", CONSOLE_PREFIX);
 			g_bActiveGloveSystem = false;
 		}
 		else
@@ -13353,8 +13360,7 @@ public native_force_user_log_in(iPluginID, iParamNum)
 		case true:
 		{
 			g_bLogged[id] = value;
-			new ret;
-			ExecuteForward(g_eForwards[LOGIN], ret, id);
+			ExecuteForward(g_eForwards[LOGIN], _, id);
 
 			set_task_ex(1.0, "playerAddTime", id + TASK_PLAYED_TIME, .flags = SetTask_Repeat)
 		}
@@ -13886,8 +13892,7 @@ public _allow()
 		ExecuteHamB(Ham_Item_Deploy, iActiveItem);
 	}	
 	
-	new ret;
-	ExecuteForward(g_eForwards[LOGIN], ret, id);
+	ExecuteForward(g_eForwards[LOGIN], _, id);
 
 	set_task_ex(1.0, "playerAddTime", id + TASK_PLAYED_TIME, .flags = SetTask_Repeat)
 	_ShowMainMenu(id)
@@ -14747,7 +14752,7 @@ public checkQuickScopeKill(id)
 	{
 		get_user_name(iKiller,KillerName,charsmax(KillerName))
 		get_user_name(iVictim,VictimName,charsmax(VictimName))
-		ExecuteForward(PluginForwardQuick, g_iReturn, iKiller, iVictim, get_user_weapon(iKiller))
+		ExecuteForward(PluginForwardQuick, _, iKiller, iVictim, get_user_weapon(iKiller))
 
 		if(g_quick_type == 0)
 		{
