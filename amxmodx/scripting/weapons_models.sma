@@ -4,7 +4,14 @@
 
 enum HOOKCHAINS
 {
-    HookChain:SET_MODEL
+    HookChain:HC_SET_MODEL
+}
+
+enum _:FAKEMETA_HOOKS
+{
+	FM_SET_MODEL,
+	PRECACHE_MODEL_PRE,
+	PRECACHE_MODEL_POST
 }
 
 static const W_WEAPONS_MODEL[] = "models/w_weapons.mdl"
@@ -95,19 +102,29 @@ static const W_MODEL_TO_REPLACE[][] =
 }
 
 new g_eHookChain[HOOKCHAINS]
+new g_eFMHooks[FAKEMETA_HOOKS]
 
 public plugin_init()
 {
     register_plugin("Weapons Models", "0.1", "lexzor")
 
-    if(!EnableHookChain((g_eHookChain[SET_MODEL] = RegisterHookChain(RG_CWeaponBox_SetModel, "RG_SetModel_Pre"))))
+    if(!EnableHookChain((g_eHookChain[HC_SET_MODEL] = RegisterHookChain(RG_CWeaponBox_SetModel, "RG_SetModel_Pre"))))
     {
         set_fail_state("RG_SetModel_Pre failed")
     }
 
-    register_forward(FM_SetModel, "FM_SetModel_Pre");
-    register_forward(FM_PrecacheModel, "FM_PrecacheModel_Pre") 
-    register_forward(FM_PrecacheModel, "FM_PrecacheModel_Post", _:true) 
+    g_eFMHooks[FM_SET_MODEL] = register_forward(FM_SetModel, "FM_SetModel_Pre");
+    g_eFMHooks[PRECACHE_MODEL_PRE] = register_forward(FM_PrecacheModel, "FM_PrecacheModel_Pre") 
+    g_eFMHooks[PRECACHE_MODEL_POST] = register_forward(FM_PrecacheModel, "FM_PrecacheModel_Post", _:true) 
+}
+
+public plugin_end()
+{
+	DisableHookChain(g_eHookChain[HC_SET_MODEL])
+
+	unregister_forward(FM_SetModel, g_eFMHooks[FM_SET_MODEL])
+	unregister_forward(FM_PrecacheModel, g_eFMHooks[PRECACHE_MODEL_PRE])
+	unregister_forward(FM_PrecacheModel, g_eFMHooks[PRECACHE_MODEL_POST], _:true) 
 }
 
 public plugin_precache()
@@ -122,7 +139,7 @@ public plugin_precache()
     }
 }
 
-public fw_PrecacheModel(const szModel[]) 
+public FM_PrecacheModel_Pre(const szModel[]) 
 { 
 	for(new i; i < sizeof(MODEL_TO_UNPRECACHE); i++) 
 	{ 
@@ -135,7 +152,7 @@ public fw_PrecacheModel(const szModel[])
 	return FMRES_IGNORED 
 }
 
-public fw_PrecacheModel_Post(const szModel[])
+public FM_PrecacheModel_Post(const szModel[])
 {
 	for(new i ; i < sizeof(MODEL_TO_UNPRECACHE); i++) 
 	{ 
