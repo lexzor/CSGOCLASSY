@@ -25,6 +25,7 @@ MVP_RESERVED_TRACK_CHAT = This track is reserved for^3 %s^1
 MVP_NOT_ENOUGH_MONEY = You need^3 %i$^1 more to buy this track
 MVP_TRACK_BOUGHT = You bought^3 %s^1
 MVP_BONUS_TEXT = Bonus %d
+MVP_USER_NOT_LOGGED_IN = ^3%n^1 is not logged in and he doesn't get^4 MVP Bonus
 
 [ro]
 MVP_MENU_TITLE = Meniu MVP

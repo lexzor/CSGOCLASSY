@@ -1533,15 +1533,24 @@ ShowMVP(WinScenario:iScenario)
 		}
 	}
 
-	if(is_user_connected(iMVP))
+	if(!is_user_connected(iMVP))
 	{
-		switch(iRandomBonus)
-		{
-			case MONEY: 	set_user_money(iMVP, get_user_money(iMVP) + iBonusValue)
-			case CASES: 	set_user_cases(iMVP, get_user_cases(iMVP) + iBonusValue)
-			case KEYS: 		set_user_keys(iMVP, get_user_keys(iMVP) + iBonusValue)
-			case SCRAPS: 	set_user_scraps(iMVP, get_user_scraps(iMVP) + iBonusValue)
-		}
+		return
+	}
+
+	if(!is_user_logged(iMVP))
+	{
+		CC_SendMessage(0, "^1%L", LANG_SERVER, "MVP_USER_NOT_LOGGED_IN", iMVP)
+		return
+	}
+	
+	
+	switch(iRandomBonus)
+	{
+		case MONEY: 	set_user_money(iMVP, get_user_money(iMVP) + iBonusValue)
+		case CASES: 	set_user_cases(iMVP, get_user_cases(iMVP) + iBonusValue)
+		case KEYS: 		set_user_keys(iMVP, get_user_keys(iMVP) + iBonusValue)
+		case SCRAPS: 	set_user_scraps(iMVP, get_user_scraps(iMVP) + iBonusValue)
 	}
 }
 

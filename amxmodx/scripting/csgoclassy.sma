@@ -50,7 +50,7 @@
 188.212.101.21:27015 - csgo.erazer.ro 
 */
 
-#define LICENSED_IP "188.212.101.21:27015"
+#define LICENSED_IP "172.18.0.2:27015"
 #define TOTAL_SKINS 1025
 static const MODE = 0; // 1 - DNS, 0 - IP
 
@@ -992,7 +992,7 @@ public plugin_init()
 	RegisterCMDS()
 }
 
-stock AddStatistics(const id, const STATISTICS:type, const amount, const skinid = -1, const gloveid = -1, const weaponid = -1)
+stock AddStatistics(const id, const STATISTICS:type, const amount, const skinid = -1, const gloveid = -1, const weaponid = -1, const line = -1)
 {
 	if(type == WEAPON_KILL)
 	{
@@ -1007,9 +1007,9 @@ stock AddStatistics(const id, const STATISTICS:type, const amount, const skinid 
 
 	if(type == DROPPED_SKINS || type == DROPPED_STT_SKINS)
 	{
-		if(skinid == -1)
+		if(skinid == -1 || skinid > ArraySize(g_aSkinName))
 		{
-			log_to_file(LOG_FILE, "[STATISTICS] Invalid skin id [%i]", skinid)
+			log_to_file(LOG_FILE, "[STATISTICS] %s. Invalid skin id [%i] at line %i", g_szStatsName[_:type], skinid, line)
 			return
 		} 
 
@@ -1074,7 +1074,7 @@ stock AddStatistics(const id, const STATISTICS:type, const amount, const skinid 
 
 	if(amount < 1)
 	{
-		log_to_file(LOG_FILE, "[STATISTICS] Statistics type [%i] is not a skin and has a wrong amount [%i]", _:type, amount)
+		log_to_file(LOG_FILE, "[STATISTICS] %s. is not a skin and has a wrong amount [%i] at line %i", g_szStatsName[_:type], amount, line)
 		return
 	}
 
@@ -1086,8 +1086,7 @@ stock AddStatistics(const id, const STATISTICS:type, const amount, const skinid 
 
 public Ham_Weapon_SecondaryAttack_Post(const iWeaponEnt)
 {
-	static iOwner, iZoom
-	iOwner = get_entvar(iWeaponEnt, var_owner)
+	new iZoom, iOwner = get_entvar(iWeaponEnt, var_owner)
 	
 	if((iZoom = cs_get_user_zoom(iOwner)) != CS_SET_NO_ZOOM)
 	{
@@ -1102,13 +1101,11 @@ public Ham_Weapon_SecondaryAttack_Post(const iWeaponEnt)
 
 public Ham_Weapon_PrimaryAttack_Post(const iWeaponEnt)
 {	
-	static iOwner 
-	iOwner = get_entvar(iWeaponEnt, var_owner)
+	new iOwner = get_entvar(iWeaponEnt, var_owner)
 
 	ToggleAWPSkin(iOwner)
 
-	static Float:fNextPrimaryAttack
-	fNextPrimaryAttack = get_member(iWeaponEnt, m_Weapon_flNextPrimaryAttack)
+	new Float:fNextPrimaryAttack = get_member(iWeaponEnt, m_Weapon_flNextPrimaryAttack)
 
 	set_task(fNextPrimaryAttack, "AWPNextPrimaryAttack", iOwner + TASK_REMOVE_AWP_SECONDARY)
 }
@@ -1122,11 +1119,9 @@ public AWPNextPrimaryAttack(iOwner)
 		return
 	}
 
-	static iWeaponEnt
-	iWeaponEnt = get_member(iOwner, m_pActiveItem)
+	new iWeaponEnt = get_member(iOwner, m_pActiveItem)
 	
-	static iLastZoom 
-	iLastZoom = cs_get_user_zoom(iOwner)
+	new iLastZoom  = cs_get_user_zoom(iOwner)
 
 	if(
 		is_valid_ent(iWeaponEnt) 
@@ -1140,11 +1135,11 @@ public AWPNextPrimaryAttack(iOwner)
 }
 stock ToggleAWPSkin(const iOwner)
 {
-	static iBodyPart
+	new iBodyPart
 
 	if(g_iUserSelectedSkin[iOwner][CSW_AWP] != -1)
 	{
-		static szModel[128]
+		new szModel[128]
 		ArrayGetString(g_aSkinModel, g_iUserSelectedSkin[iOwner][CSW_AWP], szModel, charsmax(szModel))
 		CalculateModelBodyIndex(g_iWeaponGloves[iOwner][CSW_AWP], szModel, ArrayGetCell(g_aSkinBody, g_iUserSelectedSkin[iOwner][CSW_AWP]), iBodyPart)
 		set_entvar(iOwner, var_viewmodel, szModel)
@@ -1317,17 +1312,29 @@ public plugin_end()
 		ClearSyncHud(0, g_hWeekBonus);
 	}
 
+	DisableHamForward(fw_K1);
+	DisableHamForward(fw_K2);
+
+	for(new iForward; iForward < FORWARDS; iForward++)
+	{
+		DestroyForward(g_eForwards[iForward])
+	}
+
+	DestroyForward(PluginForwardQuick)
+	unregister_forward(122, fw_CUIC, 0);
+
 	switch(g_CvarSaveType)
 	{
 		case SQL:
 		{		
-			static szQuery[TOTAL_SKINS * 6], iQueryLen, iLen[2], szSkinData[2][TOTAL_SKINS * 3]
+			static szQuery[TOTAL_SKINS * 6], szSkinData[2][TOTAL_SKINS * 3]
+			new iQueryLen, iLen[2]
 
 			iQueryLen = formatex(szQuery[iQueryLen], charsmax(szQuery), "UPDATE `%s` SET", g_szTables[SERVER_STATISTICS])
 
 			for(new i = 0; i < g_iSkinsNum; i++)
 			{
-				iLen[_:DROPPED_SKINS] 	+=		formatex(szSkinData[_:DROPPED_SKINS][iLen[_:DROPPED_SKINS]], 	charsmax(szSkinData[]),	 "%d,", g_iServerSkinStatistics[i])
+				iLen[_:DROPPED_SKINS] 			+=		formatex(szSkinData[_:DROPPED_SKINS][iLen[_:DROPPED_SKINS]], 					charsmax(szSkinData[]),	 "%d,", g_iServerSkinStatistics[i])
 				iLen[_:DROPPED_STT_SKINS] 		+=		formatex(szSkinData[_:DROPPED_STT_SKINS][iLen[_:DROPPED_STT_SKINS]], 			charsmax(szSkinData[]),	 "%d,", g_iServerSttSkinStatistics[i])
 			}
 
@@ -1349,6 +1356,7 @@ public plugin_end()
 			iQueryLen += formatex(szQuery[iQueryLen], charsmax(szQuery), " WHERE `server_key` = '%s';", DB_SERVER_KEY)
 
 			SQL_ThreadQuery(g_SqlTuple, "FreeHandle", szQuery)
+			log_to_file(LOG_FILE, "[SERVER STATISTICS SAVE QUERY] %s", szQuery)
 			SQL_FreeHandle(g_SqlTuple)
 		}
 
@@ -1381,17 +1389,6 @@ public plugin_end()
 			nvault_close(g_nVaultStattrakKills)
 		}
 	}
-
-	DisableHamForward(fw_K1);
-	DisableHamForward(fw_K2);
-
-	for(new iForward; iForward < FORWARDS; iForward++)
-	{
-		DestroyForward(g_eForwards[iForward])
-	}
-
-	DestroyForward(PluginForwardQuick)
-	unregister_forward(122, fw_CUIC, 0);
 }
 
 public client_connect(id)
@@ -1541,7 +1538,7 @@ public ev_NewRound(id)
 	
 	if(g_bJackpotWork)
 	{
-		static Timer[32];
+		new Timer[32];
 		_FormatTime(Timer, charsmax(Timer), g_iJackpotClose);
 		client_print_color(0, 0, "%s %l", CHAT_PREFIX, "JACKPOT_PLAY", Timer);
 	}
@@ -1917,32 +1914,28 @@ public Ham_Player_Killed_Pre(id)
 	if(g_bIsInPreview[id])
 		restore_previous_skin(id);
 
-	static iActiveItem
-	iActiveItem = get_pdata_cbase(id, 373, 5, 0);
+	new iActiveItem = get_pdata_cbase(id, 373, 5, 0);
 
 	if (!pev_valid(iActiveItem))
 	{
 		return PLUGIN_HANDLED;
 	}
 	
-	static imp
-	imp = pev(iActiveItem, 82);
+	new imp = pev(iActiveItem, 82);
 	
 	if (imp > 0)
 	{
 		return PLUGIN_HANDLED;
 	}
 
-	static iId
-	iId = get_pdata_int(iActiveItem, 43, 4, 0);
+	new iId = get_pdata_int(iActiveItem, 43, 4, 0);
 
 	if (1 << iId & 570425936)
 	{
 		return PLUGIN_HANDLED;
 	}
 	
-	static skin
-	skin = g_iUserSelectedSkin[id][iId];
+	new skin = g_iUserSelectedSkin[id][iId];
 	
 	set_pev(iActiveItem, 82, (skin == -1) ? DEFAULT_SKIN : (skin + 1))
 	return PLUGIN_HANDLED;
@@ -1953,10 +1946,8 @@ public Ham_Player_Killed_Post(id, iKiller)
 	if(!is_user_connected(iKiller) || id == iKiller)
 		return PLUGIN_HANDLED
 	
-	static iUserWeaponId, iUserSkinId;
-	
-	iUserWeaponId = get_user_weapon(iKiller);
-	iUserSkinId = g_iUserSelectedSkin[iKiller][iUserWeaponId];
+	new iUserWeaponId = get_user_weapon(iKiller);
+	new iUserSkinId = g_iUserSelectedSkin[iKiller][iUserWeaponId];
 
 	AddStatistics(iKiller, WEAPON_KILL, 1, .weaponid = iUserWeaponId)
 
@@ -2062,11 +2053,11 @@ saveSqlData(id)
 	
 	for(new iSkinID = 0; iSkinID < g_iSkinsNum; iSkinID++)
 	{
-		iLen[0] += formatex(stattrackskins[iLen[0]], 		charsmax(stattrackskins), 	"%d,", 	_:g_bIsWeaponStattrak[id][iSkinID])
-		iLen[1] += formatex(stattrackkill[iLen[1]], 		charsmax(stattrackkill), 	"%d,", 	g_iUserStattrakKillCount[id][iSkinID])
-		iLen[2] += formatex(droppedskins[_:DROPPED_SKINS][iLen[2]], charsmax(droppedskins[]), 	"%d,",	g_iUserSkinStatistics[id][iSkinID])
-		iLen[3] += formatex(droppedskins[_:DROPPED_STT_SKINS][iLen[3]], 	charsmax(droppedskins[]), 	"%d,", 	g_iUserSttSkinStatistics[id][iSkinID])
-		iLen[4] += formatex(weapbuff[iLen[4]], 				charsmax(weapbuff), 		"%d,", 	g_iUserSkins[id][iSkinID]);
+		iLen[0] += formatex(stattrackskins[iLen[0]], 							charsmax(stattrackskins), 	"%d,", 	_:g_bIsWeaponStattrak[id][iSkinID])
+		iLen[1] += formatex(stattrackkill[iLen[1]], 							charsmax(stattrackkill), 	"%d,", 	g_iUserStattrakKillCount[id][iSkinID])
+		iLen[2] += formatex(droppedskins[_:DROPPED_SKINS][iLen[2]], 			charsmax(droppedskins[]), 	"%d,",	g_iUserSkinStatistics[id][iSkinID])
+		iLen[3] += formatex(droppedskins[_:DROPPED_STT_SKINS][iLen[3]], 		charsmax(droppedskins[]), 	"%d,", 	g_iUserSttSkinStatistics[id][iSkinID])
+		iLen[4] += formatex(weapbuff[iLen[4]], 									charsmax(weapbuff), 		"%d,", 	g_iUserSkins[id][iSkinID]);
 	}
 
 	iLen[0] = 0
@@ -2148,7 +2139,7 @@ saveSqlData(id)
 		iQueryLen += formatex(szQuery[iQueryLen], charsmax(szQuery), ", `%s` = %i", g_szStatsName[_:iStats], g_eUserStatistics[id][iStats]);
 	}
 
-	formatex(szQuery[iQueryLen], charsmax(szQuery), " WHERE data.uname = '%s'", g_szSQLName[id]);
+	formatex(szQuery[iQueryLen], charsmax(szQuery), " WHERE data.uname = ^"%s^";", g_szSQLName[id]);
 
 	SQL_ThreadQuery(g_SqlTuple, "FreeHandle", szQuery);
 }
@@ -2259,16 +2250,13 @@ public GetUserData(FailState, Handle:Query, szError[], ErrorCode, szData[], iSiz
 {
 	if(FailState || ErrorCode)
 	{
-		log_to_file(LOG_FILE, "^nSQL ERROR: %s^n", szError);
+		log_to_file(LOG_FILE, "[LINE: %i] An SQL Error has been encoutered. Error code %i^nError: %s", __LINE__, ErrorCode, szError);
 		SQL_FreeHandle(Query);
 		return;
 	}
 
-	static iResult
-	iResult = SQL_NumResults(Query);
-	
-	static id
-	id = szData[0];
+	new iResult = SQL_NumResults(Query)
+	new id = szData[0];
 
 	g_bWaitingResponse[id] = false;
 
@@ -2302,7 +2290,7 @@ public GetUserData(FailState, Handle:Query, szError[], ErrorCode, szData[], iSiz
 		g_iUserDailyTime[id]		=   	SQL_ReadResult(Query, SQL_FieldNameToNum(Query, "daily_bonus_time"))
 		g_iTotalPlayedTime[id]		=   	SQL_ReadResult(Query, SQL_FieldNameToNum(Query, "played_time"))
 
-		static szValue[MAX_SKIN_TAG_LENGTH], j;
+		new szValue[MAX_SKIN_TAG_LENGTH], j;
 		static szQueryData[TOTAL_SKINS * 6];
 		
 		SQL_ReadResult(Query, SQL_FieldNameToNum(Query, "skins"), szQueryData, charsmax(szQueryData))
@@ -2452,11 +2440,11 @@ public GetUserData(FailState, Handle:Query, szError[], ErrorCode, szData[], iSiz
 
 public SetUserSkin(const id, const skinid, const weaponid)
 {
-	static iBodyPart
+	new iBodyPart
 
 	if(skinid != -1)
 	{
-		static szModel[128]
+		new szModel[128]
 		ArrayGetString(g_aSkinModel, skinid, szModel, charsmax(szModel))
 
 		CalculateModelBodyIndex(g_iWeaponGloves[id][weaponid], szModel, ArrayGetCell(g_aSkinBody, skinid), iBodyPart)
@@ -2485,7 +2473,7 @@ public FreeHandle(FailState, Handle:Query, szError[], ErrorCode, szData[], iSize
 {
 	if(FailState || ErrorCode)
 	{
-		log_to_file(LOG_FILE, "^nSQL ERROR: %s^n", szError);
+		log_to_file(LOG_FILE, "[LINE: %i] An SQL Error has been encoutered. Error code %i^nError: %s", __LINE__, ErrorCode, szError);
 	}
 
 	SQL_FreeHandle(Query);
@@ -2496,11 +2484,11 @@ public FreeHandle(FailState, Handle:Query, szError[], ErrorCode, szData[], iSize
 getDataNvault(id)
 {
 	static Data[TOTAL_SKINS * 6];
-	static iTimestamp;
+	new iTimestamp;
 	if (nvault_lookup(g_nVaultAccounts, g_szName[id], Data, charsmax(Data), iTimestamp) == 1)
 	{
-		static buffer[256];
-		static userData[15][16];
+		new buffer[256];
+		new userData[15][16];
 		strtok2(Data, g_szUserSavedPass[id], charsmax(g_szUserSavedPass), Data, charsmax(Data), '=');
 		strtok2(Data, buffer, charsmax(buffer), Data, charsmax(Data), '*');
 
@@ -2525,8 +2513,7 @@ getDataNvault(id)
 		g_iUserDailyTime[id]		=		str_to_num(userData[13])
 		g_iTotalPlayedTime[id]		=		str_to_num(userData[14])
 
-		static szValue[5], j
-		j = 1
+		new szValue[5], j = 1
 		arrayset(buffer, 0, charsmax(buffer));
 		strtok2(Data, buffer, charsmax(buffer), Data, charsmax(Data), '#');
 
@@ -2562,12 +2549,10 @@ getDataNvault(id)
 loadStattrakStatus(id)
 {
 	static Data[TOTAL_SKINS * 4]
-	static iTimestamp
+	new iTimestamp
 	if (nvault_lookup(g_nVaultStattrak, g_szName[id], Data, charsmax(Data), iTimestamp))
 	{		
-		static weaponData[8];
-		static j 
-		j = 0
+		new weaponData[8], j;
 
 		while (j < g_iSkinsNum && Data[0] && strtok(Data, weaponData, charsmax(weaponData), Data, charsmax(Data), ','))
 		{
@@ -2581,7 +2566,7 @@ loadStattrakStatus(id)
 public loadStattrakKills(id)
 {
 	static Data[TOTAL_SKINS * 4];
-	static iTimestamp;
+	new iTimestamp;
 	if (nvault_lookup(g_nVaultStattrakKills, g_szName[id], Data, charsmax(Data), iTimestamp))
 	{	
 		new weaponData[8];
@@ -2962,72 +2947,14 @@ _ShowMainMenu(id)
 
 	iMenu = menu_create(szTitle, "main_menu_handler")
 	
-	add_main_menu_default_items(id, iMenu)
-
-	addDynamicMenus(id, iMenu, MenuCode:MENU_MAIN)
-
-	// menu_setprop(iMenu, MPROP_SHOWPAGE, false)
-	menu_setprop(iMenu, MPROP_PAGE_CALLBACK, "MainMenuPageCallback")
-
-	if(is_user_connected(id))
-	{
-		menu_display(id, iMenu, 0, -1)
-		g_iMainMenuID[id] = iMenu
-	}
-	else 
-	{
-		menu_destroy(iMenu)
-	}
-}
-
-format_main_menu_title(const id, buffer[], const bufferlen)
-{
-	static szRank[64]
-	ArrayGetString(g_aRankName, g_iUserRank[id], szRank, charsmax(szRank))
-
-	formatex(buffer, bufferlen, "%s %l", MENU_PREFIX, "MENU_TITLE_INFO",
-		g_szName[id],
-		szRank, 
-		AddCommas(g_iUserMoney[id]),
-		fmt("%s%i\dh\r %s%i\dm", (g_iTotalPlayedTime[id] / 60 ) / 60 > 9 ? "" : "0", (g_iTotalPlayedTime[id] / 60 ) / 60, (g_iTotalPlayedTime[id] / 60) % 60 > 9 ? "" : "0", (g_iTotalPlayedTime[id]/ 60) % 60 )
-	)
-}
-
-public MainMenuPageCallback(const id, const status, const menu)
-{
-	if(status == MENU_MORE)
-	{
-		g_iMainMenuPage[id]++ 
-	}
-	else 
-	{
-		g_iMainMenuPage[id]--
-	}
-
-	static szTitle[256]
-
-	if(g_iMainMenuPage[id] == 0)
-	{
-		format_main_menu_title(id, szTitle, charsmax(szTitle))
-	}
-	else 
-	{
-		formatex(szTitle, charsmax(szTitle), "%s %l", MENU_PREFIX, "MENU_TITLE_CLEAR")
-	}
-
-	menu_setprop(g_iMainMenuID[id], MPROP_TITLE, szTitle)
-}
-
-stock add_main_menu_default_items(const id, const &menu)
-{
-	static szMenuStats[128], temp[95]
+	new szMenuStats[128], temp[95]
 	format_menu_rank(id, szMenuStats, charsmax(szMenuStats))
 
 	formatex(temp, 95, "\w%L", id, "MENU_INVENTORY");
-	menu_additem(menu, temp, "0");
+	menu_additem(iMenu, temp, "0");
 
 	formatex(temp, 95, "\w%L", id, "MENU_OC");
-	menu_additem(menu, temp, "1");
+	menu_additem(iMenu, temp, "1");
 
 	if (g_bIsSelling[id])
 	{
@@ -3053,10 +2980,10 @@ stock add_main_menu_default_items(const id, const &menu)
 		formatex(temp, 95, "\w%L", id, "MENU_MARKET");
 	}
 
-	menu_additem(menu, temp, "2");
+	menu_additem(iMenu, temp, "2");
 
 	formatex(temp, 95, "\r%L", id, "MENU_CONTRACT");
-	menu_additem(menu, temp, "3");
+	menu_additem(iMenu, temp, "3");
 
 	if(g_bGiveAwayStarted || total_players() < g_CvarGiveawayMinPlayers)
 	{
@@ -3067,27 +2994,27 @@ stock add_main_menu_default_items(const id, const &menu)
 		formatex(temp, 95, "\w%L", id, "MENU_GIVEAWAY_OPEN");
 	}
 
-	menu_additem(menu, temp, "4");
+	menu_additem(iMenu, temp, "4");
 
 	formatex(temp, 95, "\w%L", id, "MENU_UPGRADE");
-	menu_additem(menu, temp, "5");
+	menu_additem(iMenu, temp, "5");
 
 	formatex(temp, 95, "\w%L^n", id, "MENU_DESTROY");
-	menu_additem(menu, temp, "6");
+	menu_additem(iMenu, temp, "6");
 
-	menu_addtext(menu, szMenuStats, _:false);
+	menu_addtext(iMenu, szMenuStats, _:false);
 
 	formatex(temp, 95, "\w%L", id, "MENU_GIFT");
-	menu_additem(menu, temp, "7");
+	menu_additem(iMenu, temp, "7");
 
 	formatex(temp, 95, "\w%L", id, "MENU_TRADE");
-	menu_additem(menu, temp, "8");
+	menu_additem(iMenu, temp, "8");
 
 	formatex(temp, 95, "\r%L", id, "MENU_GAMBLING");
-	menu_additem(menu, temp, "9");
+	menu_additem(iMenu, temp, "9");
 
 	formatex(temp, 95, "\w%L", id, "MENU_PREVIEW");
-	menu_additem(menu, temp, "10");
+	menu_additem(iMenu, temp, "10");
 
 	if(g_iUserRank[id] >= g_CvarDailyMinRank)
 	{
@@ -3101,21 +3028,74 @@ stock add_main_menu_default_items(const id, const &menu)
 		formatex(temp, 95, "\d%l %l", "MENU_DAILY", "MENU_MIN_RANK_INFO", szRankName);
 	}
 
-	menu_additem(menu, temp, "11");
+	menu_additem(iMenu, temp, "11");
 
 	formatex(temp, 95, "\w%L", id, "MENU_SETTINGS_TITLE");
-	menu_additem(menu, temp, "12");
+	menu_additem(iMenu, temp, "12");
 
 	formatex(temp, 95, "\w%L", id, "MENU_STATISTICS_TITLE");
-	menu_additem(menu, temp, "13");
+	menu_additem(iMenu, temp, "13");
+
+	addDynamicMenus(id, iMenu, MenuCode:MENU_MAIN)
+
+	// menu_setprop(iMenu, MPROP_SHOWPAGE, false)
+	menu_setprop(iMenu, MPROP_PAGE_CALLBACK, "MainMenuPageCallback")
+
+	if(is_user_connected(id))
+	{
+		menu_display(id, iMenu, 0, -1)
+		g_iMainMenuID[id] = iMenu
+	}
+	else 
+	{
+		menu_destroy(iMenu)
+	}
+}
+
+format_main_menu_title(const id, buffer[], const bufferlen)
+{
+	new szRank[64]
+	ArrayGetString(g_aRankName, g_iUserRank[id], szRank, charsmax(szRank))
+
+	formatex(buffer, bufferlen, "%s %l", MENU_PREFIX, "MENU_TITLE_INFO",
+		g_szName[id],
+		szRank, 
+		AddCommas(g_iUserMoney[id]),
+		fmt("%s%i\dh\r %s%i\dm", (g_iTotalPlayedTime[id] / 60 ) / 60 > 9 ? "" : "0", (g_iTotalPlayedTime[id] / 60 ) / 60, (g_iTotalPlayedTime[id] / 60) % 60 > 9 ? "" : "0", (g_iTotalPlayedTime[id]/ 60) % 60 )
+	)
+}
+
+public MainMenuPageCallback(const id, const status, const menu)
+{
+	if(status == MENU_MORE)
+	{
+		g_iMainMenuPage[id]++ 
+	}
+	else 
+	{
+		g_iMainMenuPage[id]--
+	}
+
+	new szTitle[256]
+
+	if(g_iMainMenuPage[id] == 0)
+	{
+		format_main_menu_title(id, szTitle, charsmax(szTitle))
+	}
+	else 
+	{
+		formatex(szTitle, charsmax(szTitle), "%s %l", MENU_PREFIX, "MENU_TITLE_CLEAR")
+	}
+
+	menu_setprop(g_iMainMenuID[id], MPROP_TITLE, szTitle)
 }
 
 stock format_menu_rank(const id, szMenuItem[], iLen)
 {
-	static iNeededKills;
-	static szRank[64];
-	static iRankASize;
-	static iStringLen
+	new iNeededKills;
+	new szRank[64];
+	new iRankASize;
+	new iStringLen
 
 	iRankASize = ArraySize(g_aRankKills);
 
@@ -3447,11 +3427,11 @@ stock getUserTotalSkinsValue(const id)
 
 stock getDynamicInvValue(const id)
 {
-	static const MenuCode:menu_code = MENU_INVENTORY
-	static iTotalValue
-	static eMenuData[MENU_DATA]
-	static eUserMenuData[USER_MENU_DATA]
-	static szID[4]
+	new const MenuCode:menu_code = MENU_INVENTORY
+	new iTotalValue
+	new eMenuData[MENU_DATA]
+	new eUserMenuData[USER_MENU_DATA]
+	new szID[4]
 	num_to_str(id, szID, charsmax(szID))
 
 	iTotalValue = 0
@@ -3472,10 +3452,8 @@ stock getDynamicInvValue(const id)
 
 stock getUserTotalGlovesValue(const id)
 {
-	static iTotalValue
-	static eGlove[MAX_GLOVES][GLOVESINFO]
-
-	iTotalValue = 0
+	new iTotalValue
+	new eGlove[MAX_GLOVES][GLOVESINFO]
 
 	for(new i; i < MAX_GLOVES; i++)
 	{
@@ -3499,8 +3477,7 @@ stock getUserTotalGlovesValue(const id)
 
 stock getUserTotalNametagValue(const id)
 {
-	static iTotalValue = 0
-	iTotalValue = 0
+	new iTotalValue = 0
 
 	for(new i; i < g_iSkinsNum; i++)
 	{
@@ -3527,14 +3504,14 @@ stock getUserTotalNametagValue(const id)
 
 stock addDynamicMenus(const id, const &menu, MenuCode:menu_code)
 {
-	static iLen
+	new iLen
 
 	if(!(iLen = ArraySize(g_aeMenus[MENU_ITEMS:menu_code])))
 	{
 		return
 	}
 
-	static eMenuData[MENU_DATA], szAdditionalMenuName[MAX_MENU_ADDITIONAL_NAME_LENGTH], szID[4]
+	new eMenuData[MENU_DATA], szAdditionalMenuName[MAX_MENU_ADDITIONAL_NAME_LENGTH], szID[4]
 
 	num_to_str(id, szID, charsmax(szID))
 
@@ -4301,8 +4278,7 @@ public load_skin_tags(id)
 
 	arrayset(g_bHasSkinTag[id], false, charsmax(g_bHasSkinTag[]))
 
-	static i;
-	i = 0
+	new i;
 	if(nvault_lookup(g_nVaultSkinTags, g_szName[id], szData, charsmax(szData), iTs))
 	{
 		while(i < g_iSkinsNum && szData[0] && strtok2(szData, left, charsmax(left), szData, charsmax(szData), ','))
@@ -4360,7 +4336,7 @@ public concmd_skintag(id)
 
 getUserStattrakSkins(id, iWeaponID)
 {
-	static iTotalSkins; 
+	new iTotalSkins; 
 
 	for(new i; i < g_iSkinsNum - 1; i++)
 	{
@@ -4836,15 +4812,14 @@ public your_gloves_handler(id, menu, item)
 
 stock CalculateModelBodyIndex(gloves_id, const model_name[], skin_id, &body)
 {
-	static amount_of_models;
+	new amount_of_models;
 
 	if(gloves_id == -1)
 	{
 		gloves_id = 0;
 	}
 
-	static iModelIndex;
-	iModelIndex = ArrayFindString(g_aGlovesModelName, model_name);
+	new iModelIndex = ArrayFindString(g_aGlovesModelName, model_name);
 
 	if(iModelIndex != -1)
 	{
@@ -4896,7 +4871,7 @@ public save_user_gloves(id)
 	{
 		case SQL:
 		{
-			static szQuery[1024]
+			new szQuery[1024]
 			formatex(szQuery, charsmax(szQuery), "UPDATE `%s` SET \
 			`gloves` = '%s', \
 			`weapon_gloves` = '%s' WHERE `uname` = '%s';",
@@ -5235,7 +5210,7 @@ public confirmationu_handler(id, menu, item)
 		g_iUserSkins[id][iIndex] -= MIN_SKINS_TO_UPGRADE
 		g_iUserSkins[id][iIndex] += 1
 		g_bIsWeaponStattrak[id][iIndex] = true
-		AddStatistics(id, DROPPED_STT_SKINS, 1, iIndex)
+		AddStatistics(id, DROPPED_STT_SKINS, 1, iIndex, .line = __LINE__)
 		AddStatistics(id, TOTAL_UPGRADES, 1)
 	}
 
@@ -5834,11 +5809,11 @@ public confirmation_handler(id, menu, item)
 		if(random_num(1, 100) <= g_iUserChance[id])
 		{
 			g_bIsWeaponStattrak[id][iRandomSkin] = true
-			AddStatistics(id, DROPPED_STT_SKINS, 1, iRandomSkin)
+			AddStatistics(id, DROPPED_STT_SKINS, 1, iRandomSkin, .line = __LINE__)
 		}
 		else 
 		{
-			AddStatistics(id, DROPPED_SKINS, 1, iRandomSkin)
+			AddStatistics(id, DROPPED_SKINS, 1, iRandomSkin, .line = __LINE__)
 		}
 
 		client_print_color(0, id, "^4%s^1 %L", CHAT_PREFIX, id, "SIGNED_CONTRACT", g_szName[id], g_bIsWeaponStattrak[id][iRandomSkin] ? "StatTrak (TM) " : "", name)
@@ -7069,8 +7044,7 @@ public ask_handler(id, menu, item)
 
 public Ham_Item_Deploy_Post(weapon_ent)
 {
-	static owner
-	owner = fm_cs_get_weapon_ent_owner(weapon_ent);
+	new owner = fm_cs_get_weapon_ent_owner(weapon_ent);
 
 	if (!is_user_alive(owner))
 	{
@@ -7082,8 +7056,7 @@ public Ham_Item_Deploy_Post(weapon_ent)
 		restore_previous_skin(owner);
 	}
 	
-	static weaponid
-	weaponid = cs_get_weapon_id(weapon_ent);
+	new weaponid = cs_get_weapon_id(weapon_ent);
 		
 	if(!g_bLogged[owner])
 	{
@@ -7091,8 +7064,7 @@ public Ham_Item_Deploy_Post(weapon_ent)
 		return HAM_IGNORED
 	}
 				
-	static userskin
-	userskin = g_iUserSelectedSkin[owner][weaponid];
+	new userskin = g_iUserSelectedSkin[owner][weaponid];
 	
 	if (userskin != -1)
 	{
@@ -7103,9 +7075,7 @@ public Ham_Item_Deploy_Post(weapon_ent)
 		}
 	}	
 					
-	static imp;
-
-	imp = pev(weapon_ent, 82)
+	new imp = pev(weapon_ent, 82)
 	
 	if(imp > 0)
 	{
@@ -7369,13 +7339,13 @@ _OpenCase(id)
 					g_bIsWeaponStattrak[id][rSkin] = true
 					formatex(szMessage, charsmax(szMessage), "%s^3 %s ^1opened ^4StatTrak (TM) %s^1 with a ^4chance of %d percent",
 					CHAT_PREFIX, g_szName[id], Skin, 100 - wChance)
-					AddStatistics(id, DROPPED_STT_SKINS, 1, rSkin)
+					AddStatistics(id, DROPPED_STT_SKINS, 1, rSkin, .line = __LINE__)
 				}
 				else 
 				{
 					formatex(szMessage, charsmax(szMessage), "%s^3 %s^1 opened ^4%s^1 with a ^4chance of %d percent",
 					CHAT_PREFIX, g_szName[id], Skin, 100 - wChance)
-					AddStatistics(id, DROPPED_SKINS, 1, rSkin)
+					AddStatistics(id, DROPPED_SKINS, 1, rSkin, .line = __LINE__)
 				}
 
 				send_message(id, szMessage)
@@ -7476,12 +7446,12 @@ _CraftSkin(id)
 				{
 					g_bIsWeaponStattrak[id][rSkin] = true
 					formatex(szMessage, charsmax(szMessage), "^4%s^1 %l", CHAT_PREFIX, "CRAFT_STT", g_szName[id], Skin, 100 - wChance);
-					AddStatistics(id, DROPPED_STT_SKINS, 1, rSkin)
+					AddStatistics(id, DROPPED_STT_SKINS, 1, rSkin, .line = __LINE__)
 				}
 				else
 				{
 					formatex(szMessage, charsmax(szMessage), "^4%s^1 %l", CHAT_PREFIX, "CRAFT_SUCCES", g_szName[id], Skin, 100 - wChance);
-					AddStatistics(id, DROPPED_SKINS, 1, rSkin)
+					AddStatistics(id, DROPPED_SKINS, 1, rSkin, .line = __LINE__)
 				}
 
 				send_message(id, szMessage);
@@ -8220,8 +8190,6 @@ public item_menu_handler(id, menu, item)
 	}
 	
 	new index;
-	static i;
-	i++;
 
 	new itemdata[5], dummy;
 	menu_item_getinfo(menu, item, dummy, itemdata, charsmax(itemdata), {0}, 0, dummy);
@@ -10277,8 +10245,8 @@ ExecConfigFile()
 	}
 	else 
 	{
+		
 		server_cmd("exec %s", szConfigFile)
-		server_exec()
 	}
 
 	ExecuteForward(g_eForwards[CONFIG_EXECUTED])
@@ -10501,9 +10469,7 @@ public GetServerStatistics(FailState, Handle:Query, szError[], ErrorCode, szData
 {
 	if(FailState || ErrorCode)
 	{
-		log_to_file(LOG_FILE, "^nSQL ERROR: %s^n", szError);
-		log_to_file(LOG_FILE, "ERROR CODE: %i", ErrorCode)
-
+		log_to_file(LOG_FILE, "[LINE: %i] An SQL Error has been encoutered. Error code %i^nError: %s", __LINE__, ErrorCode, szError);
 		SQL_FreeHandle(Query);
 		return;
 	}
@@ -10531,8 +10497,10 @@ public GetServerStatistics(FailState, Handle:Query, szError[], ErrorCode, szData
 
 	while(
 		i < g_iSkinsNum
-		&& (szData[_:DROPPED_SKINS][0] || szData[_:DROPPED_STT_SKINS][0])
-		&& (strtok2(szData[_:DROPPED_SKINS], szValue[_:DROPPED_SKINS], charsmax(szValue[]), szData[_:DROPPED_SKINS], charsmax(szData[]), ',') || strtok2(szData[_:DROPPED_STT_SKINS], szValue[_:DROPPED_STT_SKINS], charsmax(szValue[]), szData[_:DROPPED_STT_SKINS], charsmax(szData[]), ','))
+		&& szData[_:DROPPED_SKINS][0]
+		&& szData[_:DROPPED_STT_SKINS][0]
+		&& strtok2(szData[_:DROPPED_SKINS], 		szValue[_:DROPPED_SKINS], 		charsmax(szValue[]), 	szData[_:DROPPED_SKINS], 		charsmax(szData[]), ',') 
+		&&	strtok2(szData[_:DROPPED_STT_SKINS], 	szValue[_:DROPPED_STT_SKINS], 	charsmax(szValue[]), 	szData[_:DROPPED_STT_SKINS], 	charsmax(szData[]), ',')
 		)
 	{
 		g_iServerSkinStatistics[i] = str_to_num(szValue[_:DROPPED_SKINS])
@@ -11324,9 +11292,7 @@ RegisterCVARS()
 				"mvp_max_keys",
 				"4",
 				FCVAR_NONE,
-				"Max. keys when player is MVP of the round",
-				true,
-				1.0
+				"Max. keys when player is MVP of the round"
 		),
 		g_CvarMVPMaxKeys
 	)
@@ -11335,9 +11301,7 @@ RegisterCVARS()
 				"mvp_min_keys",
 				"1",
 				FCVAR_NONE,
-				"Min. keys when player is MVP of the round",
-				true,
-				1.0
+				"Min. keys when player is MVP of the round"
 		),
 		g_CvarMVPMinKeys
 	)
@@ -11719,7 +11683,7 @@ bool:weekend_event()
 
 public ev_DeathMsg()
 {
-	static killer, victim, head, szWeapon[24], bool:gotbonus
+	new killer, victim, head, szWeapon[24], bool:gotbonus
 	killer = read_data(1);
 	victim = read_data(2);
 	head = read_data(3);
@@ -11778,7 +11742,7 @@ public ev_DeathMsg()
 	g_iUserMoney[killer] += rmoney;
 	AddStatistics(killer, RECEIVED_MONEY, rmoney)
 
-	static szMessage[192];
+	new szMessage[192];
 
 	if (rchance > c_DropChance)
 	{
@@ -11808,8 +11772,7 @@ public ev_DeathMsg()
 		gotbonus = true;
 	}
 
-	static iRandom;
-	iRandom = random_num(1, 100);
+	new iRandom = random_num(1, 100);
 
 	if(!gotbonus)
 	{
@@ -11921,14 +11884,12 @@ public ev_Damage(id)
 	{
 		return PLUGIN_HANDLED;
 	}
-	static att;
-	att = get_user_attacker(id);
+	new att = get_user_attacker(id);
 	if (!(0 < att && att <= g_iMaxPlayers))
 	{
 		return PLUGIN_HANDLED;
 	}
-	static damage;
-	damage = read_data(2);
+	new damage = read_data(2);
 	g_iDealDamage[att] += damage;
 	g_iDamage[id][att] += damage;
 	new topDamager = g_iMostDamage[id];
@@ -12030,7 +11991,7 @@ public clcmd_skin(id)
 
 public check_license()
 {
-	static szLicense[128];
+	new szLicense[128];
 
 	switch(MODE)
 	{
@@ -13089,12 +13050,20 @@ public concmd_giveskins(id, level, cid)
 		console_print(id, "%s %s was not found", CONSOLE_PREFIX, arg1)
 		return 1;
 	}
+
+	if(!g_bLogged[target])
+	{
+		console_print(id, "%s %s is not logged in", CONSOLE_PREFIX, arg1)
+		return 1
+	}
+
 	new skin = str_to_num(arg2), bool:bAll = bool:(arg2[0] == '@')
 	if (!bAll && (skin < 0 || skin >= g_iSkinsNum))
 	{
-		console_print(id, "%s Wrong skin ID [0 - %d]", CONSOLE_PREFIX, g_iSkinsNum + -1);
+		console_print(id, "%s Wrong skin ID [0 - %d]", CONSOLE_PREFIX, g_iSkinsNum - 1);
 		return 1;
 	}
+
 	new amount = str_to_num(arg3);
 	new szSkin[32];
 	
@@ -13135,6 +13104,7 @@ public concmd_giveskins(id, level, cid)
 		{
 			szSkin = "Everything"
 		}	
+
 		console_print(id, "%s You substracted %d pieces of %s from %s", CONSOLE_PREFIX, amount, szSkin, arg1)
 	}
 	else
@@ -13147,25 +13117,46 @@ public concmd_giveskins(id, level, cid)
 			}
 			
 			new bool:bStt = bool:str_to_num(arg4)
+
+			new iSkinLimit = SKIN_LIMIT
+
 			if(bAll)
 			{
 				for(new i;i <= g_iSkinsNum;i++)
 				{
-					g_iUserSkins[target][i] += amount
-					if(g_iUserSkins[target][i] > SKIN_LIMIT)
-					{
+					if(g_iUserSkins[target][i] + amount >= SKIN_LIMIT)
+					{			
+						if(g_CvarStatsCountCmds)
+						{
+							if(g_iUserSkins[target][i] < SKIN_LIMIT)
+							{
+								if(bStt && !g_bIsWeaponStattrak[target][i])
+								{
+									AddStatistics(target, DROPPED_STT_SKINS, 1, i, .line = __LINE__)
+									AddStatistics(target, DROPPED_SKINS, iSkinLimit - g_iUserSkins[target][i] - 1, i, .line = __LINE__)
+								}
+								else 
+								{
+									AddStatistics(target, DROPPED_SKINS, iSkinLimit - g_iUserSkins[target][i], i, .line = __LINE__)
+								}
+							}
+						}
+
 						g_iUserSkins[target][i] = SKIN_LIMIT
 					}
-				
+					else 
+					{
+						if(g_CvarStatsCountCmds)
+						{
+							AddStatistics(target, (bStt && !g_bIsWeaponStattrak[target][i]) ? DROPPED_STT_SKINS : DROPPED_SKINS, amount, i, .line = __LINE__)
+						}
+					}
+					
 					if(!bStt && g_bIsWeaponStattrak[target][i])
 						continue
 						
 					g_bIsWeaponStattrak[target][i] = bStt
 
-					if(g_CvarStatsCountCmds)
-					{
-						AddStatistics(target, DROPPED_STT_SKINS, amount, i)
-					}
 				}
 			}
 			else
@@ -13180,10 +13171,11 @@ public concmd_giveskins(id, level, cid)
 				{
 					g_bIsWeaponStattrak[target][skin] = true
 
-					if(g_CvarStatsCountCmds)
-					{
-						AddStatistics(target, DROPPED_STT_SKINS, amount, skin)
-					}
+				}
+
+				if(g_CvarStatsCountCmds)
+				{
+					AddStatistics(target, bStt ? DROPPED_STT_SKINS : DROPPED_SKINS, amount, skin, .line = __LINE__)
 				}
 			}
 
@@ -14106,7 +14098,9 @@ public ResetSQLData(FailState, Handle:Query, szError[], ErrorCode, szData[], iSi
 {
 	if(FailState || ErrorCode)
 	{
-		log_to_file(LOG_FILE, "^nSQL ERROR: %s^n", szError);
+		log_to_file(LOG_FILE, "[LINE: %i] An SQL Error has been encoutered. Error code %i^nError: %s", __LINE__, ErrorCode, szError);
+		SQL_FreeHandle(Query)
+		return
 	}
 
 	new id, szId[5], szArgName[MAX_NAME_LENGTH]
@@ -14126,6 +14120,8 @@ public ResetSQLData(FailState, Handle:Query, szError[], ErrorCode, szData[], iSi
 	} 
 
 	SQL_FreeHandle(Query);
+
+	return
 }
 
 public concmd_kill(id)
@@ -14471,7 +14467,7 @@ public event_RoundStart(id)
 	if(total_players() >= 2)
 		g_iCurrentRound++
 
-	if(g_iCurrentRound == g_GiveawayDelay)
+	if(g_iCurrentRound >= g_GiveawayDelay)
 	{
 		if(!getGiveAwayPlayersNum())
 		{
@@ -14501,8 +14497,8 @@ public countDown()
 		iTime = 10
 	}
 
-	set_hudmessage(47, 79, 79, 0.02, 0.35, 0, 0.1, 1.0)
-	show_hudmessage(0, "The Giveaway winner will be choosen in %d second%s", iTime, iTime == 1 ? "" : "s")
+	set_hudmessage(random(255), random(255), random(255), 0.02, 0.30, 0, 0.0, 0.8)
+	show_dhudmessage(0, "The Giveaway winner will be choosen in %d second%s", iTime, iTime < 2 ? "" : "s")
 
 	iTime--
 	
@@ -14516,12 +14512,12 @@ public countDown()
 		g_iUserSkins[iWinner][g_iSkinID]++
 		g_bIsWeaponStattrak[iWinner][g_iSkinID] = true
 		
-		AddStatistics(iWinner, DROPPED_STT_SKINS, 1)
+		AddStatistics(iWinner, DROPPED_STT_SKINS, 1, g_iSkinID, .line = __LINE__)
 		AddStatistics(iWinner, TOTAL_GIVEAWAYS, 1)
 
 		new szWinnerName[MAX_PLAYERS]
 		get_user_name(iWinner, szWinnerName, charsmax(szWinnerName))
-		client_print_color(0, 0, "^4%s^1 ^4%s^1 won^4 StatTrak (TM) %s^1 at the ^4Giveaway", CHAT_PREFIX, szWinnerName, g_szSkinName)
+		client_print_color(0, 0, "^4%s^1 ^4%s^1 won^3 StatTrak (TM)$ %s^1 at the ^4Giveaway", CHAT_PREFIX, szWinnerName, g_szSkinName)
 
 		new iPlayers[MAX_PLAYERS], iNum
 		get_players(iPlayers, iNum, "ch")

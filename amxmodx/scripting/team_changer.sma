@@ -38,12 +38,15 @@ public sayHook(id)
 
     if(szArg[0] == '/')
     {
-        replace_all(szArg, charsmax(szArg), "/", "")
-        
         new szName[MAX_NAME_LENGTH]
         strtok2(szArg, szArg, charsmax(szArg), szName, charsmax(szName), ' ', TRIM_FULL)
 
-        switch(szArg[0])
+        if(!isTeamCmd(szArg))
+        {
+            return PLUGIN_HANDLED_MAIN
+        }
+
+        switch(szArg[1])
         {
             case 't':
             {
@@ -153,4 +156,13 @@ public changeTeam(id, level, cid)
     }
 
     return PLUGIN_HANDLED
+}
+
+stock bool:isTeamCmd(const buffer[])
+{
+    return (
+        bool:(containi(buffer, "/t ") != -1) ||
+        bool:(containi(buffer, "/spec ") != -1) ||
+        bool:(containi(buffer, "/ct") != -1)
+    )
 }
