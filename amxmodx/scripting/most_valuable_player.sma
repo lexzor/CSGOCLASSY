@@ -11,7 +11,6 @@
 #include <amxmisc>
 #include <cromchat>
 #include <csx>
-#include <most_valuable_player>
 #include <nvault>
 #include <csgoclassy>
 
@@ -74,6 +73,16 @@ new const LOG_FILE[]			= 		"mvp_errors.log"
 static const NO_USER[]			=		"NONE"
 
 new MenuColors[][] 			= {"\r", "\y", "\d", "\w", "\R"}
+
+enum WinScenario
+{
+	NO_SCENARIO = -1,
+	TERO_MVP = 0,
+	CT_MVP,
+	KILLER_MVP_TERO,
+	KILLER_MVP_CT,
+	KILLER_MVP
+}
 
 enum _:DamageData
 {
@@ -206,9 +215,6 @@ new g_iVipFlag
 
 new g_fHudPos[HudSettings]
 
-new g_fwScenario
-new g_iForwardResult
-
 new Handle:g_hSqlTuple
 new Handle:g_iSqlConnection
 new g_szSqlError[512]
@@ -236,7 +242,6 @@ public plugin_init()
 		RegisterHookChain(RG_CBasePlayer_TakeDamage, "RG_Player_Damage_Post", 1)
 		RegisterHookChain(RG_CBasePlayer_Killed, "RG_Player_Killed_Post", 1)
 		RegisterHookChain(RG_RoundEnd, "RG_Round_End")
-		RegisterHookChain(RG_CBasePlayer_SetClientUserInfoName, "RG_SetClientUserInfoName_Post", 1)
 	#else
 		register_event("TextMsg", "Event_Game_Restart", "a", "2&#Game_C", "2&#Game_w")
 		RegisterHam(Ham_TakeDamage, "player", "Ham_Player_Damage_Post", 1)
@@ -244,7 +249,6 @@ public plugin_init()
 		register_logevent("Logev_Roundend", 2, "1=Round_End")
 		register_event("SendAudio", "Event_Terroristwin", "a", "2&%!MRAD_terwin")
 		register_event("SendAudio", "Event_CTwin", "a", "2=%!MRAD_ctwin")
-		register_forward(FM_ClientUserInfoChanged, "Fw_ClientUserInfoChanged_Post", 1)
 	#endif
 
 	register_logevent("Logev_Roundstart", 2, "1=Round_Start")
@@ -252,8 +256,6 @@ public plugin_init()
 	#if defined TESTING
 	register_clcmd("say /test", "Clcmd_Say_Test")
 	#endif
-
-	g_fwScenario = CreateMultiForward("mvp_scenario", ET_IGNORE, FP_CELL)
 
 	g_iMaxPlayers = get_maxplayers()
 
@@ -305,22 +307,6 @@ updateInventoryValue(const id)
 	csgo_add_inventory_item_value(id, g_iMenuID, iTotalInventoryValue)
 }
 
-public plugin_natives()
-{
-	register_library("most_valuable_player")
-
-	register_native("get_user_mvp_kills", "native_get_user_mvp_kills")
-	register_native("get_user_mvp_topkiller", "native_get_user_mvp_topkiller")
-	register_native("get_user_mvp_damage", "native_get_user_mvp_damage")
-	register_native("get_user_mvp_hs_damage", "native_get_user_mvp_hs_damage")
-	register_native("get_user_mvps", "native_get_user_mvp")
-	register_native("get_user_mvp_track", "native_get_user_mvp_track")
-	register_native("get_mvp_track_info", "native_get_mvp_track_info")
-	register_native("get_mvp_index", "native_get_mvp_index")
-
-	g_aTracks = ArrayCreate(Tracks)
-}
-
 public plugin_end()
 {
 	ArrayDestroy(g_aTracks)
@@ -341,6 +327,8 @@ public plugin_end()
 
 public plugin_precache()
 {
+	g_aTracks = ArrayCreate(Tracks)
+
 	new szConfigsDir[256], szFileName[256]
 	get_configsdir(szConfigsDir, charsmax(szConfigsDir))
 	formatex(szFileName, charsmax(szFileName), "%s/MVPTracks.ini", szConfigsDir)
@@ -434,6 +422,10 @@ public plugin_precache()
 						{
 							g_iSaveType = 0
 						}
+
+						#if defined TESTING
+						log_to_file(LOG_FILE, "Save type %i", g_iSaveType)
+						#endif
 					}
 					else if(equal(szString, SQL_HOSTNAME))
 					{
@@ -796,22 +788,6 @@ public Event_CTwin()
 	client_print(0, print_chat, "Event_CTwin called")
 	#endif
 }
-
-public Fw_ClientUserInfoChanged_Post(id)
-{
-	new szNewName[MAX_NAME_LENGTH]
-	get_user_name(id, szNewName, charsmax(szNewName))
-
-	if(!equal(g_szName[id], szNewName))
-	{
-		if(g_iSaveInstant)
-		{
-			SavePlayerData(id)
-		}
-
-		copy(g_szName[id], charsmax(g_szName[]), szNewName)
-	}
-}
 #endif
 
 public Logev_Roundstart()
@@ -901,11 +877,6 @@ public Task_Check_Scenario()
 			client_print(0, print_chat, "Scenario: KILLER_MVP_CT %d", g_iScenario)
 			#endif
 		}
-	}
-
-	if(g_fwScenario != INVALID_HANDLE)
-	{
-		ExecuteForward(g_fwScenario, g_iForwardResult, WinScenario:g_iScenario)
 	}
 }
 
@@ -1195,7 +1166,7 @@ DetectSaveType()
 
 LoadPlayerData(id)
 {
-	if(is_user_bot(id) && is_user_hltv(id) || !is_user_logged(id))
+	if(is_user_bot(id) || is_user_hltv(id) || !is_user_logged(id))
 	{
 		return
 	}
@@ -1250,7 +1221,7 @@ LoadPlayerData(id)
    			}
    			else
    			{
-   				formatex(szQuery, charsmax(szQuery), "SELECT `Player MVP`, `Track`, `Disabled`, `UserTracks` FROM %s WHERE `AuthID` = ^"%s^";", g_eDBConfig[MYSQL_TABLE], g_szName[id])
+   				formatex(szQuery, charsmax(szQuery), "SELECT * FROM %s WHERE `AuthID` = ^"%s^";", g_eDBConfig[MYSQL_TABLE], g_szName[id])
    			}
 
    			iQuery = SQL_PrepareQuery(g_iSqlConnection, szQuery)
@@ -1269,7 +1240,7 @@ LoadPlayerData(id)
 					new szUserTracks[MAX_TRACKS * 2 + MAX_TRACKS]
 					g_iPlayerMVP[id] = SQL_ReadResult(iQuery, SQL_FieldNameToNum(iQuery, "Player MVP"))
 					g_iUserSelectedTrack[id] = SQL_ReadResult(iQuery, SQL_FieldNameToNum(iQuery, "Track"))
-					g_bDisableTracks[id] = SQL_ReadResult(iQuery, SQL_FieldNameToNum(iQuery, "Disabled")) == 1 ? true : false
+					g_bDisableTracks[id] = bool:SQL_ReadResult(iQuery, SQL_FieldNameToNum(iQuery, "Disabled"))
 					SQL_ReadResult(iQuery, SQL_FieldNameToNum(iQuery, "UserTracks"), szUserTracks, charsmax(szUserTracks))
 
 					ParseUserTracks(id, szUserTracks, charsmax(szUserTracks))
@@ -1286,7 +1257,7 @@ ParseUserTracks(const id, szUserTracks[], const iLength)
 {
 
 	new i, szHasTrack[3];
-	while(strtok2(szUserTracks, szHasTrack, charsmax(szHasTrack), szUserTracks, iLength, ',') && i < g_iTracksNum)
+	while(i < g_iTracksNum && szUserTracks[0] && strtok2(szUserTracks, szHasTrack, charsmax(szHasTrack), szUserTracks, iLength, ','))
 	{
 		g_bUserTracks[id][i] = bool:str_to_num(szHasTrack)
 		#if defined TESTING
@@ -1298,7 +1269,7 @@ ParseUserTracks(const id, szUserTracks[], const iLength)
 
 SavePlayerData(id)
 {
-	if(!is_user_connected(id) || is_user_bot(id) && is_user_hltv(id) || !is_user_logged(id))
+	if(is_user_bot(id) || is_user_hltv(id) || !is_user_logged(id))
 	{
 		return
 	}
@@ -1409,7 +1380,9 @@ ShowMVP(WinScenario:iScenario)
 			iBonusValue = random_num(g_eMVPCvars[MIN_MONEY], g_eMVPCvars[MAX_MONEY])
 
 			if(iBonusValue > 0)
+			{
 				formatex(szTextMessage, charsmax(szTextMessage), "%l$", "MVP_BONUS_TEXT", iBonusValue)
+			}
 		}
 
 		case CASES:
@@ -1417,7 +1390,9 @@ ShowMVP(WinScenario:iScenario)
 			iBonusValue = random_num(g_eMVPCvars[MIN_CASES], g_eMVPCvars[MAX_CASES])
 			
 			if(iBonusValue > 0)
+			{
 				formatex(szTextMessage, charsmax(szTextMessage), "%l case%s", "MVP_BONUS_TEXT", iBonusValue, iBonusValue > 1 ? "s" : "")
+			}
 		}
 
 		case KEYS:
@@ -1425,7 +1400,9 @@ ShowMVP(WinScenario:iScenario)
 			iBonusValue = random_num(g_eMVPCvars[MIN_KEYS], g_eMVPCvars[MAX_KEYS])
 			
 			if(iBonusValue > 0)
+			{
 				formatex(szTextMessage, charsmax(szTextMessage), "%l key%s", "MVP_BONUS_TEXT", iBonusValue, iBonusValue > 1 ? "s" : "")
+			}
 		}
 
 		case SCRAPS:
@@ -1433,7 +1410,9 @@ ShowMVP(WinScenario:iScenario)
 			iBonusValue = random_num(g_eMVPCvars[MIN_SCRAPS], g_eMVPCvars[MAX_SCRAPS])
 		
 			if(iBonusValue > 0)
+			{
 				formatex(szTextMessage, charsmax(szTextMessage), "%l scrap%s", "MVP_BONUS_TEXT", iBonusValue, iBonusValue > 1 ? "s" : "")
+			}
 		}
 	}
 
@@ -1693,169 +1672,4 @@ bool:CheckValidDatabase()
 		return true
 	}
 	return false
-}
-
-public native_get_user_mvp_kills(iPluginID, iParamNum)
-{
-	if(iParamNum != 1)
-	{
-		log_error(AMX_ERR_NATIVE, "[MVP] Invalid param num ! Valid: (PlayerID)")
-		return NATIVE_ERROR
-	}
-
-	new id = get_param(1)
-
-	if(!IsPlayer(id))
-	{
-		log_error(AMX_ERR_NATIVE, "[MVP] Player is not connected (%d)", id)
-		return NATIVE_ERROR
-	}
-
-	return g_iKills[g_eMVPlayer[iTopKiller]]
-}
-
-public native_get_user_mvp_topkiller(iPluginID, iParamNum)
-{
-	if(iParamNum != 1)
-	{
-		log_error(AMX_ERR_NATIVE, "[MVP] Invalid param num ! Valid: (PlayerID)")
-		return NATIVE_ERROR
-	}
-
-	new id = get_param(1)
-
-	if(!IsPlayer(id))
-	{
-		log_error(AMX_ERR_NATIVE, "[MVP] Player is not connected (%d)", id)
-		return NATIVE_ERROR
-	}
-
-	return g_eMVPlayer[iTopKiller]
-}
-
-public native_get_user_mvp_damage(iPluginID, iParamNum)
-{
-	if(iParamNum != 1)
-	{
-		log_error(AMX_ERR_NATIVE, "[MVP] Invalid param num ! Valid: (PlayerID)")
-		return NATIVE_ERROR
-	}
-
-	new id = get_param(1)
-
-	if(!IsPlayer(id))
-	{
-		log_error(AMX_ERR_NATIVE, "[MVP] Player is not connected (%d)", id)
-		return NATIVE_ERROR
-	}
-
-	return g_iDamage[g_eMVPlayer[iTopKiller]][iDamage]
-}
-
-public native_get_user_mvp_hs_damage(iPluginID, iParamNum)
-{
-	if(iParamNum != 1)
-	{
-		log_error(AMX_ERR_NATIVE, "[MVP] Invalid param num ! Valid: (PlayerID)")
-		return NATIVE_ERROR
-	}
-
-	new id = get_param(1)
-
-	if(!IsPlayer(id))
-	{
-		log_error(AMX_ERR_NATIVE, "[MVP] Player is not connected (%d)", id)
-		return NATIVE_ERROR
-	}
-
-	return g_iDamage[g_eMVPlayer[iTopKiller]][iHSDmg]
-}
-
-public native_get_user_mvp(iPluginID, iParamNum)
-{
-	if(iParamNum != 1)
-	{
-		log_error(AMX_ERR_NATIVE, "[MVP] Invalid param num ! Valid: (PlayerID)")
-		return NATIVE_ERROR
-	}
-
-	new id = get_param(1)
-
-	if(!IsPlayer(id))
-	{
-		log_error(AMX_ERR_NATIVE, "[MVP] Player is not connected (%d)", id)
-		return NATIVE_ERROR
-	}
-
-	return g_iPlayerMVP[id]
-}
-
-public native_get_user_mvp_track(iPluginID, iParamNum)
-{
-	if(iParamNum != 1)
-	{
-		log_error(AMX_ERR_NATIVE, "[MVP] Invalid param num ! Valid: (PlayerID)")
-		return NATIVE_ERROR
-	}
-
-	new id = get_param(1)
-
-	if(!IsPlayer(id))
-	{
-		log_error(AMX_ERR_NATIVE, "[MVP] Player is not connected (%d)", id)
-		return NATIVE_ERROR
-	}
-
-	return g_iUserSelectedTrack[id]
-}
-
-public native_get_mvp_track_info(iPluginID, iParamNum)
-{
-	if(iParamNum != 5)
-	{
-		log_error(AMX_ERR_NATIVE, "[MVP] Invalid param num ! Valid: (TrackID, szName, iNameLen, szPath, iPathLen)")
-		return NATIVE_ERROR
-	}
-
-	new iTrackID = get_param(1)
-	new iSize = ArraySize(g_aTracks)
-
-	if(0 > iTrackID || iSize < iTrackID )
-	{
-		log_error(AMX_ERR_NATIVE, "[MVP] Invalid TrackID ! Got ^"%d^", Expected ( Min: ^"%d^" | Max: ^"%d^" )", iTrackID, 0, iSize - 1)
-		return NATIVE_ERROR
-	}
-
-	new iData[Tracks]
-	ArrayGetArray(g_aTracks, iTrackID, iData)
-
-	set_string(2, ReplaceMColors(iData[szNAME], charsmax(iData[szNAME])), get_param(3))
-	set_string(4, iData[szPATH], get_param(5))
-
-	return 1
-}
-
-public native_get_mvp_index(iPluginID, iParamNum)
-{
-	switch(g_iScenario)
-	{
-		case NO_SCENARIO:
-		{
-			return -1
-		}
-		case TERO_MVP:
-		{
-			return g_eMVPlayer[iPlanter]
-		}
-		case CT_MVP:
-		{
-			return g_eMVPlayer[iDefuser]
-		}
-		case KILLER_MVP_TERO , KILLER_MVP_CT:
-		{
-			return g_eMVPlayer[iTopKiller]
-		}
-	}
-
-	return -1
 }

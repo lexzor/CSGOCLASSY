@@ -50,7 +50,7 @@
 188.212.101.21:27015 - csgo.erazer.ro 
 */
 
-#define LICENSED_IP "172.18.0.2:27015"
+#define LICENSED_IP "188.212.101.238:27015"
 #define TOTAL_SKINS 1025
 static const MODE = 0; // 1 - DNS, 0 - IP
 
@@ -5755,7 +5755,6 @@ public confirmation_handler(id, menu, item)
 	}
 
 	g_iSkinsInContract[id] = -1
-	g_iUserChance[id] = 0
 	
 	if(bool:item == true)
 	{
@@ -5824,6 +5823,8 @@ public confirmation_handler(id, menu, item)
 		g_iUsedSttC[id][i] = -1;
 		g_iWeaponUsedInContract[id][i] = -1
 	}
+
+	g_iUserChance[id] = 0
 
 	menu_destroy(menu)
 	return PLUGIN_HANDLED;
@@ -13150,6 +13151,8 @@ public concmd_giveskins(id, level, cid)
 						{
 							AddStatistics(target, (bStt && !g_bIsWeaponStattrak[target][i]) ? DROPPED_STT_SKINS : DROPPED_SKINS, amount, i, .line = __LINE__)
 						}
+
+						g_iUserSkins[target][i] += amount
 					}
 					
 					if(!bStt && g_bIsWeaponStattrak[target][i])

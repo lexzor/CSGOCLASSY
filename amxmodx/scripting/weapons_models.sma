@@ -100,6 +100,16 @@ static const W_MODEL_TO_REPLACE[][] =
 	"models/w_usp.mdl",
 	"models/w_xm1014.mdl"
 }
+// TODO:
+// - add
+// hegrenade,
+// smoke,
+// flash,
+// c4,
+// sg550,
+// m249,
+// g3sg1,
+// knife
 
 new g_eHookChain[HOOKCHAINS]
 new g_eFMHooks[FAKEMETA_HOOKS]
