@@ -234,12 +234,16 @@ public plugin_init()
     g_EventsnVault = nvault_open(g_EventsnVaultName);
 
     if(g_EventsnVault == INVALID_HANDLE)
+    {
         set_fail_state("Error! Couldn't open nvault ^"%s^"", g_EventsnVault);
+    }
 
     g_PlayersnVault = nvault_open(g_PlayersnVaultName);
 
     if(g_PlayersnVault == INVALID_HANDLE)
+    {
         set_fail_state("Error! Couldn't open nvault ^"%s^"", g_PlayersnVaultName);
+    }
 
     csgo_get_prefixes(CHAT_PREFIX, charsmax(CHAT_PREFIX), MENU_PREFIX, charsmax(MENU_PREFIX));
 
@@ -669,7 +673,7 @@ ManipulatePlayerData(const id, const iEventID, const iType)
             
             formatex(szKey, charsmax(szKey), "%s_%i_JEVENTS", g_eUserData[id][szName], iEventID);
 
-            if(!CheckIfEventExists(iEventID) )
+            if(!CheckIfEventExists(iEventID))
             {
                 nvault_remove(g_PlayersnVault, szKey);   
                 return PLUGIN_HANDLED;
@@ -732,7 +736,11 @@ ManipulatePlayerData(const id, const iEventID, const iType)
                             {
                                 startUserHoursTask(id);
                             }
-                        } else nvault_remove(g_PlayersnVault, szKey);
+                        }
+                        else
+                        {
+                            nvault_remove(g_PlayersnVault, szKey);
+                        }
                     }
                 }
             }
@@ -1053,12 +1061,32 @@ public ReadEvents()
             if(strlen(szDescription) > MAX_DESCRIPTION_LENGTH)
             {
                 log_to_file(LOG_FILE, "Description of event ID: %i is too long! Max length: %i", eEvent[ID], MAX_DESCRIPTION_LENGTH);
-                formatex(eEvent[DESCRIPTION], charsmax(eEvent[DESCRIPTION]), "\dDescription of this must be changed^nbecause exceed max number of characters");
-            } else copy(eEvent[DESCRIPTION], charsmax(eEvent[DESCRIPTION]), szDescription);
+                formatex(eEvent[DESCRIPTION], charsmax(eEvent[DESCRIPTION]), "\dDescription of this must be changed^nbecause it's exceeding maximum number of characters");
+            }
+            else
+            {
+                copy(eEvent[DESCRIPTION], charsmax(eEvent[DESCRIPTION]), szDescription);
+            }
 
             g_bCheckEventsID[eEvent[ID]] = true;
 
-            if(equali(szDiff, "easy")){ eEvent[DIFFICULTY] = EASY;} else if(equali(szDiff, "medium")){ eEvent[DIFFICULTY] = MEDIUM;} else if(equali(szDiff, "hard")){ eEvent[DIFFICULTY] = HARD;} else{ log_to_file(LOG_FILE, "%l", "DIFFICULTY_ERROR", eEvent[EVENT_NAME]); continue;}
+            if(equali(szDiff, "easy"))
+            {
+                eEvent[DIFFICULTY] = EASY;
+            }
+            else if(equali(szDiff, "medium"))
+            {
+                eEvent[DIFFICULTY] = MEDIUM;
+            } 
+            else if(equali(szDiff, "hard"))
+            {
+                eEvent[DIFFICULTY] = HARD;
+            } 
+            else
+            {
+                log_to_file(LOG_FILE, "%l", "DIFFICULTY_ERROR", eEvent[EVENT_NAME]);
+                continue;
+            }
             
             eEvent[BONUS_AMOUNT] = str_to_num(szBonusAmount);
             eEvent[STATE] = str_to_num(szEnabled) == 1 ? NO_STATE : DISABLED_STATE;
@@ -1085,78 +1113,80 @@ public ReadEvents()
 
 public StartEventsChecking(TASK_ID)
 {
-    if(TASK_ID == -1) { server_print("[CSGO CLASSY EVENTS] Checking events state..."); }
+    if(TASK_ID == -1) 
+    {
+        server_print("[CSGO CLASSY EVENTS] Checking events state..."); 
+    }
+    
     static eEvent[EVDATA];
 
     for(new i; i < ArraySize(g_aEvents); i++)
     {
         ArrayGetArray(g_aEvents, i, eEvent);
 
-        if(eEvent[ENABLED])
+        if(!eEvent[ENABLED])
         {
-            CheckEventsState(eEvent);
-        }
-    }
-
-    if(TASK_ID == -1) { server_print("[CSGO CLASSY EVENTS] Events state has been updated!"); }
-}
-
-public CheckEventsState(eEvent[EVDATA])
-{
-    static szKey[15], szData[64], iTs;
-    num_to_str(eEvent[ID], szKey, charsmax(szKey));
-
-    if(nvault_lookup(g_EventsnVault, szKey, szData, charsmax(szData), iTs))
-    {
-        if(strlen(szData) > 5)
-        {
-            static szState[5], szTemp[1];
-            parse(szData, szState, charsmax(szState), szTemp, charsmax(szTemp));
-            eEvent[STATE] = str_to_num(szState);
-        }
-        else eEvent[STATE] = str_to_num(szData)
-        
-        #if defined DEBUG_MODE
-        server_print("Event with id [%i] has been found in events vault file", eEvent[ID])
-        #endif
-
-        if(!CheckIfEventShouldStart(eEvent, szData) && eEvent[STATE] == ENDED_STATE)
-        {
-            eEvent[STATE] = ENDED_STATE;
-            #if defined DEBUG_MODE
-                server_print("[CSGO CLASSY EVENTS] One day event with id [%i] state has been changed in END state.", eEvent[ID]);
-            #endif
-            ArraySetArray(g_aEvents, ArrayFindArray(g_aEvents, eEvent), eEvent);
-            return PLUGIN_HANDLED;
+            continue
         }
 
-        ArraySetArray(g_aEvents, ArrayFindArray(g_aEvents, eEvent), eEvent);
+        static szKey[15], szData[64], iTs;
+        num_to_str(eEvent[ID], szKey, charsmax(szKey));
 
-        switch(eEvent[STATE])
+        if(nvault_lookup(g_EventsnVault, szKey, szData, charsmax(szData), iTs))
         {
-            case STARTED_STATE: CheckIfEventEnd(eEvent);
-            case ENDED_STATE: CheckIfEventStart(eEvent);
-        }
-    }
-    else
-    {
-        if(eEvent[STATE] == NO_STATE)
-        {
-            eEvent[STATE] = EventState(eEvent);
-
-            if(eEvent[STATE] == STARTED_STATE)
+            if(strlen(szData) > 5)
             {
-                SaveEventState(eEvent);
-                AnnounceEvent(eEvent, NEW);
+                static szState[5], szTemp[1];
+                parse(szData, szState, charsmax(szState), szTemp, charsmax(szTemp));
+                eEvent[STATE] = str_to_num(szState);
+            }
+            else eEvent[STATE] = str_to_num(szData)
+            
+            #if defined DEBUG_MODE
+            server_print("Event with id [%i] has been found in events vault file", eEvent[ID])
+            #endif
+
+            if(!CheckIfEventShouldStart(eEvent, szData) && eEvent[STATE] == ENDED_STATE)
+            {
+                eEvent[STATE] = ENDED_STATE;
+                #if defined DEBUG_MODE
+                    server_print("[CSGO CLASSY EVENTS] One day event with id [%i] state has been changed in END state.", eEvent[ID]);
+                #endif
+                ArraySetArray(g_aEvents, ArrayFindArray(g_aEvents, eEvent), eEvent);
+                return PLUGIN_HANDLED;
+            }
+
+            ArraySetArray(g_aEvents, ArrayFindArray(g_aEvents, eEvent), eEvent);
+
+            switch(eEvent[STATE])
+            {
+                case STARTED_STATE: CheckIfEventEnd(eEvent);
+                case ENDED_STATE: CheckIfEventStart(eEvent);
             }
         }
         else
         {
-            log_to_file(LOG_FILE, "Error in adding event with ID %i in nvault list. Current state: %s", eEvent[ID], EventStateString(eEvent[STATE]));
+            if(eEvent[STATE] == NO_STATE)
+            {
+                eEvent[STATE] = EventState(eEvent);
+
+                if(eEvent[STATE] == STARTED_STATE)
+                {
+                    SaveEventState(eEvent);
+                    AnnounceEvent(eEvent, NEW);
+                }
+            }
+            else
+            {
+                log_to_file(LOG_FILE, "Error in adding event with ID %i in nvault list. Current state: %s", eEvent[ID], EventStateString(eEvent[STATE]));
+            }
         }
     }
-    
-    return PLUGIN_CONTINUE;
+
+    if(TASK_ID == -1)
+    {
+        server_print("[CSGO CLASSY EVENTS] Events state has been updated!"); 
+    }
 }
 
 GetEventPlayers(eEvent[EVDATA])
@@ -1272,10 +1302,13 @@ CheckIfEventEnd(eEvent[EVDATA])
     {
         eEvent[STATE] = iEventState;
         AnnounceEvent(eEvent, END);
+        
         ArraySetArray(g_aEvents, ArrayFindArray(g_aEvents, eEvent), eEvent);
         SaveEventState(eEvent);
-        static szData[MAX_NAME_LENGTH * 500];
+        
+        static szData[MAX_NAME_LENGTH * 1000];
         new i, szUserName[MAX_NAME_LENGTH], iTs, szKey[MAX_KEY_LENGTH], szData2[1];
+
         while(strtok2(szData, szUserName, charsmax(szUserName), szData, charsmax(szData), ',') && i <= eEvent[JOINED_PLAYERS] && szData[0])
         {
             formatex(szKey, charsmax(szKey), "%s_%i_JEVENTS", szUserName, eEvent[ID]);
@@ -1299,13 +1332,19 @@ CheckIfEventEnd(eEvent[EVDATA])
                     #if defined DEBUG_MODE
                         log_to_file(LOG_FILE, "nVault key ^"%s^" has been deleted for event with id [%i]", szKey, eEvent[ID]);
                     #endif
-                } else log_to_file("nVault key ^"%s^" has not been found", szKey);
+                }
+                else
+                {
+                    log_to_file("nVault key ^"%s^" has not been found", szKey);
+                }
             }
         }
     }
     
     if(!eEvent[JPLAYERS_NAME][0])
+    {
         GetEventPlayers(eEvent);
+    }
 }
 
 CheckIfEventStart(eEvent[EVDATA])

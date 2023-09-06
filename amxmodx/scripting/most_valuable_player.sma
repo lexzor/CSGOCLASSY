@@ -422,10 +422,6 @@ public plugin_precache()
 						{
 							g_iSaveType = 0
 						}
-
-						#if defined TESTING
-						log_to_file(LOG_FILE, "Save type %i", g_iSaveType)
-						#endif
 					}
 					else if(equal(szString, SQL_HOSTNAME))
 					{
@@ -598,10 +594,7 @@ public client_disconnected(id)
 		g_eMVPlayer[iPlanter] = -1
 	}
 
-	if(!g_iSaveInstant)
-	{
-		SavePlayerData(id)
-	}
+	SavePlayerData(id)
 	
 	g_iKills[id] = 0
 
@@ -690,20 +683,6 @@ public RG_Round_End(WinStatus:status, ScenarioEventEndRound:event, Float:fDelay)
 
 	return HC_CONTINUE
 }
-
-public RG_SetClientUserInfoName_Post(id, infobuffer[], szNewName[])
-{
-	if(containi(infobuffer, "name") != -1)
-	{
-		if(g_iSaveInstant)
-		{
-			SavePlayerData(id)
-		}
-
-		copy(g_szName[id], charsmax(g_szName[]), szNewName)
-	}
-}
-
 #else
 public Event_Game_Restart()
 {
@@ -1215,6 +1194,7 @@ LoadPlayerData(id)
 
 			new szQuery[256]
 			new bool:bFoundData = SQL_NumResults( iQuery ) > 0 ? true : false
+
    			if(!bFoundData)
    			{
    				formatex(szQuery, charsmax(szQuery), "INSERT INTO `%s` (`AuthID`) VALUES (^"%s^");", g_eDBConfig[MYSQL_TABLE], g_szName[id])
@@ -1522,7 +1502,6 @@ ShowMVP(WinScenario:iScenario)
 		CC_SendMessage(0, "^1%L", LANG_SERVER, "MVP_USER_NOT_LOGGED_IN", iMVP)
 		return
 	}
-	
 	
 	switch(iRandomBonus)
 	{

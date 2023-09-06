@@ -28,6 +28,10 @@ $bodygroup "studio"
 	studio "w_ump45"
 	studio "w_usp"
 	studio "w_xm1014"
+	studio "w_assault"
+	studio "w_g3sg1"
+	studio "w_m249"
+	studio "w_sg550"
 }
 
 $flags 0

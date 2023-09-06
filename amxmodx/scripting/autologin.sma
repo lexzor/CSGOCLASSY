@@ -79,7 +79,7 @@ public autologin(id)
     if(id > MAX_PLAYERS)
         id -= AUTO_LOGIN_RETRY_TASK;
         
-    if(g_iAutoLoginRetry[id] > 1)
+    if(g_iAutoLoginRetry[id] > 0 && g_iAutoLoginRetry[id] < MAX_AUTO_LOGIN_TRY)
     {
         client_print_color(id, print_team_default, "%s Retrying auto login for^4 %i^1 time.", CHAT_TAG, g_iAutoLoginRetry[id]);
         client_print_color(id, print_team_default, "%s This can be caused from^4 no response^1 from our database.", CHAT_TAG, g_iAutoLoginRetry[id]);
@@ -87,7 +87,7 @@ public autologin(id)
     else if(g_iAutoLoginRetry[id] == MAX_AUTO_LOGIN_TRY)
     {
         client_print_color(id, print_team_default, "%s Auto login failed", CHAT_TAG);
-        return PLUGIN_HANDLED;
+        return;
     }
 
     new szData[50], szAutoLoginTime[12], iTs;
@@ -108,22 +108,21 @@ public autologin(id)
             }
             else
             {
-                set_task(1.0, "autologin", id + AUTO_LOGIN_RETRY_TASK);
+                set_task(2.0, "autologin", id + AUTO_LOGIN_RETRY_TASK);
                 g_iAutoLoginRetry[id]++;
-                log_amx("Error on receiving player data with SteamID ^"%s^". Retry: %i", g_szAuthID[id], g_iAutoLoginRetry[id]);
             }
         }
 
         csgo_additional_menu_name(MenuCode:MENU_SETTINGS, g_iMenuID, id, fmt("%s^n\dYou will be\y logged in\d every time you join the server^n", g_bAutoLogin[id] ? "\r[ON]" : "\r[OFF]"))
     }
 
-    return PLUGIN_CONTINUE;
+    return;
 }
 
 public client_authorized(id)
 {
     if(is_user_bot(id) || is_user_hltv(id))
-        return PLUGIN_HANDLED;
+        return PLUGIN_CONTINUE;
 
     get_user_authid(id, g_szAuthID[id], charsmax(g_szAuthID[]));
     get_user_name(id, g_szName[id], charsmax(g_szName[]));

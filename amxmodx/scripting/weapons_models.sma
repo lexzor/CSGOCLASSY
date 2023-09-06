@@ -46,10 +46,8 @@ static const MODEL_TO_UNPRECACHE[][] =
 	"models/w_g3sg1.mdl",
 	"models/v_g3sg1.mdl",
 	"models/p_m249.mdl",
-	"models/w_m249.mdl",
 	"models/v_m249.mdl",
 	"models/p_sg550.mdl",
-	"models/w_sg550.mdl",
 	"models/v_sg550.mdl",
 	"models/w_smokegrenade.mdl",
 	"models/p_smokegrenade.mdl",
@@ -73,7 +71,11 @@ static const MODEL_TO_UNPRECACHE[][] =
 	"models/w_tmp.mdl",
 	"models/w_ump45.mdl",
 	"models/w_usp.mdl",
-	"models/w_xm1014.mdl"
+	"models/w_xm1014.mdl",
+	"models/w_assault.mdl"
+	"models/w_g3sg1.mdl"
+	"models/w_m249.mdl",
+	"models/w_sg550.mdl",
 }
 
 static const W_MODEL_TO_REPLACE[][] =
@@ -99,17 +101,11 @@ static const W_MODEL_TO_REPLACE[][] =
 	"models/w_ump45.mdl",
 	"models/w_usp.mdl",
 	"models/w_xm1014.mdl"
+	"models/w_assault.mdl"
+	"models/w_g3sg1.mdl"
+	"models/w_m249.mdl"
+	"models/w_sg550.mdl"
 }
-// TODO:
-// - add
-// hegrenade,
-// smoke,
-// flash,
-// c4,
-// sg550,
-// m249,
-// g3sg1,
-// knife
 
 new g_eHookChain[HOOKCHAINS]
 new g_eFMHooks[FAKEMETA_HOOKS]

