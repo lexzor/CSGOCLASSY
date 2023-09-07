@@ -1074,7 +1074,7 @@ stock AddStatistics(const id, const STATISTICS:type, const amount, const skinid 
 
 	if(amount < 1)
 	{
-		log_to_file(LOG_FILE, "[STATISTICS] %s. is not a skin and has a wrong amount [%i] at line %i", g_szStatsName[_:type], amount, line)
+		log_to_file(LOG_FILE, "[STATISTICS] %s. Wrong amount value [%i] at line %i", g_szStatsName[_:type], amount, line)
 		return
 	}
 
@@ -1703,7 +1703,7 @@ _GiveBonus(const id, const type)
 			new value = random_num(c_AMinMoney, c_AMaxMoney);
 		
 			g_iUserMoney[id] += value
-			AddStatistics(id, RECEIVED_MONEY, value)
+			AddStatistics(id, RECEIVED_MONEY, value, .line = __LINE__)
 		}
 
 		case 1:
@@ -1718,7 +1718,7 @@ _GiveBonus(const id, const type)
 
 					g_iUserMoney[id] += random_value
 
-					AddStatistics(id, RECEIVED_MONEY, random_value)
+					AddStatistics(id, RECEIVED_MONEY, random_value, .line = __LINE__)
 
 					switch (c_MVPMsgType)
 					{
@@ -1740,7 +1740,7 @@ _GiveBonus(const id, const type)
 					new random_value = random_num(g_CvarMVPMinCases, g_CvarMVPMaxCases);
 					
 					g_iUserCases[id] += random_value
-					AddStatistics(id, DROPPED_CASES, random_value)
+					AddStatistics(id, DROPPED_CASES, random_value, .line = __LINE__)
 
 					switch (c_MVPMsgType)
 					{
@@ -1762,7 +1762,7 @@ _GiveBonus(const id, const type)
 					new random_value = random_num(g_CvarMVPMinKeys, g_CvarMVPMaxKeys);
 					
 					g_iUserKeys[id] += random_value
-					AddStatistics(id, DROPPED_KEYS, random_value)
+					AddStatistics(id, DROPPED_KEYS, random_value, .line = __LINE__)
 					
 					switch (c_MVPMsgType)
 					{
@@ -1784,7 +1784,7 @@ _GiveBonus(const id, const type)
 					new random_value = random_num(g_CvarMVPMinScraps, g_CvarMVPMaxScraps);
 					
 					g_iUserScraps[id] += random_value
-					AddStatistics(id, RECEIVED_SCRAPS, random_value)
+					AddStatistics(id, RECEIVED_SCRAPS, random_value, .line = __LINE__)
 
 					switch (c_MVPMsgType)
 					{
@@ -1948,7 +1948,7 @@ public Ham_Player_Killed_Post(id, iKiller)
 	new iUserWeaponId = get_user_weapon(iKiller);
 	new iUserSkinId = g_iUserSelectedSkin[iKiller][iUserWeaponId];
 
-	AddStatistics(iKiller, WEAPON_KILL, 1, .weaponid = iUserWeaponId)
+	AddStatistics(iKiller, WEAPON_KILL, 1, .weaponid = iUserWeaponId, .line = __LINE__)
 
 	if(iUserSkinId != -1)
 	{			
@@ -3731,7 +3731,7 @@ public open_name_tag_capsule(id)
 				{
 					bItemDropped = true
 					g_iCommonNameTag[id]++;
-					AddStatistics(id, DROPPED_NAMETAG_COMMON, 1)
+					AddStatistics(id, DROPPED_NAMETAG_COMMON, 1, .line = __LINE__)
 					iItemType = NAMETAG_COMMON
 				}
 			}
@@ -3743,7 +3743,7 @@ public open_name_tag_capsule(id)
 					{
 						bItemDropped = true
 						g_iCommonNameTag[id]++;
-						AddStatistics(id, DROPPED_NAMETAG_COMMON, 1)
+						AddStatistics(id, DROPPED_NAMETAG_COMMON, 1, .line = __LINE__)
 						iItemType = NAMETAG_COMMON
 					}
 				}
@@ -3768,7 +3768,7 @@ public open_name_tag_capsule(id)
 				{
 					bItemDropped = true
 					g_iRareNameTag[id]++;
-					AddStatistics(id, DROPPED_NAMETAG_RARE, 1)
+					AddStatistics(id, DROPPED_NAMETAG_RARE, 1, .line = __LINE__)
 					iItemType = NAMETAG_RARE
 				}
 			}
@@ -3780,7 +3780,7 @@ public open_name_tag_capsule(id)
 					{
 						bItemDropped = true
 						g_iRareNameTag[id]++;
-						AddStatistics(id, DROPPED_NAMETAG_RARE, 1)
+						AddStatistics(id, DROPPED_NAMETAG_RARE, 1, .line = __LINE__)
 						iItemType = NAMETAG_RARE
 					}
 				}
@@ -3790,7 +3790,7 @@ public open_name_tag_capsule(id)
 					{
 						bItemDropped = true
 						g_iRareNameTag[id]++;
-						AddStatistics(id, DROPPED_NAMETAG_RARE, 1)
+						AddStatistics(id, DROPPED_NAMETAG_RARE, 1, .line = __LINE__)
 						iItemType = NAMETAG_RARE
 					}
 				}
@@ -3805,7 +3805,7 @@ public open_name_tag_capsule(id)
 				{
 					bItemDropped = true
 					g_iMythicNameTag[id]++;
-					AddStatistics(id, DROPPED_NAMETAG_MYTHICS, 1)
+					AddStatistics(id, DROPPED_NAMETAG_MYTHICS, 1, .line = __LINE__)
 					iItemType = NAMETAG_MYTHIC
 				}
 			}
@@ -3817,7 +3817,7 @@ public open_name_tag_capsule(id)
 					{
 						bItemDropped = true
 						g_iMythicNameTag[id]++;
-						AddStatistics(id, DROPPED_NAMETAG_MYTHICS, 1)
+						AddStatistics(id, DROPPED_NAMETAG_MYTHICS, 1, .line = __LINE__)
 						iItemType = NAMETAG_MYTHIC
 					}
 				}
@@ -3827,7 +3827,7 @@ public open_name_tag_capsule(id)
 					{
 						bItemDropped = true
 						g_iMythicNameTag[id]++;
-						AddStatistics(id, DROPPED_NAMETAG_MYTHICS, 1)
+						AddStatistics(id, DROPPED_NAMETAG_MYTHICS, 1, .line = __LINE__)
 						iItemType = NAMETAG_MYTHIC
 					}
 				}
@@ -4530,7 +4530,7 @@ public open_gloves_menu_handler(id, menu, item)
 				new iRandomGlove = getRandomGlove(bool:is_user_gold_vip(id));
 				
 				g_iUserGloves[id][iRandomGlove]++;
-				AddStatistics(id, DROPPED_GLOVES, 1, .gloveid = iRandomGlove)
+				AddStatistics(id, DROPPED_GLOVES, 1, .gloveid = iRandomGlove, .line = __LINE__)
 
 				save_user_gloves(id);
 
@@ -5219,7 +5219,7 @@ public confirmationu_handler(id, menu, item)
 		g_iUserSkins[id][iIndex] += 1
 		g_bIsWeaponStattrak[id][iIndex] = true
 		AddStatistics(id, DROPPED_STT_SKINS, 1, iIndex, .line = __LINE__)
-		AddStatistics(id, TOTAL_UPGRADES, 1)
+		AddStatistics(id, TOTAL_UPGRADES, 1, .line = __LINE__)
 	}
 
 	g_iWeaponUsedInUpgrade[id] = -1
@@ -5454,34 +5454,34 @@ public reward_handler(id, menu, item)
 		{
 			rand = random_num(1, 100);
 			g_iUserMoney[id] += rand
-			AddStatistics(id, RECEIVED_MONEY, rand)
+			AddStatistics(id, RECEIVED_MONEY, rand, .line = __LINE__)
 			client_print_color(id, id, "%s %l", CHAT_PREFIX, "DAILY_GOT_MONEY", rand);
 		}
 		case 1:
 		{
 			rand = random_num(1, 5);
 			g_iUserKeys[id] += rand
-			AddStatistics(id, DROPPED_KEYS, rand)
+			AddStatistics(id, DROPPED_KEYS, rand, .line = __LINE__)
 			client_print_color(id, id, "%s %l", CHAT_PREFIX, "DAILY_GOT_KEYS", rand, rand == 1 ? "" : "s" );
 		}
 		case 2:
 		{
 			rand = random_num(1, 6);
 			g_iUserCases[id] += rand
-			AddStatistics(id, DROPPED_CASES, rand)
+			AddStatistics(id, DROPPED_CASES, rand, .line = __LINE__)
 			client_print_color(id, id, "%s %l", CHAT_PREFIX, "DAILY_GOT_CASES", rand, rand == 1 ? "" : "s" );
 		}
 		case 3:
 		{
 			rand = random_num(1, 75);
 			g_iUserScraps[id] += rand
-			AddStatistics(id, RECEIVED_SCRAPS, rand)
+			AddStatistics(id, RECEIVED_SCRAPS, rand, .line = __LINE__)
 			client_print_color(id, id, "%s %l", CHAT_PREFIX, "DAILY_GOT_SCRAPS", rand, rand == 1 ? "" : "s" );
 		}
 		case 4:
 		{
 			g_iNameTagCapsule[id]++
-			AddStatistics(id, DROPPED_NAMETAG_CAPSULES, rand)
+			AddStatistics(id, DROPPED_NAMETAG_CAPSULES, 1, .line = __LINE__)
 			client_print_color(id, id, "%s %l", CHAT_PREFIX, "DAILY_GOT_CAPSULE");
 		}
 	}
@@ -5766,7 +5766,7 @@ public confirmation_handler(id, menu, item)
 	
 	if(bool:item == true)
 	{
-		AddStatistics(id, TOTAL_CONTRACTS, 1)
+		AddStatistics(id, TOTAL_CONTRACTS, 1, .line = __LINE__)
 		for(new i, index = -1;i < MAX_SKINS;i++)
 		{
 			index = g_iWeaponUsedInContract[id][i]
@@ -5798,13 +5798,13 @@ public confirmation_handler(id, menu, item)
 			{
 				iValue = random_num(5, 100)
 				g_iUserMoney[id] += iValue
-				AddStatistics(id, RECEIVED_MONEY, iValue)
+				AddStatistics(id, RECEIVED_MONEY, iValue, .line = __LINE__)
 			}
 			else
 			{
 				iValue = random_num(5, 75)
 				g_iUserScraps[id] += iValue
-				AddStatistics(id, RECEIVED_SCRAPS, iValue)
+				AddStatistics(id, RECEIVED_SCRAPS, iValue, .line = __LINE__)
 			}
 			client_print_color(id, print_team_default, "^4%s^1 %L", CHAT_PREFIX, id, "SINCE_ALREADY_HAVE", name, iValue, (iRandom == 1) ? "$" : " scraps")
 			_ShowMainMenu(id)
@@ -6840,8 +6840,8 @@ public confirm_cf_handler(id, menu, item)
 	_ResetCFData(id);
 	_ResetCFData(sender);
 
-	AddStatistics(id, TOTAL_COINFLIPS, 1)
-	AddStatistics(sender, TOTAL_COINFLIPS, 1)
+	AddStatistics(id, TOTAL_COINFLIPS, 1, .line = __LINE__)
+	AddStatistics(sender, TOTAL_COINFLIPS, 1, .line = __LINE__)
 		
 	return 1
 }
@@ -7246,7 +7246,7 @@ public oc_craft_menu_handler(id, menu, item)
 			{
 				g_iUserMoney[id] -= c_KeyPrice;
 				g_iUserKeys[id]++;
-				AddStatistics(id, DROPPED_KEYS, 1)
+				AddStatistics(id, DROPPED_KEYS, 1, .line = __LINE__)
 				_ShowOpenCaseCraftMenu(id);
 			}
 		}
@@ -7259,7 +7259,7 @@ public oc_craft_menu_handler(id, menu, item)
 			else
 			{
 				g_iUserMoney[id] += c_KeyPrice / 2;
-				AddStatistics(id, RECEIVED_MONEY, c_KeyPrice / 2)
+				AddStatistics(id, RECEIVED_MONEY, c_KeyPrice / 2, .line = __LINE__)
 				g_iUserKeys[id]--;
 				_ShowOpenCaseCraftMenu(id);
 			}
@@ -7327,13 +7327,13 @@ _OpenCase(id)
 				if(bScrapsInstead)
 				{
 					g_iUserScraps[id] += iValue;
-					AddStatistics(id, RECEIVED_SCRAPS, iValue)
+					AddStatistics(id, RECEIVED_SCRAPS, iValue, .line = __LINE__)
 				}
 				else
 				{
 					iValue = (ArrayGetCell(g_aSkinCostMin, rSkin)) / 4;
 					g_iUserMoney[id] += iValue;
-					AddStatistics(id, RECEIVED_MONEY, iValue)
+					AddStatistics(id, RECEIVED_MONEY, iValue, .line = __LINE__)
 				}
 
 				client_print_color(id, id, "^4%s^1 %L", CHAT_PREFIX, id, "SINCE_ALREADY_HAVE", Skin, iValue, bScrapsInstead ? " scrap" : "$")
@@ -7436,13 +7436,13 @@ _CraftSkin(id)
 				if(bScrapsInstead)
 				{
 					g_iUserScraps[id] += iValue;
-					AddStatistics(id, RECEIVED_SCRAPS, iValue)
+					AddStatistics(id, RECEIVED_SCRAPS, iValue, .line = __LINE__)
 				}
 				else
 				{
 					iValue = (ArrayGetCell(g_aSkinCostMin, rSkin)) / 4;
 					g_iUserMoney[id] += iValue;
-					AddStatistics(id, RECEIVED_MONEY, iValue)
+					AddStatistics(id, RECEIVED_MONEY, iValue, .line = __LINE__)
 				}
 				g_iUserScraps[id] -= c_CraftCost;
 				client_print_color(id, id, "^4%s^1 %L", CHAT_PREFIX, id, "SINCE_ALREADY_HAVE", Skin, iValue, bScrapsInstead ? " scrap" : "$")
@@ -7834,8 +7834,8 @@ public market_menu_handler(id, menu, item)
 					save_skin_tags(id);
 					save_skin_tags(index);
 
-					AddStatistics(id, MARKET_ITEM_BOUGHT, 1)
-					AddStatistics(index, MARKET_ITEMS_SOLD, 1)
+					AddStatistics(id, MARKET_ITEM_BOUGHT, 1, .line = __LINE__)
+					AddStatistics(index, MARKET_ITEMS_SOLD, 1, .line = __LINE__)
 
 					return PLUGIN_HANDLED;
 				}
@@ -7860,8 +7860,8 @@ public market_menu_handler(id, menu, item)
 					g_iUserItemPrice[index] = 0;
 					g_bSellGlove[index] = false;
 
-					AddStatistics(id, MARKET_ITEM_BOUGHT, 1)
-					AddStatistics(index, MARKET_ITEMS_SOLD, 1)
+					AddStatistics(id, MARKET_ITEM_BOUGHT, 1, .line = __LINE__)
+					AddStatistics(index, MARKET_ITEMS_SOLD, 1, .line = __LINE__)
 
 					return PLUGIN_HANDLED;
 				}
@@ -7914,8 +7914,8 @@ public market_menu_handler(id, menu, item)
 					g_iUserItemPrice[index] = 0;
 					_ShowMarketMenu(id);
 
-					AddStatistics(id, MARKET_ITEM_BOUGHT, 1)
-					AddStatistics(index, MARKET_ITEMS_SOLD, 1)
+					AddStatistics(id, MARKET_ITEM_BOUGHT, 1, .line = __LINE__)
+					AddStatistics(index, MARKET_ITEMS_SOLD, 1, .line = __LINE__)
 				}	
 			}
 		}
@@ -8581,7 +8581,7 @@ destroySkin(id, index)
 			else client_print_color(id, id, "^4%s^1 %L", CHAT_PREFIX, id, "TRANSFORM", iScraps, iScraps > 1 ? "s" : "", Skin);
 			
 			g_iUserScraps[id] += iScraps;
-			AddStatistics(id, RECEIVED_SCRAPS, iScraps)
+			AddStatistics(id, RECEIVED_SCRAPS, iScraps, .line = __LINE__)
 		}
 		case 2:
 		{	
@@ -8613,7 +8613,7 @@ destroySkin(id, index)
 			else client_print_color(id, id, "^4%s^1 %L", CHAT_PREFIX, id, "DESTROY", Skin, rest);
 			
 			g_iUserMoney[id] += rest;
-			AddStatistics(id, RECEIVED_MONEY, rest)
+			AddStatistics(id, RECEIVED_MONEY, rest, .line = __LINE__)
 		}
 	}
 	
@@ -8791,7 +8791,7 @@ giftPlayer(id, target, iSkin)
 	g_iUserSkins[id][iSkin]--;
 	g_iUserSkins[target][iSkin]++;
 	
-	AddStatistics(id, TOTAL_GIFTS, 1)
+	AddStatistics(id, TOTAL_GIFTS, 1, .line = __LINE__)
 
 	checkInstantDefault(id, iSkin)
 			
@@ -9625,8 +9625,8 @@ public clcmd_say_accept(id)
 		_ResetTradeData(id);
 		_ResetTradeData(sender);
 
-		AddStatistics(id, TOTAL_TRADES, 1)
-		AddStatistics(sender, TOTAL_TRADES, 1)
+		AddStatistics(id, TOTAL_TRADES, 1, .line = __LINE__)
+		AddStatistics(sender, TOTAL_TRADES, 1, .line = __LINE__)
 	}
 	else
 	{
@@ -9952,7 +9952,7 @@ public task_TombolaRun(task)
 				else
 				{
 					g_iUserMoney[id] += g_iTombolaPrize;
-					AddStatistics(id, RECEIVED_MONEY, g_iTombolaPrize)
+					AddStatistics(id, RECEIVED_MONEY, g_iTombolaPrize, .line = __LINE__)
 					new Name[32];
 					get_user_name(id, Name, 31);
 					client_print_color(0, 0, "^4%s^1 %L", CHAT_PREFIX, -1, "RAFFLE_WINNER", Name, g_iTombolaPrize);
@@ -10073,8 +10073,8 @@ _RouletteWin(id, multi)
 {
 	new num = multi * g_iUserBetMoney[id];
 	g_iUserMoney[id] += num;
-	AddStatistics(id, RECEIVED_MONEY, num)
-	AddStatistics(id, TOTAL_ROULETTE, num)
+	AddStatistics(id, RECEIVED_MONEY, num, .line = __LINE__)
+	AddStatistics(id, TOTAL_ROULETTE, num, .line = __LINE__)
 	g_bRoulettePlay[id] = 1;
 	client_print_color(0, id, "^4%s^1 %L", CHAT_PREFIX, -1, "ROULETTE_WIN", g_szName[id], num);
 	client_print_color(id, id, "^4%s^1 %L", CHAT_PREFIX, id, "ROULETTE_NEXT");
@@ -11723,7 +11723,7 @@ public ev_DeathMsg()
 	if (equal(szWeapon, "knife", 0))
 	{
 		g_iUserScraps[killer] += g_CvarKnifeKillScraps
-		AddStatistics(killer, RECEIVED_SCRAPS, g_CvarKnifeKillScraps)
+		AddStatistics(killer, RECEIVED_SCRAPS, g_CvarKnifeKillScraps, .line = __LINE__)
 		client_print_color(0, killer, "^4%s^1 %L", CHAT_PREFIX, -1, "KNIFE_KILL", g_szName[killer], g_szName[victim], g_CvarKnifeKillScraps)
 	}
 
@@ -11755,7 +11755,7 @@ public ev_DeathMsg()
 	}
 
 	g_iUserMoney[killer] += rmoney;
-	AddStatistics(killer, RECEIVED_MONEY, rmoney)
+	AddStatistics(killer, RECEIVED_MONEY, rmoney, .line = __LINE__)
 
 	new szMessage[192];
 
@@ -11775,12 +11775,12 @@ public ev_DeathMsg()
 			case 1:
 			{
 				g_iUserCases[killer]++;
-				AddStatistics(killer, DROPPED_CASES, 1)
+				AddStatistics(killer, DROPPED_CASES, 1, .line = __LINE__)
 			}
 			case 2:
 			{
 				g_iUserKeys[killer]++;
-				AddStatistics(killer, DROPPED_KEYS, 1)
+				AddStatistics(killer, DROPPED_KEYS, 1, .line = __LINE__)
 			}
 		}
 
@@ -11796,7 +11796,7 @@ public ev_DeathMsg()
 			if(iRandom <= g_CvarCapsuleChance)
 			{
 				g_iNameTagCapsule[killer]++;
-				AddStatistics(killer, DROPPED_NAMETAG_CAPSULES, 1)
+				AddStatistics(killer, DROPPED_NAMETAG_CAPSULES, 1, .line = __LINE__)
 				formatex(szMessage, charsmax(szMessage), "^4[CSGO Classy] %s^1 dropped a^3 Name-Tag capsule", g_szName[killer]);
 				send_message(killer, szMessage);
 				gotbonus = true;
@@ -11809,7 +11809,7 @@ public ev_DeathMsg()
 				if(iRandom <= g_CvarCapsuleChance + g_CvarGoldVipCapsuleChance)
 				{
 					g_iNameTagCapsule[killer]++;
-					AddStatistics(killer, DROPPED_NAMETAG_CAPSULES, 1)
+					AddStatistics(killer, DROPPED_NAMETAG_CAPSULES, 1, .line = __LINE__)
 					formatex(szMessage, charsmax(szMessage), "^4[CSGO Classy] %s^1 dropped a^3 Name-Tag capsule", g_szName[killer]);
 					send_message(killer, szMessage);
 					gotbonus = true;
@@ -11820,7 +11820,7 @@ public ev_DeathMsg()
 				if(iRandom <= g_CvarCapsuleChance + g_CvarSilverVipCapsuleChance)
 				{
 					g_iNameTagCapsule[killer]++;
-					AddStatistics(killer, DROPPED_NAMETAG_CAPSULES, 1)
+					AddStatistics(killer, DROPPED_NAMETAG_CAPSULES, 1, .line = __LINE__)
 					formatex(szMessage, charsmax(szMessage), "^4[CSGO Classy] %s^1 dropped a^3 Name-Tag capsule", g_szName[killer]);
 					send_message(killer, szMessage);
 					gotbonus = true;
@@ -11836,7 +11836,7 @@ public ev_DeathMsg()
 		send_message(killer, szMessage);
 		gotbonus = true;
 
-		AddStatistics(killer, DROPPED_GLOVE_CASES, 1)
+		AddStatistics(killer, DROPPED_GLOVE_CASES, 1, .line = __LINE__)
 	}
 	
 	if (levelup)
@@ -11874,17 +11874,17 @@ public ev_DeathMsg()
 		if (0 < keys)
 		{
 			g_iUserKeys[killer] += keys;
-			AddStatistics(killer, DROPPED_KEYS, keys)
+			AddStatistics(killer, DROPPED_KEYS, keys, .line = __LINE__)
 		}
 		if (0 < cases)
 		{
 			g_iUserCases[killer] += cases;
-			AddStatistics(killer, DROPPED_CASES, cases)
+			AddStatistics(killer, DROPPED_CASES, cases, .line = __LINE__)
 		}
 		if (0 < money)
 		{
 			g_iUserMoney[killer] += money;
-			AddStatistics(killer, RECEIVED_MONEY, money)
+			AddStatistics(killer, RECEIVED_MONEY, money, .line = __LINE__)
 		}
 
 		client_print_color(killer, print_team_default, "^4%s^1 %L", CHAT_PREFIX, killer, "RANKUP_BONUS", keys, cases, money);
@@ -12144,7 +12144,7 @@ public concmd_givemoney(id, level, cid)
 	
 	if(g_CvarStatsCountCmds)
 	{
-		AddStatistics(target, RECEIVED_MONEY, amount)
+		AddStatistics(target, RECEIVED_MONEY, amount, .line = __LINE__)
 	}
 
 	if (0 > amount)
@@ -12196,7 +12196,7 @@ public concmd_givecases(id, level, cid)
 
 	if(g_CvarStatsCountCmds)
 	{
-		AddStatistics(target, DROPPED_CASES, amount)
+		AddStatistics(target, DROPPED_CASES, amount, .line = __LINE__)
 	}
 
 	if (0 > amount)
@@ -12246,7 +12246,7 @@ public concmd_givekeys(id, level, cid)
 
 	if(g_CvarStatsCountCmds)
 	{
-		AddStatistics(target, DROPPED_KEYS, amount)
+		AddStatistics(target, DROPPED_KEYS, amount, .line = __LINE__)
 	}
 
 	if (0 > amount)
@@ -12296,7 +12296,7 @@ public concmd_givescraps(id, level, cid)
 
 	if(g_CvarStatsCountCmds)
 	{
-		AddStatistics(target, RECEIVED_SCRAPS, amount)
+		AddStatistics(target, RECEIVED_SCRAPS, amount, .line = __LINE__)
 	}
 
 	if (0 > amount)
@@ -12346,7 +12346,7 @@ public concmd_givecapsules(id, level, cid)
 
 	if(g_CvarStatsCountCmds)
 	{
-		AddStatistics(target, DROPPED_NAMETAG_CAPSULES, amount)
+		AddStatistics(target, DROPPED_NAMETAG_CAPSULES, amount, .line = __LINE__)
 	}
 	
 	if (0 > amount)
@@ -12396,7 +12396,7 @@ public concmd_givecommonnametags(id, level, cid)
 
 	if(g_CvarStatsCountCmds)
 	{
-		AddStatistics(target, DROPPED_NAMETAG_COMMON, amount)
+		AddStatistics(target, DROPPED_NAMETAG_COMMON, amount, .line = __LINE__)
 	}
 
 	if (0 > amount)
@@ -12446,7 +12446,7 @@ public concmd_giverarenametags(id, level, cid)
 
 	if(g_CvarStatsCountCmds)
 	{
-		AddStatistics(target, DROPPED_NAMETAG_RARE, amount)
+		AddStatistics(target, DROPPED_NAMETAG_RARE, amount, .line = __LINE__)
 	}
 
 	if (0 > amount)
@@ -12496,7 +12496,7 @@ public concmd_givemythicnametags(id, level, cid)
 
 	if(g_CvarStatsCountCmds)
 	{
-		AddStatistics(target, DROPPED_NAMETAG_MYTHICS, amount)
+		AddStatistics(target, DROPPED_NAMETAG_MYTHICS, amount, .line = __LINE__)
 	}
 
 	if (0 > amount)
@@ -12546,7 +12546,7 @@ public concmd_giveglovecases(id, level, cid)
 
 	if(g_CvarStatsCountCmds)
 	{
-		AddStatistics(target, DROPPED_GLOVE_CASES, amount)
+		AddStatistics(target, DROPPED_GLOVE_CASES, amount, .line = __LINE__)
 	}
 
 	if (0 > amount)
@@ -12620,7 +12620,7 @@ _GiveToAll(id, arg1[], arg2[], type)
 
 							if(g_CvarStatsCountCmds)
 							{
-								AddStatistics(target, RECEIVED_MONEY, amount)
+								AddStatistics(target, RECEIVED_MONEY, amount, .line = __LINE__)
 							}
 						}
 						i++
@@ -12657,7 +12657,7 @@ _GiveToAll(id, arg1[], arg2[], type)
 
 							if(g_CvarStatsCountCmds)
 							{
-								AddStatistics(target, DROPPED_CASES, amount)
+								AddStatistics(target, DROPPED_CASES, amount, .line = __LINE__)
 							}
 						}
 						i++;
@@ -12694,7 +12694,7 @@ _GiveToAll(id, arg1[], arg2[], type)
 
 							if(g_CvarStatsCountCmds)
 							{
-								AddStatistics(target, DROPPED_KEYS, amount)
+								AddStatistics(target, DROPPED_KEYS, amount, .line = __LINE__)
 							}
 						}
 						i++
@@ -12731,7 +12731,7 @@ _GiveToAll(id, arg1[], arg2[], type)
 
 							if(g_CvarStatsCountCmds)
 							{
-								AddStatistics(target, RECEIVED_SCRAPS, amount)
+								AddStatistics(target, RECEIVED_SCRAPS, amount, .line = __LINE__)
 							}
 						}
 						i++;
@@ -12768,7 +12768,7 @@ _GiveToAll(id, arg1[], arg2[], type)
 
 							if(g_CvarStatsCountCmds)
 							{
-								AddStatistics(target, DROPPED_NAMETAG_COMMON, amount)
+								AddStatistics(target, DROPPED_NAMETAG_COMMON, amount, .line = __LINE__)
 							}
 						}
 						i++;
@@ -12806,7 +12806,7 @@ _GiveToAll(id, arg1[], arg2[], type)
 
 							if(g_CvarStatsCountCmds)
 							{
-								AddStatistics(target, DROPPED_NAMETAG_RARE, amount)
+								AddStatistics(target, DROPPED_NAMETAG_RARE, amount, .line = __LINE__)
 							}
 						}
 						i++;
@@ -12844,7 +12844,7 @@ _GiveToAll(id, arg1[], arg2[], type)
 
 							if(g_CvarStatsCountCmds)
 							{
-								AddStatistics(target, DROPPED_NAMETAG_MYTHICS, amount)
+								AddStatistics(target, DROPPED_NAMETAG_MYTHICS, amount, .line = __LINE__)
 							}
 						}
 						i++;
@@ -12882,7 +12882,7 @@ _GiveToAll(id, arg1[], arg2[], type)
 
 							if(g_CvarStatsCountCmds)
 							{
-								AddStatistics(target, DROPPED_NAMETAG_CAPSULES, amount)
+								AddStatistics(target, DROPPED_NAMETAG_CAPSULES, amount, .line = __LINE__)
 							}
 						}
 						i++;
@@ -12920,7 +12920,7 @@ _GiveToAll(id, arg1[], arg2[], type)
 
 							if(g_CvarStatsCountCmds)
 							{
-								AddStatistics(target, DROPPED_GLOVE_CASES, amount)
+								AddStatistics(target, DROPPED_GLOVE_CASES, amount, .line = __LINE__)
 							}
 						}
 						i++;
@@ -13037,7 +13037,7 @@ public concmd_giveglove(id, level, cid)
 
 	if(g_CvarStatsCountCmds)
 	{
-		AddStatistics(target, DROPPED_GLOVES, amount, .gloveid = iGloveID)
+		AddStatistics(target, DROPPED_GLOVES, amount, .gloveid = iGloveID, .line = __LINE__)
 	}
 
 	save_user_gloves(target)
@@ -14530,7 +14530,7 @@ public countDown()
 		g_bIsWeaponStattrak[iWinner][g_iSkinID] = true
 		
 		AddStatistics(iWinner, DROPPED_STT_SKINS, 1, g_iSkinID, .line = __LINE__)
-		AddStatistics(iWinner, TOTAL_GIVEAWAYS, 1)
+		AddStatistics(iWinner, TOTAL_GIVEAWAYS, 1, .line = __LINE__)
 
 		new szWinnerName[MAX_PLAYERS]
 		get_user_name(iWinner, szWinnerName, charsmax(szWinnerName))
