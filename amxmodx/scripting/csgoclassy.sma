@@ -50,7 +50,7 @@
 188.212.101.21:27015 - csgo.erazer.ro 
 */
 
-#define LICENSED_IP "188.212.101.144:27015"
+#define LICENSED_IP "188.212.101.21:27015"
 #define TOTAL_SKINS 1025
 static const MODE = 0; // 1 - DNS, 0 - IP
 
@@ -1355,7 +1355,8 @@ public plugin_end()
 
 			iQueryLen += formatex(szQuery[iQueryLen], charsmax(szQuery), " WHERE `server_key` = '%s';", DB_SERVER_KEY)
 
-			SQL_ThreadQuery(g_SqlTuple, "FreeHandle", szQuery)
+			new iData[1]; iData[0] = __LINE__
+			SQL_ThreadQuery(g_SqlTuple, "FreeHandle", szQuery, iData, sizeof(iData))
 			SQL_FreeHandle(g_SqlTuple)
 		}
 
@@ -2028,7 +2029,8 @@ registerUser(id)
 		g_szTables[PLAYER_DATA], g_szSQLName[id], szDbPass, get_systime(),
 		g_szTables[PLAYER_SKINS], g_szSQLName[id],
 		g_szTables[USERS_STATISTICS], g_szSQLName[id]);
-	SQL_ThreadQuery(g_SqlTuple, "FreeHandle", szQuery)
+	new iData[1]; iData[0] = __LINE__
+	SQL_ThreadQuery(g_SqlTuple, "FreeHandle", szQuery, iData, sizeof(iData))
 
 	ExecuteForward(g_eForwards[REGISTER], _, id);
 }
@@ -2140,7 +2142,8 @@ saveSqlData(id)
 
 	formatex(szQuery[iQueryLen], charsmax(szQuery), " WHERE data.uname = ^"%s^";", g_szSQLName[id]);
 
-	SQL_ThreadQuery(g_SqlTuple, "FreeHandle", szQuery);
+	new iData[1]; iData[0] = __LINE__
+	SQL_ThreadQuery(g_SqlTuple, "FreeHandle", szQuery, iData, sizeof(iData))
 }
 
 saveNvaultData(id)
@@ -2472,7 +2475,7 @@ public FreeHandle(FailState, Handle:Query, szError[], ErrorCode, szData[], iSize
 {
 	if(FailState || ErrorCode)
 	{
-		log_to_file(LOG_FILE, "[LINE: %i] An SQL Error has been encoutered. Error code %i^nError: %s", __LINE__, ErrorCode, szError);
+		log_to_file(LOG_FILE, "[FREEHANDLE] [LINE: %i] An SQL Error has been encoutered. Error code %i.^nError: %s", szData[0], ErrorCode, szError);
 	}
 
 	SQL_FreeHandle(Query);
@@ -4255,10 +4258,11 @@ public save_skin_tags(id)
 			static szQuery[TOTAL_SKINS * 5]
 			formatex(szQuery, charsmax(szQuery), "UPDATE `%s` SET \
 			`has_skin_nametag` = '%s', \
-			`skin_tag` = '%s', \ 
+			`skin_tag` = ^"%s^", \ 
 			`tag_level` = '%s' WHERE `uname` = ^"%s^"",
 			g_szTables[PLAYER_SKINS], szData, szData2, szData3, g_szSQLName[id])
-			SQL_ThreadQuery(g_SqlTuple, "FreeHandle", szQuery)
+			new iData[1]; iData[0] = __LINE__
+			SQL_ThreadQuery(g_SqlTuple, "FreeHandle", szQuery, iData, sizeof(iData))
 		}
 
 		case NVAULT:
@@ -4884,7 +4888,8 @@ public save_user_gloves(id)
 			`gloves` = '%s', \
 			`weapon_gloves` = '%s' WHERE `uname` = '%s';",
 			g_szTables[PLAYER_SKINS], szGlovesData, szWeaponGlovesData, g_szSQLName[id])
-			SQL_ThreadQuery(g_SqlTuple, "FreeHandle", szQuery)
+			new iData[1]; iData[0] = __LINE__
+			SQL_ThreadQuery(g_SqlTuple, "FreeHandle", szQuery, iData, sizeof(iData))
 		}
 
 		case NVAULT:
@@ -10477,7 +10482,8 @@ public GetServerStatistics(FailState, Handle:Query, szError[], ErrorCode, szData
 
 	if(SQL_NumResults(Query) == 0)
 	{
-		SQL_ThreadQuery(g_SqlTuple, "FreeHandle", fmt("INSERT INTO `%s` (`server_key`) VALUES ('%s')", g_szTables[SERVER_STATISTICS], DB_SERVER_KEY))
+		new iData[1]; iData[0] = __LINE__
+		SQL_ThreadQuery(g_SqlTuple, "FreeHandle", fmt("INSERT INTO `%s` (`server_key`) VALUES ('%s')", g_szTables[SERVER_STATISTICS], DB_SERVER_KEY), iData, sizeof(iData))
 		log_to_file(LOG_FILE, "Server statistics entity has been created in database")
 		
 		SQL_FreeHandle(Query)
