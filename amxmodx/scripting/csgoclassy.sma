@@ -37,7 +37,6 @@
 213.226.71.126:27015 - star.cspower.ro - dudu // DNS MODE 1;
 51.77.76.159:27015 - CS.BLACKLIFE.RO // DNS MODE 1
 93.114.82.36:27015 - testing server GO.WESTCSTRIKE.RO
-188.212.101.144:27015 - go.weststrike.ro
 188.212.102.92:27015 - fun.westrike.ro
 131.196.198.52:27055 -> brazilianu
 172.18.0.3:27015 -> marty
@@ -45,12 +44,14 @@
 89.40.233.106:27015 -> robert
 93.114.82.106:27015 -> sandu
 
+//last version
+188.212.101.144:27015 - go.weststrike.ro
 188.212.102.180:27015 - CSGO.NEBUNATICII.RO
 188.212.101.238:27015 - TEST ERAZER
 188.212.101.21:27015 - csgo.erazer.ro 
 */
 
-#define LICENSED_IP "188.212.101.21:27015"
+#define LICENSED_IP "188.212.102.180:27015"
 #define TOTAL_SKINS 1025
 static const MODE = 0; // 1 - DNS, 0 - IP
 
@@ -1416,6 +1417,7 @@ public client_connect(id)
 	g_bSellCapsule[id] = false;
 	g_iNewNameTagIndex[id] = -1;
 	g_bAccountReseted[id] = false
+	g_iTotalPlayedTime[id] = 0
 
 	g_iSelectedNameTagRarity[id] = 0;
 	g_bIsInPreview[id] = false;
@@ -2039,12 +2041,12 @@ _SaveData(id)
 {		
 	switch(g_CvarSaveType)
 	{
-		case 	SQL: 		saveSqlData(id)
-		case 	NVAULT:		saveNvaultData(id);
+		case 	SQL: 		SaveSQLData(id)
+		case 	NVAULT:		SaveVaultData(id);
 	}
 }
 
-saveSqlData(id)
+SaveSQLData(id)
 {
 	static szQuery[TOTAL_SKINS * 10], iTotalInventoryValue, iQueryLen, weaponkill[4096];
 	static droppedskins[2][TOTAL_SKINS * 6], weapbuff[TOTAL_SKINS * 6], stattrackkill[TOTAL_SKINS * 6], stattrackskins[TOTAL_SKINS * 6];
@@ -2146,7 +2148,7 @@ saveSqlData(id)
 	SQL_ThreadQuery(g_SqlTuple, "FreeHandle", szQuery, iData, sizeof(iData))
 }
 
-saveNvaultData(id)
+SaveVaultData(id)
 {
 	static Data[TOTAL_SKINS * 6];
 	new infobuff[1024];
@@ -3953,7 +3955,12 @@ public concmd_new_skintag(id)
 	save_skin_tags(id);
 	active_name_tags(id);
 
-	client_print_color(id, print_team_default, "%s %l", CHAT_PREFIX, "NAMETAG_SET", g_szSkinsTag[id][index], szSkinName);
+	new szSkinTag[MAX_SKIN_TAG_LENGTH * 2 + 1]
+
+	copy(szSkinTag, charsmax(szSkinTag), g_szSkinsTag[id][index])
+	mysql_escape_string(szSkinTag, charsmax(szSkinTag))
+
+	client_print_color(id, print_team_default, "%s %l", CHAT_PREFIX, "NAMETAG_SET", szSkinTag, szSkinName);
 	
 	return PLUGIN_HANDLED;
 }
@@ -4244,10 +4251,29 @@ public save_skin_tags(id)
 	formatex(szData2, charsmax(szData2), "%s", g_szSkinsTag[id][0][0] != EOS ? g_szSkinsTag[id][0] : "0");
 	formatex(szData3, charsmax(szData3), "%i", g_iNameTagSkinLevel[id][0]);
 
-	for(new i = 1; i < g_iSkinsNum; i++)
+
+	for(new i = 1, szQuotedString[MAX_SKIN_TAG_LENGTH * 2 + 1]; i < g_iSkinsNum; i++)
 	{
 		format(szData, charsmax(szData), "%s,%s", szData, g_bHasSkinTag[id][i] == true ? "1" : "0");
-		format(szData2, charsmax(szData2), "%s,%s", szData2, g_bHasSkinTag[id][i] == true ? g_szSkinsTag[id][i] : "0");
+		
+		if(g_CvarSaveType == SQL)
+		{
+			if(g_bHasSkinTag[id][i])
+			{
+				copy(szQuotedString, charsmax(szQuotedString), g_szSkinsTag[id][i])
+				mysql_escape_string(szQuotedString, charsmax(szQuotedString))
+				format(szData2, charsmax(szData2), "%s,%s", szData2, szQuotedString);
+			}
+			else 
+			{
+				format(szData2, charsmax(szData2), "%s,0", szData2);
+			}
+		}
+		else 
+		{
+			format(szData2, charsmax(szData2), "%s,%s", szData2, g_bHasSkinTag[id][i] ? g_szSkinsTag[id][i] : "0");
+		}
+
 		format(szData3, charsmax(szData3), "%s,%i", szData3, g_iNameTagSkinLevel[id][i]);
 	}
 	
@@ -14833,11 +14859,11 @@ stock fadescreen(id, ammount, color)
 
 mysql_escape_string(dest[],len)
 {
-    replace_all(dest,len,"\\","\\\\");
-    replace_all(dest,len,"\0","\\0");
-    replace_all(dest,len,"\n","\\n");
-    replace_all(dest,len,"\r","\\r");
-    replace_all(dest,len,"\x1a","\Z");
-    replace_all(dest,len,"'","\'");
-    replace_all(dest,len,"^"","\^"");
+	replace_all(dest,len,"\\","\\\\");
+	replace_all(dest,len,"\0","\\0");
+	replace_all(dest,len,"\n","\\n");
+	replace_all(dest,len,"\r","\\r");
+	replace_all(dest,len,"\x1a","\Z");
+	replace_all(dest,len,"'","\'");
+	replace_all(dest,len,"^"","\^"");
 }

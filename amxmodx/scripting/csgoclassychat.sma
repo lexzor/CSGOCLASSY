@@ -281,8 +281,6 @@ public HookSay(id)
 		formatex(g_message, charsmax(g_message), "^3%s^3[^4%s^3] %s^4 :%s %s", isTeam ? szTeamP : "", prefix, g_name, isAdmin(id) ? "" : "^1", g_typed);
 	}
 
-	new iCvar = get_pcvar_num(g_ghost)
-
 	for(new i = 1; i <= g_maxplayers; i++)
 	{
 		if(!is_user_connected(i))
@@ -291,7 +289,7 @@ public HookSay(id)
 		if(isTeam && cs_get_user_team(i) != iTeam)
 		continue
 		
-		if(!iCvar)
+		if(!get_pcvar_num(g_ghost))
 		{
 			if(is_user_alive(id) && is_user_alive(i) || !is_user_alive(id) && !is_user_alive(i) || get_user_flags(i) & ADMIN_KICK)
 			{

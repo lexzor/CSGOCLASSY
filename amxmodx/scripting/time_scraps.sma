@@ -36,7 +36,7 @@ public plugin_init()
 
     bind_pcvar_num(
         create_cvar(
-            "bonus_time_min",
+            "time_bonus_min",
             "60",
             FCVAR_NONE,
             "Time in minutes when a player should get his bonus",
@@ -48,7 +48,7 @@ public plugin_init()
 
     bind_pcvar_num(
         create_cvar(
-            "bonus_amount",
+            "time_bonus_amount",
             "30",
             FCVAR_NONE,
             "Amount of bonus",
@@ -63,13 +63,16 @@ public plugin_init()
 
 public user_log_in_post(const id)
 {
-    new szName[MAX_NAME_LENGTH], szData[16], iTs
+    g_eUserData[id][TOTAL_BONUS] = 0
+    g_eUserData[id][TIME] = 0
+
+    new szName[MAX_NAME_LENGTH], szData[32], iTs
     get_user_name(id, szName, charsmax(szName))
 
     if(nvault_lookup(g_iVault, szName, szData, charsmax(szData), iTs))
     {
-        new szTotalBonus[10], szTotalTime[6]
-        strtok2(szData, szTotalBonus, charsmax(szTotalBonus), szTotalTime, charsmax(szTotalTime), '#', TRIM_FULL)
+        new szTotalBonus[16], szTotalTime[16]
+        parse(szData, szTotalBonus, charsmax(szTotalBonus), szTotalTime, charsmax(szTotalTime))
 
         g_eUserData[id][TOTAL_BONUS] = str_to_num(szTotalBonus)
         g_eUserData[id][TIME] = str_to_num(szTotalTime)
@@ -90,22 +93,26 @@ public client_disconnected(id)
 
     remove_task(id + TASK_ADD_TIME)
 
-    nvault_set(g_iVault, szName, fmt("%i#%i", g_eUserData[TOTAL_BONUS], g_eUserData[TIME]))
+    nvault_set(g_iVault, szName, fmt("%d %d", g_eUserData[id][TOTAL_BONUS], g_eUserData[id][TIME]))
 
     return
 }
 
 public scrapsCommand(const id)
 {
-    new iMin = g_eUserData[id][TIME] % 60
-    new iSec = g_eUserData[id][TIME]
+    new iMin = g_eUserData[id][TIME] / 60
+    new iSec = g_eUserData[id][TIME] % 60
 
-    client_print_color(id, print_team_default, "%s You completed this task^3 %i^4 time%s^1 and now you played^4 %s%im %s%is^4 from a total of^4 %im",
-    CHAT_TAG, g_eUserData[id][TOTAL_BONUS], g_eUserData[id][TOTAL_BONUS] > 1 ? "s" : "", iMin < 10 ? "0" : "", iMin, iSec < 10 ? "0" : "", g_CvarTime)
+    client_print_color(id, print_team_default, "%s You completed this task^3 %i^4 time%s^1 and you played^3 %s%i^4m^3 %s%i^4s^1 from a total of^3 %i^4m",
+    CHAT_TAG, g_eUserData[id][TOTAL_BONUS], g_eUserData[id][TOTAL_BONUS] > 1 ? "s" : "", iMin < 10 ? "0" : "", iMin, iSec < 10 ? "0" : "", iSec, g_CvarTime)
+
+    return PLUGIN_HANDLED
 }
 
-public addTime(const id)
+public addTime(id)
 {
+    id -= TASK_ADD_TIME
+
     if(!shouldCountTime(id))
     {
         return
@@ -117,7 +124,7 @@ public addTime(const id)
     {
         g_eUserData[id][TIME] = 0
     
-        client_print_color(id, print_team_default, "%s You got^3 %i^4 scrap%s^1 for playing!", CHAT_TAG, g_CvarAmount, g_CvarAmount > 1 ? "s" : "")
+        client_print_color(0, print_team_default, "%s^3 %n^1 got^3 %i^4 scrap%s^1 for playing^3 %i^4m^1 on our server!", CHAT_TAG, id, g_CvarAmount, g_CvarAmount > 1 ? "s" : "", g_CvarTime)
 
         set_user_scraps(id, get_user_scraps(id) + g_CvarAmount)
 
