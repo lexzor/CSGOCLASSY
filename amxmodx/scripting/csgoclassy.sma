@@ -2,7 +2,6 @@
 #include <amxconst>
 #include <amxmisc>
 #include <nvault>
-#include <fvault>
 #include <fakemeta>
 #include <fun>
 #include <hamsandwich>
@@ -51,7 +50,7 @@
 188.212.101.21:27015 - csgo.erazer.ro 
 */
 
-#define LICENSED_IP "188.212.102.180:27015"
+#define LICENSED_IP "188.212.101.21:27015"
 #define TOTAL_SKINS 1025
 static const MODE = 0; // 1 - DNS, 0 - IP
 
@@ -73,6 +72,7 @@ static const MODE = 0; // 1 - DNS, 0 - IP
 #define MAX_SKIN_TAG_LENGTH 15
 // #define OPEN_DELAY 1
 #define MAX_GLOVES 5
+#define MAX_RANG_NAME_LENGTH 32
 
 #define CS_MAX_WEAPONS MAX_WEAPONS - 1
 
@@ -93,48 +93,6 @@ static const MODE = 0; // 1 - DNS, 0 - IP
 #define NO_SKIN_VALUE 2000
 
 #define SET_DEFAULT_MODEL -1
-#define maxranks 40
-#define maxlevels 40
-#define rank_0 0
-#define rank_1 1
-#define rank_2 2
-#define rank_3 3
-#define rank_4 4
-#define rank_5 5
-#define rank_6 6
-#define rank_7 7
-#define rank_8 8
-#define rank_9 9
-#define rank_10 10
-#define rank_11 11
-#define rank_12 12
-#define rank_13 13
-#define rank_14 14
-#define rank_15 15
-#define rank_16 16
-#define rank_17 17
-#define rank_18 18
-#define rank_19 19
-#define rank_20 20
-#define rank_21 21
-#define rank_22 22
-#define rank_23 23
-#define rank_24 24
-#define rank_25 25
-#define rank_26 26
-#define rank_27 27
-#define rank_28 28
-#define rank_29 29
-#define rank_30 30
-#define rank_31 31
-#define rank_32 32
-#define rank_33 33
-#define rank_34 34
-#define rank_35 35
-#define rank_36 36
-#define rank_37 37
-#define rank_38 38
-#define rank_39 39
 
 native isUsingSomeoneElsesWeapon(id, weaponID);
 native getOriginalOwnerID(owner, weaponid);
@@ -265,6 +223,12 @@ enum STATISTICS
 	MARKET_ITEM_BOUGHT //done
 }
 
+enum _:RANG_DATA
+{
+	RANG_NAME[64],
+	RANG_EXP
+}
+
 enum
 {
 	GLOVES_CONFIG 	= 	1,
@@ -282,8 +246,9 @@ enum
 {
 	CONFIG_SQL 				= 	1,
 	CONFIG_RANKS 			= 	2,
-	CONFIG_DEFAULT_SKINS 	= 	3,
-	CONFIG_SKINS 			= 	4
+	CONFIG_RANGS			=	3,
+	CONFIG_DEFAULT_SKINS 	= 	4,
+	CONFIG_SKINS 			= 	5
 }
 
 enum
@@ -331,59 +296,6 @@ static const g_szTWin[] =
 static const g_szCTWin[] =
 {
 	"sound/csgoclassyv2/ctwin.wav"
-}
-
-static const xp_num[maxlevels+1] = 
-{ 
-	350, 700, 1050, 1400, 1750, 2100, 2450, 2800,
-	3150, 3500, 3850, 4200, 4550, 4900, 5250, 5600,
-	5950, 6300, 6650, 7000, 7350, 7700, 8050, 8400,
-	8750, 9100, 9450, 9800, 10150, 10500, 10850, 11200,
-	11550, 11900, 12250, 12600, 12950, 13300, 13750, 14100
-}
-
-static const ranks_names[maxranks][]=
-{
-	"Private Rank 1",
-	"Private Rank 2",
-	"Private Rank 3",
-	"Private Rank 4",
-	"Corporal Rank 5",
-	"Corporal Rank 6",
-	"Corporal Rank 7",
-	"Corporal Rank 8",
-	"Sergeant Rank 9",
-	"Sergeant Rank 10",
-	"Sergeant Rank 11",
-	"Sergeant Rank 12",
-	"Master Sergeant Rank 13",
-	"Master Sergeant Rank 14",
-	"Master Sergeant Rank 15",
-	"Master Sergeant Rank 16",
-	"Sergeant Major Rank 17",
-	"Sergeant Major Rank 18",
-	"Sergeant Major Rank 19",
-	"Sergeant Major Rank 20",
-	"Lieutenant Rank 21",
-	"Lieutenant Rank 22",
-	"Lieutenant Rank 23",
-	"Lieutenant Rank 24",
-	"Captain Rank 25",
-	"Captain Rank 26",
-	"Captain Rank 27",
-	"Captain Rank 28",
-	"Major Rank 29",
-	"Major Rank 30",
-	"Major Rank 31",
-	"Major Rank 32",
-	"Colonel Rank 33",
-	"Colonel Rank 34",
-	"Colonel Rank 35",
-	"Brigadier General Rank 36",
-	"Major General Rank 37",
-	"Lieutenant General Rank 38",
-	"General Rank 39",
-	"Global General Rank 40"
 }
 
 static const g_szStatsName[][] =
@@ -485,6 +397,8 @@ static const g_szTablesInfo[][] = {
 	`first_seen` VARCHAR(12) NOT NULL DEFAULT '0' ,\
 	`last_seen` VARCHAR(12) NOT NULL DEFAULT '0' ,\
 	`daily_bonus_time` int(12) NOT NULL DEFAULT 0 ,\
+	`rang` int(3) NOT NULL DEFAULT 0 ,\
+	`rang_experience` int(10) NOT NULL DEFAULT 0 ,\
 	`played_time` int(12) NOT NULL DEFAULT 0 ,\
 	`total_inventory` TEXT NOT NULL DEFAULT '0' ,\
 	PRIMARY KEY(id, uname));",
@@ -674,7 +588,6 @@ static const g_cItemCounter[COUNTER] =
 }
 
 static const DB_SERVER_KEY[] = "SERVER_STATS"
-static const db_save[] = "csgoclassyrangs";
 
 static const g_sznVaultGlovesName[] 			=		 "user_gloves"
 static const g_sznVaultWeaponGlovesName[] 		=		 "user_weapon_gloves"
@@ -709,12 +622,10 @@ new g_iSkinsInContract[MAX_PLAYERS + 1]
 new g_iWeaponUsedInContract[MAX_PLAYERS + 1][MAX_SKINS]
 new g_iUserChance[MAX_PLAYERS + 1]
 new g_iUsedSttC[MAX_PLAYERS + 1][MAX_SKINS]
-new g_szAuthId[MAX_PLAYERS + 1][36]
 
 new g_status_sync
-new rankLevelBonus
-new level[MAX_PLAYERS + 1]
-new xp[MAX_PLAYERS + 1]
+new g_iRang[MAX_PLAYERS + 1]
+new g_iRangExp[MAX_PLAYERS + 1]
 new rank[MAX_PLAYERS + 1]
 new bool:g_bLogged[MAX_PLAYERS + 1]
 new g_WarmUpSync
@@ -843,6 +754,8 @@ new Array:g_aWeapIDs
 new Array:g_aSkinType
 new Array:g_aRankName
 new Array:g_aRankKills
+new Array:g_aRangName
+new Array:g_aRangExp
 new Array:g_aSkinBody
 new Array:g_aSkinWeaponID
 new Array:g_aSkinName
@@ -862,7 +775,7 @@ g_CvarRareNameTagChance,g_CvarMythicNameTagChance,g_CvarCommonPrice,g_CvarRarePr
 g_CvarMythicPrice,g_CvarGoldVipCapsuleChance,g_CvarSilverVipCapsuleChance,g_CvarGoldVipNameTagChance,
 g_CvarSilverVipNameTagChance,g_CvarScrapsDestroyNameTagSkin,g_CvarMoneyDestroyNameTagSkin,g_CvarPreviewTime,
 g_CvarRoundEndSounds,g_CvarGiveawayMinPlayers,g_CvarWeekendEvent,g_CvarWeekendFriday,g_CvarWeekendBonus,
-g_CvarShowSpecialSkins,g_CvarGloveDropChance,g_CvarGloveCaseDropChance,g_CvarCanUserDropVIPGloves,
+g_CvarShowSpecialSkins,g_CvarGloveDropChance,g_CvarGloveCaseDropChance,g_CvarCanUserDropVIPGloves, g_CvarRangUpBonus,
 g_CvarCanUserUseVIPGloves,g_CvarRetrieveGlove,g_CvarWeekendHud,g_CvarMVPMaxMoney,g_CvarMVPMinMoney,g_CvarMVPMaxCases,
 g_CvarMVPMinCases,g_CvarMVPMaxKeys,g_CvarMVPMinKeys,g_CvarMVPMinScraps,g_CvarMVPMaxScraps, g_CvarDailyMinRank,
 g_CvarSkinType, g_CvarSaveType, g_CvarKnifeKillScraps, g_CvarDoubleScope, g_CvarStatsCountCmds, g_CvarQualityGloves;
@@ -921,7 +834,7 @@ new g_iUserWeaponKill[MAX_PLAYERS + 1][CS_MAX_WEAPONS]
 public plugin_init()
 {
 	register_plugin("CSGO Classy Enhanced", VERSION, "lexzor")	
-	
+
 	check_license()
 	set_task(15.0, "check_license", .flags = "b");
 
@@ -1192,6 +1105,8 @@ public plugin_natives()
 	g_aGlovesModelName 		= 	ArrayCreate(256);
 	g_aGlovesModelAmount 	= 	ArrayCreate(1);
 	g_aWeapIDs 				= 	ArrayCreate(1);
+	g_aRangName				=	ArrayCreate(MAX_RANG_NAME_LENGTH + 1)
+	g_aRangExp				=	ArrayCreate(1)
 
 	for(new MENU_ITEMS:i; i < MENU_ITEMS; i++)
 	{
@@ -1418,6 +1333,7 @@ public client_connect(id)
 	g_iNewNameTagIndex[id] = -1;
 	g_bAccountReseted[id] = false
 	g_iTotalPlayedTime[id] = 0
+	g_iRang[id] = 0
 
 	g_iSelectedNameTagRarity[id] = 0;
 	g_bIsInPreview[id] = false;
@@ -2100,6 +2016,8 @@ SaveSQLData(id)
 		`use_default_skin` = %d, \
 		`last_seen` = %d, \
 		`daily_bonus_time` = %d, \
+		`rang` = %d, \
+		`rang_experience` = %d, \
 		`played_time` = %d, \
 		`total_inventory` = '%s', \
 		`skins` = '%s', \
@@ -2126,6 +2044,8 @@ SaveSQLData(id)
 		_:g_bUserDefaultModels[id],
 		get_systime(),
 		g_iUserDailyTime[id],
+		g_iRang[id],
+		g_iRangExp[id],
 		g_iTotalPlayedTime[id],
 		AddCommas(iTotalInventoryValue),
 		weapbuff,
@@ -2151,14 +2071,15 @@ SaveSQLData(id)
 SaveVaultData(id)
 {
 	static Data[TOTAL_SKINS * 6];
-	new infobuff[1024];
+	static infobuff[2048];
 	static weapbuff[TOTAL_SKINS * 6];
 	new skinbuff[512];
 	new stattrakbuff[512];
 
-	formatex(infobuff, charsmax(infobuff), "%s=%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d",
+	formatex(infobuff, charsmax(infobuff), "%s=%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d",
 	g_szUserSavedPass[id], g_iUserMoney[id], g_iUserScraps[id], g_iUserKeys[id], g_iUserCases[id], g_iUserKills[id], g_iUserRank[id],
-	g_iNameTagCapsule[id], g_iCommonNameTag[id], g_iRareNameTag[id], g_iMythicNameTag[id], g_bChatClear[id], g_iGlovesCases[id], g_bUserDefaultModels[id], g_iUserDailyTime[id], g_iTotalPlayedTime[id]);
+	g_iNameTagCapsule[id], g_iCommonNameTag[id], g_iRareNameTag[id], g_iMythicNameTag[id], g_bChatClear[id], g_iGlovesCases[id],
+	g_bUserDefaultModels[id], g_iUserDailyTime[id], g_iTotalPlayedTime[id], g_iRang[id], g_iRangExp[id]);
 
 	formatex(weapbuff, charsmax(weapbuff), "%d", g_iUserSkins[id][0]);
 	for(new i = 1; i < g_iSkinsNum; i++)
@@ -2217,16 +2138,16 @@ _LoadData(id)
 {
 	switch(g_CvarSaveType)
 	{
-		case 	SQL: 		getDataSQL(id);
+		case 	SQL: 		GetSQLData(id);
 	
-		case 	NVAULT:		getDataNvault(id);
+		case 	NVAULT:		GetVaultData(id);
 	
 		default: set_fail_state("Invalid save type mode (loading player data)");
 	}
 }
 
 //SQL
-getDataSQL(id)
+GetSQLData(id)
 {
 	if(IsRegistered(id))
 	{
@@ -2293,6 +2214,8 @@ public GetUserData(FailState, Handle:Query, szError[], ErrorCode, szData[], iSiz
 		g_bUserDefaultModels[id] 	=	 	bool:SQL_ReadResult(Query, SQL_FieldNameToNum(Query, "use_default_skin"));
 		g_iUserDailyTime[id]		=   	SQL_ReadResult(Query, SQL_FieldNameToNum(Query, "daily_bonus_time"))
 		g_iTotalPlayedTime[id]		=   	SQL_ReadResult(Query, SQL_FieldNameToNum(Query, "played_time"))
+		g_iRang[id]					=   	SQL_ReadResult(Query, SQL_FieldNameToNum(Query, "rang"))
+		g_iRangExp[id]				=   	SQL_ReadResult(Query, SQL_FieldNameToNum(Query, "rang_experience"))
 
 		new szValue[MAX_SKIN_TAG_LENGTH], j;
 		static szQueryData[TOTAL_SKINS * 6];
@@ -2485,14 +2408,14 @@ public FreeHandle(FailState, Handle:Query, szError[], ErrorCode, szData[], iSize
 //SQL
 
 //NVAULT
-getDataNvault(id)
+GetVaultData(id)
 {
 	static Data[TOTAL_SKINS * 6];
 	new iTimestamp;
 	if (nvault_lookup(g_nVaultAccounts, g_szName[id], Data, charsmax(Data), iTimestamp) == 1)
 	{
 		new buffer[256];
-		new userData[15][16];
+		new userData[17][15];
 		strtok2(Data, g_szUserSavedPass[id], charsmax(g_szUserSavedPass), Data, charsmax(Data), '=');
 		strtok2(Data, buffer, charsmax(buffer), Data, charsmax(Data), '*');
 
@@ -2516,6 +2439,8 @@ getDataNvault(id)
 		g_bUserDefaultModels[id] 	=	 	bool:str_to_num(userData[12]);
 		g_iUserDailyTime[id]		=		str_to_num(userData[13])
 		g_iTotalPlayedTime[id]		=		str_to_num(userData[14])
+		g_iRang[id]					=		str_to_num(userData[15])
+		g_iRangExp[id]				=		str_to_num(userData[16])
 
 		new szValue[5], j = 1
 		arrayset(buffer, 0, charsmax(buffer));
@@ -3060,12 +2985,14 @@ _ShowMainMenu(id)
 
 format_main_menu_title(const id, buffer[], const bufferlen)
 {
-	new szRank[64]
+	new szRank[64], szRang[64]
 	ArrayGetString(g_aRankName, g_iUserRank[id], szRank, charsmax(szRank))
+	ArrayGetString(g_aRangName, g_iRang[id], szRang, charsmax(szRang))
 
 	formatex(buffer, bufferlen, "%s %l", MENU_PREFIX, "MENU_TITLE_INFO",
 		g_szName[id],
-		szRank, 
+		szRank,
+		szRang,
 		AddCommas(g_iUserMoney[id]),
 		fmt("%s%i\dh\r %s%i\dm", (g_iTotalPlayedTime[id] / 60 ) / 60 > 9 ? "" : "0", (g_iTotalPlayedTime[id] / 60 ) / 60, (g_iTotalPlayedTime[id] / 60) % 60 > 9 ? "" : "0", (g_iTotalPlayedTime[id]/ 60) % 60 )
 	)
@@ -3098,35 +3025,30 @@ public MainMenuPageCallback(const id, const status, const menu)
 
 stock format_menu_rank(const id, szMenuItem[], iLen)
 {
-	new iNeededKills;
 	new szRank[64];
-	new iRankASize;
 	new iStringLen
 
-	iRankASize = ArraySize(g_aRankKills);
-
-	if(g_iUserRank[id] + 1 >= iRankASize)
-		g_iUserRank[id] = iRankASize - 1;
-
-	if(iRankASize == g_iUserRank[id] + 1)
-		iNeededKills = -1;
+	if(g_iUserRank[id] + 1 >= ArraySize(g_aRankKills))
+	{
+		iStringLen = formatex(szMenuItem, iLen, "%l", "MENU_MAX_RANK")
+	}
 	else 
-		iNeededKills = ArrayGetCell(g_aRankKills, g_iUserRank[id] + 1)
-
-
-	if(iNeededKills != -1)
 	{
 		ArrayGetString(g_aRankName, g_iUserRank[id] + 1, szRank, charsmax(szRank))
 		iStringLen = formatex(szMenuItem, iLen, "%l", "MENU_NEXT_RANK_INFO",
-		szRank, AddCommas(g_iUserKills[id]), AddCommas(iNeededKills))
-	}
-	else
-	{ 	
-		iStringLen = formatex(szMenuItem, iLen, "%l", "MENU_MAX_RANK")
+		szRank, AddCommas(g_iUserKills[id]), AddCommas(ArrayGetCell(g_aRankKills, g_iUserRank[id] + 1)))
 	}
 
-	formatex(szMenuItem[iStringLen], iLen, "^n%l", "MENU_NEXT_RANG_INFO",
-	ranks_names[rank[id]], AddCommas(xp[id]), AddCommas(xp_num[level[id]]));
+	if(g_iRang[id] + 1 >= ArraySize(g_aRangName))
+	{
+		formatex(szMenuItem[iStringLen], iLen, "^n%l", "MENU_MAX_RANG")
+	}
+	else 
+	{
+		ArrayGetString(g_aRangName, g_iRang[id] + 1, szRank, charsmax(szRank))
+		formatex(szMenuItem[iStringLen], iLen, "^n%l", "MENU_NEXT_RANG_INFO",
+		szRank, AddCommas(g_iRangExp[id]), AddCommas(ArrayGetCell(g_aRangExp, g_iRang[id] + 1)));
+	}
 }
 
 _GetItemName(item, temp[], len)
@@ -10369,6 +10291,14 @@ public ReadINIFile()
 				g_iRanksNum += 1;
 			}
 
+			case CONFIG_RANGS:
+			{
+				parse(buff, leftpart, charsmax(leftpart), rightpart, charsmax(rightpart))
+				
+				ArrayPushString(g_aRangName, leftpart)
+				ArrayPushCell(g_aRangExp, str_to_num(rightpart))
+			}
+
 			case CONFIG_DEFAULT_SKINS:
 			{
 				parse(buff, weaponid, charsmax(weaponid), weaponmodel, charsmax(weaponmodel), bodypart, charsmax(bodypart));
@@ -10606,7 +10536,7 @@ RegisterCVARS()
 				true,
 				0.0
 		),
-		rankLevelBonus
+		g_CvarRangUpBonus
 	)
 	bind_pcvar_num(
 		create_cvar(
@@ -14180,168 +14110,59 @@ public concmd_kill(id)
 }
 
 public client_death(killer, victim, weapon, hitplace)
-{
-	new victim_name[32];
-	get_user_name(victim, victim_name, charsmax(victim_name));
-	
-	new killer_team = get_user_team(killer);
-	new victim_team = get_user_team(victim);
-	
-	if((killer != victim) && !(killer_team == victim_team) && !(hitplace == HIT_HEAD) && !(weapon == CSW_HEGRENADE) && !(weapon == CSW_KNIFE))
-	{
-		xp[killer]++;
-	}
-
-	if(hitplace == HIT_HEAD && !(weapon == CSW_KNIFE) && !(killer_team == victim_team))
-	{
-		xp[killer]+=3;
-	}
-
-	if(weapon == CSW_KNIFE && !(hitplace == HIT_HEAD) && !(killer_team == victim_team))
-	{
-		xp[killer]+=5;
-	}
-
-	if(weapon == CSW_KNIFE && (hitplace == HIT_HEAD) && !(killer_team == victim_team))
-	{
-		xp[killer]+=7;
-	}
-
-	if(weapon == CSW_HEGRENADE && (killer != victim) && !(killer_team == victim_team))
-	{
-		xp[killer]+=5;
-	}
-	
+{	
 	if(killer == victim)
 	{
-		xp[killer]-=2;
+		g_iRangExp[killer] -= 10
+		return PLUGIN_CONTINUE
 	}
 	
-	check_level(killer, 1);
-	save_data(killer);
-}
-
-public check_level(id, sound)
-{
-	if(!is_user_connected(id))
-		return PLUGIN_HANDLED;
-	new name[32]; get_user_name(id, name, 31);
-	if(level[id] < maxlevels) 
-	{		
-		while(xp[id] >= xp_num[level[id]])
-		{
-			level[id]++;
-			if(sound)
-			{
-				if(level[id] == maxlevels)
-				{
-					client_print_color(0, 0, "^4%s^1 %L", CHAT_PREFIX, id, "RANGUP",  name, ranks_names[rank[id]+1]);
-					client_print_color(id, id, "^4%s^1 %L", CHAT_PREFIX, id, "RANGUP_BONUS", rankLevelBonus);
-					g_iUserMoney[id] += rankLevelBonus
-					return PLUGIN_HANDLED;
-				}
-				client_print_color(0, 0, "^4%s^1 %L", CHAT_PREFIX, id, "RANGUP",  name, ranks_names[rank[id]+1]);
-				client_print_color(id, id, "^4%s^1 %L", CHAT_PREFIX, id, "RANGUP_BONUS", rankLevelBonus);
-				g_iUserMoney[id] += rankLevelBonus
-				set_ranks(id);
-			}
-		}
-	}
-	if(level[id] == maxlevels && xp[id] > xp_num[level[id]-1])
+	if(!(hitplace == HIT_HEAD) && !(weapon == CSW_HEGRENADE) && !(weapon == CSW_KNIFE))
 	{
-		xp[id] = xp_num[level[id]-1];
-		save_data(id);
+		g_iRangExp[killer]++;
 	}
-	if(level[id] >= maxlevels) 
-	{	
-		level[id] = maxlevels;
-		xp[id] = xp_num[level[id]-1];
-		save_data(id);
+
+	if(hitplace == HIT_HEAD && weapon != CSW_KNIFE)
+	{
+		g_iRangExp[killer] += 3;
 	}
-	return PLUGIN_HANDLED;
+
+	if(weapon == CSW_KNIFE && hitplace != HIT_HEAD)
+	{
+		g_iRangExp[killer] += 5;
+	}
+
+	if(weapon == CSW_KNIFE && hitplace == HIT_HEAD)
+	{
+		g_iRangExp[killer] += 7;
+	}
+
+	if(weapon == CSW_HEGRENADE)
+	{
+		g_iRangExp[killer] += 5;
+	}
+
+	check_level(killer)
+
+	return PLUGIN_CONTINUE
 }
 
-public set_ranks(id)
+public check_level(id)
 {
-	if(level[id] == 1) rank[id] = rank_0;
-	if(level[id] == 2) rank[id] = rank_1;
-	if(level[id] == 3) rank[id] = rank_2;
-	if(level[id] == 4) rank[id] = rank_3;
-	if(level[id] == 5) rank[id] = rank_4;
-	if(level[id] == 6) rank[id] = rank_5;
-	if(level[id] == 7) rank[id] = rank_6;
-	if(level[id] == 8) rank[id] = rank_7;
-	if(level[id] == 9) rank[id] = rank_8;
-	if(level[id] == 10) rank[id] = rank_9;
-	if(level[id] == 11) rank[id] = rank_10;
-	if(level[id] == 12) rank[id] = rank_11;
-	if(level[id] == 13) rank[id] = rank_12;
-	if(level[id] == 14) rank[id] = rank_13;
-	if(level[id] == 15) rank[id] = rank_14;
-	if(level[id] == 16) rank[id] = rank_15;
-	if(level[id] == 17) rank[id] = rank_16;
-	if(level[id] == 18) rank[id] = rank_17;
-	if(level[id] == 19) rank[id] = rank_18;
-	if(level[id] == 20) rank[id] = rank_19;
-	if(level[id] == 21) rank[id] = rank_20;
-	if(level[id] == 22) rank[id] = rank_21;
-	if(level[id] == 23) rank[id] = rank_22;
-	if(level[id] == 24) rank[id] = rank_23;
-	if(level[id] == 25) rank[id] = rank_24;
-	if(level[id] == 26) rank[id] = rank_25;
-	if(level[id] == 27) rank[id] = rank_26;
-	if(level[id] == 28) rank[id] = rank_27;
-	if(level[id] == 29) rank[id] = rank_28;
-	if(level[id] == 30) rank[id] = rank_29;
-	if(level[id] == 31) rank[id] = rank_30;
-	if(level[id] == 32) rank[id] = rank_31;
-	if(level[id] == 33) rank[id] = rank_32;
-	if(level[id] == 34) rank[id] = rank_33;
-	if(level[id] == 35) rank[id] = rank_34;
-	if(level[id] == 36) rank[id] = rank_35;
-	if(level[id] == 37) rank[id] = rank_36;
-	if(level[id] == 38) rank[id] = rank_37;
-	if(level[id] == 39) rank[id] = rank_38;
-	if(level[id] == 40) rank[id] = rank_39;
-}
+	g_iRangExp[id] += 75
 
-public save_data(id)
-{
-	if(!is_user_connected(id))
-		return PLUGIN_HANDLED;
-	
-	new auth[40], data[50];
+	new szRangName[MAX_RANG_NAME_LENGTH]
 
-	get_user_authid(id, auth, charsmax(auth));
-	
-	formatex(data, charsmax(data), "%d %d", level[id], xp[id]);
-	
-	fvault_pset_data(db_save, auth, data);
-	
-	return PLUGIN_HANDLED;
-}
+	while(g_iRang[id] + 1 < ArraySize(g_aRangExp) && ArrayGetCell(g_aRangExp, g_iRang[id] + 1) <= g_iRangExp[id])
+	{
+		g_iRang[id]++
 
-public client_authorized(id)
-{	
-	if( is_user_bot(id) || is_user_hltv(id))	
-		return PLUGIN_CONTINUE;
+		g_iUserMoney[id] += g_CvarRangUpBonus
 
-	get_user_authid(id, g_szAuthId[id], charsmax( g_szAuthId[]));
-	new auth[40], data[50], x1[10], x2[10];
-	
+		ArrayGetString(g_aRangName, g_iRang[id], szRangName, charsmax(szRangName))
 
-	get_user_authid(id, auth, charsmax(auth));
-	
-	fvault_get_data(db_save, auth, data, charsmax(data));
-	parse(data, x1, charsmax(x1), x2, charsmax(x2));
-	
-	level[id] = str_to_num(x1);
-	xp[id] = str_to_num(x2);
-	
-	set_task(2.0, "set_ranks", id);
-	check_level(id, 0);
-
-	return PLUGIN_HANDLED;
+		client_print_color(0, print_team_default, "%s^3 %l", CHAT_PREFIX, "CHAT_RANG_UP", id, szRangName, AddCommas(g_CvarRangUpBonus), AddCommas(g_iRangExp[id]))
+	}
 }
 
 public showStatus(id)
@@ -14351,27 +14172,35 @@ public showStatus(id)
 		new name[MAX_NAME_LENGTH]
 		new pid = read_data(2);
 		
-		new userRank = g_iUserRank[pid];
 		new szRank[32];
-		ArrayGetString(g_aRankName, userRank, szRank, charsmax(szRank));
+		ArrayGetString(g_aRankName, g_iUserRank[pid], szRank, charsmax(szRank));
 		
 		get_user_name(pid, name, charsmax(name));
-		
-		new xxx = get_user_team(id);
-		new xxx2 = get_user_team(pid);
-
-		if (xxx == xxx2) 
+	
+		if (get_user_team(id) == get_user_team(pid)) 
 		{
 			set_hudmessage(47, 79, 79, -1.0, 0.57, 0, 1.0, 2.0)
-			ShowSyncHudMsg(id, g_status_sync, "%s ^n%s ^n%s [%d/%d]", name, szRank, ranks_names[rank[pid]], xp[pid], xp_num[level[pid]])
 		}
-
-		if (xxx != xxx2)
+		else 
 		{
 			set_hudmessage(255, 0, 0, -1.0, 0.57, 0, 1.0, 2.0)
-			ShowSyncHudMsg(id, g_status_sync, "%s ^n%s ^n%s [%d/%d]", name, szRank, ranks_names[rank[pid]], xp[pid], xp_num[level[pid]])
 		}
 
+		new szRangName[MAX_RANG_NAME_LENGTH]
+		ArrayGetString(g_aRangName, rank[pid], szRangName, charsmax(szRangName))
+		
+		new iNeededExp
+		
+		if(rank[pid] >= ArraySize(g_aRangExp))
+		{
+			iNeededExp = ArrayGetCell(g_aRangExp, rank[pid])
+		}
+		else 
+		{
+			iNeededExp = ArrayGetCell(g_aRangExp, rank[pid] + 1)
+		}
+		
+		ShowSyncHudMsg(id, g_status_sync, "%s ^n%s ^n%s [%d/%d]", name, szRank, szRangName, g_iRangExp[pid], iNeededExp)
 	}
 }
 
