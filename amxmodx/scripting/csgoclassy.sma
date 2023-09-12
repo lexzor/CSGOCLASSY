@@ -44,6 +44,7 @@
 93.114.82.106:27015 -> sandu
 
 //last version
+172.18.0.2:27015 - devilboy extreamcs
 188.212.101.144:27015 - go.weststrike.ro
 188.212.102.180:27015 - CSGO.NEBUNATICII.RO
 188.212.101.238:27015 - TEST ERAZER
@@ -1334,6 +1335,7 @@ public client_connect(id)
 	g_bAccountReseted[id] = false
 	g_iTotalPlayedTime[id] = 0
 	g_iRang[id] = 0
+	g_iRangExp[id] = 0
 
 	g_iSelectedNameTagRarity[id] = 0;
 	g_bIsInPreview[id] = false;
@@ -4306,7 +4308,7 @@ public open_preview_menu(id)
 {
 	new iMenu = menu_create(fmt("%s Preview Menu", MENU_PREFIX), "preview_menu_handler");
 	
-	new szItem[128], szData[5], iWeaponID;
+	new szItem[128], szData[5], iWeaponID
 
 	for(new i; i < sizeof(g_WeapMenu); i++)
 	{
@@ -5543,8 +5545,8 @@ public showcontracti_handler(id, menu, item)
 
 openContractMenu(id, iWeaponId)
 {	
-	new temp[75];
-	formatex(temp, 63, "\r%s \w%L", MENU_PREFIX, id, "MENU_SKINS");
+	new temp[128];
+	formatex(temp, charsmax(temp), "\r%s \w%L", MENU_PREFIX, id, "MENU_SKINS");
 	new menu = menu_create(temp, "contract_handler", 0);
 	new szItem[10];
 	szItem[1] = 0;
@@ -5552,7 +5554,8 @@ openContractMenu(id, iWeaponId)
 	new num;
 	new total;
 	new i, wid;
-	new bool:bIsSpecial;
+	new iChance 
+
 	while (i < g_iSkinsNum)
 	{
 		num = g_iUserSkins[id][i];
@@ -5577,18 +5580,31 @@ openContractMenu(id, iWeaponId)
 				}
 			}
 
-			bIsSpecial = (ArrayGetCell(g_aSkinChance, i) == 101) ? true : false;
+			iChance = ArrayGetCell(g_aSkinChance, i)
 
-			formatex(temp, charsmax(temp), "\r%s%s%s \r[%d]%s", g_bIsWeaponStattrak[id][i] ? "StatTrak (TM) " : "", (bIsSpecial == true) ? "\y" : "\w", szSkin, num, bFound ? " [CON]" : "");
+			if(iChance == 101)
+			{
+				formatex(temp, charsmax(temp), "%s%s%s \d[\r%d\d]%s",
+				g_bIsWeaponStattrak[id][i] ? "\rStatTrak (TM) " : "", bool:g_CvarShowSpecialSkins ? "\y" : "\w", szSkin, num, bFound ? " [\rCON\d]" : "");
+			}
+			else 
+			{
+				formatex(temp, charsmax(temp), "%s%s \d[\r%d\d] [\r%i\y%s\d]%s",
+				g_bIsWeaponStattrak[id][i] ? "\rStatTrak (TM)\w " : "", szSkin, num, 100 - iChance, "%", bFound ? " [\rCON\d]" : "");
+			}
+
 			num_to_str(i, szItem, charsmax(szItem));
 			menu_additem(menu, temp, szItem);
+
 			total++;
 		}
+
 		i++;
 	}
+
 	if (!total)
 	{
-		formatex(temp, 63, "\r%L", id, "NO_ITEMS");
+		formatex(temp, charsmax(temp), "\r%L", id, "NO_ITEMS");
 		num_to_str(NO_SKIN_VALUE, szItem, charsmax(szItem))
 		menu_additem(menu, temp, szItem);
 	}
@@ -5915,8 +5931,8 @@ public skins_handler(id, iMenu, iItem)
 
 openInventory(id, iWeaponId)
 {
-	new temp[64];
-	formatex(temp, 63, "%s \w%L", MENU_PREFIX, id, "MENU_SKINS");
+	new temp[128];
+	formatex(temp, charsmax(temp), "%s \w%L", MENU_PREFIX, id, "MENU_SKINS");
 	new menu = menu_create(temp, "skin_menu_handler", 0);
 	new szItem[10];
 	new bool:hasSkins;
@@ -5926,7 +5942,8 @@ openInventory(id, iWeaponId)
 	new apply;
 	new applied[25];
 	new i;
-	new bool:bSpecialSkin;
+	new iChance
+
 	while (i < g_iSkinsNum)
 	{
 		num = g_iUserSkins[id][i];
@@ -5961,12 +5978,27 @@ openInventory(id, iWeaponId)
 					applied = "";
 				}
 			}
-			bSpecialSkin = (ArrayGetCell(g_aSkinChance, i) == 101) ? true : false;
-			formatex(temp, 63, "\r%s%s%s \r[%d]%s", g_bIsWeaponStattrak[id][i] ? "StatTrak (TM) " : "", (bSpecialSkin && bool:g_CvarShowSpecialSkins) ? "\y" : "\w", skinName, num, applied);
+
+			iChance = ArrayGetCell(g_aSkinChance, i)
+
+			if(iChance == 101)
+			{
+				formatex(temp, charsmax(temp), "%s%s%s \d[\r%d\d]%s",
+				g_bIsWeaponStattrak[id][i] ? "\rStatTrak (TM) " : "", bool:g_CvarShowSpecialSkins ? "\y" : "", skinName, num, applied);
+			}
+			else 
+			{
+				formatex(temp, charsmax(temp), "%s%s \d[\r%d\d] [\r%i\y%s\d]%s",
+				g_bIsWeaponStattrak[id][i] ? "\rStatTrak (TM)\w " : "", skinName, num,
+				100 - iChance, "%", applied);
+			}
+
 			num_to_str(i, szItem, charsmax(szItem));
 			menu_additem(menu, temp, szItem);
+
 			hasSkins = true;
 		}
+
 		i++;
 	}
 	
@@ -11670,14 +11702,9 @@ public ev_DeathMsg()
 	if (victim == killer || !g_bLogged[killer])
 		return PLUGIN_HANDLED;
 	
-	new assist = g_iMostDamage[victim];
-
-	if(!is_user_connected(assist))
-		return PLUGIN_HANDLED
-
-	if (assist != killer && cs_get_user_team(assist) == cs_get_user_team(killer))
+	if (g_iMostDamage[victim] != killer && is_user_connected(g_iMostDamage[victim]) && cs_get_user_team(g_iMostDamage[victim]) == cs_get_user_team(killer))
 	{
-		_GiveBonus(assist, 0);
+		_GiveBonus(g_iMostDamage[victim], 0);
 	}
 
 	g_iRoundKills[killer]++;
@@ -11686,7 +11713,7 @@ public ev_DeathMsg()
 	{
 		g_iUserScraps[killer] += g_CvarKnifeKillScraps
 		AddStatistics(killer, RECEIVED_SCRAPS, g_CvarKnifeKillScraps, .line = __LINE__)
-		client_print_color(0, killer, "^4%s^1 %L", CHAT_PREFIX, -1, "KNIFE_KILL", g_szName[killer], g_szName[victim], g_CvarKnifeKillScraps)
+		client_print_color(0, print_team_default, "^4%s^1 %L", CHAT_PREFIX, -1, "KNIFE_KILL", g_szName[killer], g_szName[victim], g_CvarKnifeKillScraps)
 	}
 
 	g_iUserKills[killer]++;
@@ -11828,7 +11855,7 @@ public ev_DeathMsg()
 			i++
 		}
 		new temp[8];
-		strtok(szTempRankBonus, temp, 7, szTempRankBonus, 15, '|');
+		strtok2(szTempRankBonus, temp, 7, szTempRankBonus, 15, '|');
 		if (szTempRankBonus[0])
 		{
 			money = str_to_num(szTempRankBonus);
@@ -14149,8 +14176,6 @@ public client_death(killer, victim, weapon, hitplace)
 
 public check_level(id)
 {
-	g_iRangExp[id] += 75
-
 	new szRangName[MAX_RANG_NAME_LENGTH]
 
 	while(g_iRang[id] + 1 < ArraySize(g_aRangExp) && ArrayGetCell(g_aRangExp, g_iRang[id] + 1) <= g_iRangExp[id])
@@ -14395,7 +14420,7 @@ public countDown()
 
 		new szWinnerName[MAX_PLAYERS]
 		get_user_name(iWinner, szWinnerName, charsmax(szWinnerName))
-		client_print_color(0, 0, "^4%s^1 ^4%s^1 won^3 StatTrak (TM)$ %s^1 at the ^4Giveaway", CHAT_PREFIX, szWinnerName, g_szSkinName)
+		client_print_color(0, 0, "^4%s^1 ^4%s^1 won^3 StatTrak (TM) %s^1 at the ^4Giveaway", CHAT_PREFIX, szWinnerName, g_szSkinName)
 
 		new iPlayers[MAX_PLAYERS], iNum
 		get_players(iPlayers, iNum, "ch")
