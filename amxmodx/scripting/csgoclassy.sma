@@ -1170,35 +1170,39 @@ public native_aug_sg_unscope(iPluginID, iParams)
 	new iOwner = get_param(1)
 	if(is_user_alive(iOwner))
 	{
-		new iWeaponID = cs_get_user_weapon(iOwner)
+		new iWeaponID = get_user_weapon(iOwner)
 		new iBodyPart
 
-		if(g_iUserSelectedSkin[iOwner][iWeaponID] != -1)
+		if(!g_bLogged[iOwner])
 		{
-			new szModel[128]
-			ArrayGetString(g_aSkinModel, g_iUserSelectedSkin[iOwner][iWeaponID], szModel, charsmax(szModel))
-
-			CalculateModelBodyIndex(g_iWeaponGloves[iOwner][iWeaponID], szModel, ArrayGetCell(g_aSkinBody, g_iUserSelectedSkin[iOwner][iWeaponID]), iBodyPart)
-			cs_set_viewmodel_body(iOwner, iWeaponID, iBodyPart)
-			cs_set_modelformat(iOwner, iWeaponID, szModel)
-
+			set_entvar(iOwner, var_viewmodel, g_szDefaultSkinModels[iWeaponID])
 			return
 		}
 
-		if(!g_bUserDefaultModels[iOwner])
+
+		if(g_iUserSelectedSkin[iOwner][iWeaponID] != -1)
 		{
-			CalculateModelBodyIndex(-1, g_eDefaultModels[iWeaponID][PATH], g_eDefaultModels[iWeaponID][BODYINDEX] > -1 ? g_eDefaultModels[iWeaponID][BODYINDEX] : 0, iBodyPart);
-			cs_set_viewmodel_body(iOwner, iWeaponID, iBodyPart)
-			cs_set_modelformat(iOwner, iWeaponID, g_eDefaultModels[iWeaponID][PATH])
+			new szModel[256]
+			ArrayGetString(g_aSkinModel, g_iUserSelectedSkin[iOwner][iWeaponID], szModel, charsmax(szModel))
+
+			CalculateModelBodyIndex(g_iWeaponGloves[iOwner][iWeaponID], szModel, ArrayGetCell(g_aSkinBody, g_iUserSelectedSkin[iOwner][iWeaponID]), iBodyPart)
+
+			set_entvar(iOwner, var_viewmodel, szModel)
+			set_entvar(iOwner, var_body, iBodyPart)
 		}
 		else 
 		{
-			cs_set_modelformat(iOwner, iWeaponID, "")
-			cs_set_viewmodel_body(iOwner, iWeaponID, -1)
-
-			set_pev(iOwner, pev_viewmodel2, g_szDefaultSkinModels[iWeaponID])
+			if(!g_bUserDefaultModels[iOwner])
+			{
+				CalculateModelBodyIndex(-1, g_eDefaultModels[iWeaponID][PATH], g_eDefaultModels[iWeaponID][BODYINDEX] > -1 ? g_eDefaultModels[iWeaponID][BODYINDEX] : 0, iBodyPart);
+				set_entvar(iOwner, var_viewmodel, g_eDefaultModels[iWeaponID][PATH])
+				set_entvar(iOwner, var_body, iBodyPart)
+			}
+			else 
+			{
+				set_entvar(iOwner, var_viewmodel, g_szDefaultSkinModels[iWeaponID])
+			}
 		}
-
 	}
 }
 
