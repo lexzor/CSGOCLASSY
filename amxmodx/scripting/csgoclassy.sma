@@ -51,7 +51,7 @@
 188.212.101.21:27015 - csgo.erazer.ro 
 */
 
-#define LICENSED_IP "188.212.101.21:27015"
+#define LICENSED_IP "131.196.198.52:27055"
 #define TOTAL_SKINS 1025
 static const MODE = 0; // 1 - DNS, 0 - IP
 
@@ -779,7 +779,7 @@ g_CvarRoundEndSounds,g_CvarGiveawayMinPlayers,g_CvarWeekendEvent,g_CvarWeekendFr
 g_CvarShowSpecialSkins,g_CvarGloveDropChance,g_CvarGloveCaseDropChance,g_CvarCanUserDropVIPGloves, g_CvarRangUpBonus,
 g_CvarCanUserUseVIPGloves,g_CvarRetrieveGlove,g_CvarWeekendHud,g_CvarMVPMaxMoney,g_CvarMVPMinMoney,g_CvarMVPMaxCases,
 g_CvarMVPMinCases,g_CvarMVPMaxKeys,g_CvarMVPMinKeys,g_CvarMVPMinScraps,g_CvarMVPMaxScraps, g_CvarDailyMinRank,
-g_CvarSkinType, g_CvarSaveType, g_CvarKnifeKillScraps, g_CvarDoubleScope, g_CvarStatsCountCmds, g_CvarQualityGloves;
+g_CvarSkinType, g_CvarSaveType, g_CvarKnifeKillScraps, g_CvarDoubleScope, g_CvarStatsCountCmds;
 new msgScreenFade;
 new g_hWeekBonus;
 new bool:g_bWeekBonusActive;
@@ -1945,7 +1945,7 @@ registerUser(id)
 
 	formatex(szQuery, charsmax(szQuery),
 		"INSERT INTO `%s` (`uname`,`upassword`,`first_seen`) \
-		VALUES (^"%s^",'%s',%d); \
+		VALUES (^"%s^",^"%s^",%d); \
 		INSERT INTO `%s` (`uname`) \
 		VALUES (^"%s^"); \
 		INSERT INTO `%s` (`uname`) \
@@ -4800,14 +4800,7 @@ stock CalculateModelBodyIndex(gloves_id, const model_name[], skin_id, &body)
 		skin_id = 0;
 	}
 
-	if(!g_CvarQualityGloves)
-	{
-		body = gloves_id * amount_of_models + skin_id
-	}
-	else 
-	{
-		body = skin_id * (MAX_GLOVES * amount_of_models) + gloves_id * 6
-	}
+	body = gloves_id * amount_of_models + skin_id
 }
 
 public save_user_gloves(id)
@@ -5781,22 +5774,23 @@ public confirmation_handler(id, menu, item)
 			}
 			client_print_color(id, print_team_default, "^4%s^1 %L", CHAT_PREFIX, id, "SINCE_ALREADY_HAVE", name, iValue, (iRandom == 1) ? "$" : " scraps")
 			_ShowMainMenu(id)
-			return PLUGIN_HANDLED
 		}
-		
-		g_iUserSkins[id][iRandomSkin]++
-
-		if(random_num(1, 100) <= g_iUserChance[id])
+		else
 		{
-			g_bIsWeaponStattrak[id][iRandomSkin] = true
-			AddStatistics(id, DROPPED_STT_SKINS, 1, iRandomSkin, .line = __LINE__)
-		}
-		else 
-		{
-			AddStatistics(id, DROPPED_SKINS, 1, iRandomSkin, .line = __LINE__)
-		}
+			g_iUserSkins[id][iRandomSkin]++
 
-		client_print_color(0, id, "^4%s^1 %L", CHAT_PREFIX, id, "SIGNED_CONTRACT", g_szName[id], g_bIsWeaponStattrak[id][iRandomSkin] ? "StatTrak (TM) " : "", name)
+			if(random_num(1, 100) <= g_iUserChance[id])
+			{
+				g_bIsWeaponStattrak[id][iRandomSkin] = true
+				AddStatistics(id, DROPPED_STT_SKINS, 1, iRandomSkin, .line = __LINE__)
+			}
+			else 
+			{
+				AddStatistics(id, DROPPED_SKINS, 1, iRandomSkin, .line = __LINE__)
+			}
+
+			client_print_color(0, id, "^4%s^1 %L", CHAT_PREFIX, id, "SIGNED_CONTRACT", g_szName[id], g_bIsWeaponStattrak[id][iRandomSkin] ? "StatTrak (TM) " : "", name)
+		}
 	}
 
 	for(new i; i < MAX_SKINS; i++)
@@ -11425,20 +11419,6 @@ RegisterCVARS()
 		),
 		g_CvarMVPSystem
 	)
-	
-	bind_pcvar_num(
-		create_cvar(
-			"quality_gloves",
-			"0",
-			FCVAR_NONE,
-			"Enable quality gloves system. For this you must have 1 smd for 1 hand.",
-			true,
-			0.0,
-			true,
-			1.0
-		),
-		g_CvarQualityGloves
-	)
 
 	p_Freezetime = get_cvar_pointer("mp_freezetime")
 	g_iRoundsToPlay = get_cvar_num("mp_maxrounds");
@@ -11446,7 +11426,7 @@ RegisterCVARS()
 
 connectToDatabase()
 {
-	g_SqlTuple = SQL_MakeDbTuple(MYSQL[SQL_HOST], MYSQL[SQL_USER], MYSQL[SQL_PASS], MYSQL[SQL_DB]);
+	g_SqlTuple = SQL_MakeDbTuple(MYSQL[SQL_HOST], MYSQL[SQL_USER], MYSQL[SQL_PASS], MYSQL[SQL_DB], 10);
 	   
 	new ErrorCode;
 	new Handle:SqlConnection = SQL_Connect(g_SqlTuple,ErrorCode,g_Error,charsmax(g_Error));

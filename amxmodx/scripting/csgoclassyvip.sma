@@ -305,7 +305,7 @@ public CmdNightvision(id)
 	if(g_bFreeVipTime == false && !is_gold_vip(id) && !is_silver_vip(id))
     {
 		client_print_color(id, id, "^4[CSGO Classy] Silver VIP membership^1 event starts at^4 %d:00 ^1 and ends at^4 %d:00", get_pcvar_num(g_iCvars[1]), get_pcvar_num(g_iCvars[2]))
-		client_print_color(id, id, "^4[CSGO Classy]^1 You got^4 %d VE^1 out of^4 1000000 VE^1", Experience[id])
+		client_print_color(id, id, "^4[CSGO Classy]^1 You got^4 %d VE^1 out of^4 %s VE^1", Experience[id], AddCommas(get_pcvar_num(PcvarMaxExperience)))
     }
 	if(g_bFreeVipTime == false && is_gold_vip(id))
     {
