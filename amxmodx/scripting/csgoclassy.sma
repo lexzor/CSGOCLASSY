@@ -8578,7 +8578,7 @@ destroySkin(id, index)
 				g_iUserStattrakKillCount[id][index] = 0
 				g_bIsWeaponStattrak[id][index] = false
 
-				if(g_bHasSkinTag[id][index] == true)
+				if(g_bHasSkinTag[id][index])
 				{
 					formatex(Skin, charsmax(Skin), "%s^3 (%s '%s')",
 					Skin, g_iNameTagSkinLevel[id][index] == 1 ? "Common" : g_iNameTagSkinLevel[id][index] == 2 ? "Rare" : "Mythic", g_szSkinsTag[id][index]);
