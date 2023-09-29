@@ -51,7 +51,7 @@
 188.212.101.21:27015 - csgo.erazer.ro 
 */
 
-#define LICENSED_IP "188.212.101.21:27015"
+#define LICENSED_IP "188.212.101.238:27015"
 #define TOTAL_SKINS 1025
 static const MODE = 0; // 1 - DNS, 0 - IP
 
@@ -5747,7 +5747,7 @@ public confirmation_handler(id, menu, item)
 				if(g_bHasSkinTag[id][index])
 				{
 					g_bHasSkinTag[id][index] = false
-					g_szSkinsTag[id][index] = ''
+					g_szSkinsTag[id][index][0] = '0'
 					g_iNameTagSkinLevel[id][index] = 0
 
 					save_skin_tags(id)
