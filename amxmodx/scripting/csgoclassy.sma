@@ -289,6 +289,11 @@ enum
 	GLOVE4,
 }
 
+static const g_iMaxBpAmmo[] =
+{
+	0, 30, 90, 200, 90, 32, 100, 100, 35, 52, 120
+}
+
 static const g_szTWin[] =
 {
 	"sound/csgoclassyv2/twin.wav"
@@ -1452,6 +1457,11 @@ public Ham_Spawn_Post(id)
 		if(g_bWarmUp)
 		{
 			rg_add_account(id, 16000)
+		}
+
+		for(new iAmmoIndex = 1; iAmmoIndex < sizeof(g_iMaxBpAmmo); iAmmoIndex++)
+		{
+			set_pdata_int(id, iAmmoIndex + 376, g_iMaxBpAmmo[iAmmoIndex], 5, 5);
 		}
 	}
 }
@@ -2899,7 +2909,7 @@ _ShowMainMenu(id)
 		{
 			new szSell[32];
 			_GetItemName(g_iUserSellItem[id], szSell, 31);
-			formatex(temp, 95, "\w%L \r[\y%s%s\r]", id, "MENU_MARKET", g_bPublishedStattrakSkin[id] ? "StatTrak (TM) " : "", szSell);
+			formatex(temp, 95, "\w%L \r[\y%s%s\r]", id, "MENU_MARKET", g_bPublishedStattrakSkin[id] ? "StatTrak " : "", szSell);
 		}
 		else if(g_bSellCapsule[id] == true)
 		{
@@ -4976,9 +4986,9 @@ public show_upgrade_handler(id, menu, item)
 public show_upgradeinformation(id)
 {
 	new menu = menu_create(fmt("%s Upgrade", MENU_PREFIX), "show_upgradeinformation_handler" );
-	menu_additem(menu, "You need 5 non-StatTrak (TM) pieces of the same skin");
-	menu_additem(menu, "After you press on those 5 non-StatTrak (TM) skins the Upgrade will happen");
-	menu_additem(menu, "5 non-StatTrak (TM) equal 1 StatTrak (TM) of the same skin");
+	menu_additem(menu, "You need 5 non-StatTrak pieces of the same skin");
+	menu_additem(menu, "After you press on those 5 non-StatTrak skins the Upgrade will happen");
+	menu_additem(menu, "5 non-StatTrak equal 1 StatTrak of the same skin");
 	menu_additem(menu, "The results can not be reversed");
 
 	menu_setprop(menu, MPROP_EXIT, MEXIT_ALL);
@@ -5051,7 +5061,7 @@ openUpgradeMenu(id, iWeaponId)
 			}
 			
 			ArrayGetString(g_aSkinName, i, szSkin, 31);
-			formatex(temp, 63, "\r%s\w%s \r[%d]%s", g_bIsWeaponStattrak[id][i] ? "StatTrak (TM) " : "", szSkin, num, (g_iWeaponUsedInUpgrade[id] == i) ? " [Upgrade]" : "");
+			formatex(temp, 63, "\r%s\w%s \r[%d]%s", g_bIsWeaponStattrak[id][i] ? "StatTrak " : "", szSkin, num, (g_iWeaponUsedInUpgrade[id] == i) ? " [Upgrade]" : "");
 			num_to_str(i, szItem, charsmax(szItem));
 			menu_additem(menu, temp, szItem);
 			total++;
@@ -5582,12 +5592,12 @@ openContractMenu(id, iWeaponId)
 			if(iChance == 101)
 			{
 				formatex(temp, charsmax(temp), "%s%s%s \d[\r%d\d]%s",
-				g_bIsWeaponStattrak[id][i] ? "\rStatTrak (TM) " : "", bool:g_CvarShowSpecialSkins ? "\y" : "\w", szSkin, num, bFound ? " [\rCON\d]" : "");
+				g_bIsWeaponStattrak[id][i] ? "\rStatTrak " : "", bool:g_CvarShowSpecialSkins ? "\y" : "\w", szSkin, num, bFound ? " [\rCON\d]" : "");
 			}
 			else 
 			{
 				formatex(temp, charsmax(temp), "%s%s \d[\r%d\d] [\r%i\y%s\d]%s",
-				g_bIsWeaponStattrak[id][i] ? "\rStatTrak (TM)\w " : "", szSkin, num, 100 - iChance, "%", bFound ? " [\rCON\d]" : "");
+				g_bIsWeaponStattrak[id][i] ? "\rStatTrak\w " : "", szSkin, num, 100 - iChance, "%", bFound ? " [\rCON\d]" : "");
 			}
 
 			num_to_str(i, szItem, charsmax(szItem));
@@ -5800,7 +5810,7 @@ public confirmation_handler(id, menu, item)
 				AddStatistics(id, DROPPED_SKINS, 1, iRandomSkin, .line = __LINE__)
 			}
 
-			client_print_color(0, id, "^4%s^1 %L", CHAT_PREFIX, id, "SIGNED_CONTRACT", g_szName[id], g_bIsWeaponStattrak[id][iRandomSkin] ? "StatTrak (TM) " : "", name)
+			client_print_color(0, id, "^4%s^1 %L", CHAT_PREFIX, id, "SIGNED_CONTRACT", g_szName[id], g_bIsWeaponStattrak[id][iRandomSkin] ? "StatTrak " : "", name)
 		}
 	}
 
@@ -5993,12 +6003,12 @@ openInventory(id, iWeaponId)
 			if(iChance == 101)
 			{
 				formatex(temp, charsmax(temp), "%s%s%s \d[\r%d\d]%s",
-				g_bIsWeaponStattrak[id][i] ? "\rStatTrak (TM) " : "", bool:g_CvarShowSpecialSkins ? "\y" : "", skinName, num, applied);
+				g_bIsWeaponStattrak[id][i] ? "\rStatTrak " : "", bool:g_CvarShowSpecialSkins ? "\y" : "\w", skinName, num, applied);
 			}
 			else 
 			{
 				formatex(temp, charsmax(temp), "%s%s \d[\r%d\d] [\r%i\y%s\d]%s",
-				g_bIsWeaponStattrak[id][i] ? "\rStatTrak (TM)\w " : "", skinName, num,
+				g_bIsWeaponStattrak[id][i] ? "\rStatTrak\w " : "", skinName, num,
 				100 - iChance, "%", applied);
 			}
 
@@ -6171,7 +6181,7 @@ _ShowCFMenu(id)
 		_GetItemName(index, Item, 31);
 		
 		if(!g_bHasSkinTag[id][index] && (g_bBettingCFStt[id] || !g_bBettingCFStt[id]))
-			formatex(temp, 63, "\r%s\w%s^n", g_bBettingCFStt[id] ? "StatTrak (TM) " : "", Item);
+			formatex(temp, 63, "\r%s\w%s^n", g_bBettingCFStt[id] ? "StatTrak " : "", Item);
 		else 
 			formatex(temp, 63, "%s \r(%s '%s')^n",
 			Item, g_iNameTagSkinLevel[id][index] == 1 ? "Common" : g_iNameTagSkinLevel[id][index] == 2 ? "Rare" : "Mythic", g_szSkinsTag[id][index]);
@@ -6287,7 +6297,7 @@ public cf_main_menu_handler(id, menu, item)
 						formatex(szItem, charsmax(szItem), "%s^3 (%s '%s')",
 						szItem, g_iNameTagSkinLevel[id][index] == 1 ? "Common" : g_iNameTagSkinLevel[id][index] == 2 ? "Rare" : "Mythic", g_szSkinsTag[id][index]);
 					}	
-					else formatex(szItem, charsmax(szItem), "StatTrak (TM) %s", szItem)
+					else formatex(szItem, charsmax(szItem), "StatTrak %s", szItem)
 				}
 				
 				if (!g_bCFSecond[id])
@@ -6316,7 +6326,7 @@ public cf_main_menu_handler(id, menu, item)
 							formatex(szItem, charsmax(szItem), "%s^3 (%s '%s')",
 							szItem, g_iNameTagSkinLevel[id][index] == 1 ? "Common" : g_iNameTagSkinLevel[id][index] == 2 ? "Rare" : "Mythic", g_szSkinsTag[id][index]);
 						}	
-						else formatex(szItem, charsmax(szItem), "StatTrak (TM) %s", szItem)
+						else formatex(szItem, charsmax(szItem), "StatTrak %s", szItem)
 					}
 					client_print_color(target, print_team_default, "^4%s %L", CHAT_PREFIX, id, "WANT_BET_CF", g_szName[id], szItem);
 					client_print_color(target, print_team_default, "^4%s^1 %L", CHAT_PREFIX, id, "CF_INFO");
@@ -6458,7 +6468,7 @@ openCoinflipMenu(id, iWeaponId)
 			
 			ArrayGetString(g_aSkinName, i, szSkin, 31);
 			
-			formatex(temp, 63, "\r%s\w%s \r[%d]", g_bIsWeaponStattrak[id][i] ? "StatTrak (TM) " : "", szSkin, num);
+			formatex(temp, 63, "\r%s\w%s \r[%d]", g_bIsWeaponStattrak[id][i] ? "StatTrak " : "", szSkin, num);
 			num_to_str(i, szItem, charsmax(szItem));
 			menu_additem(menu, temp, szItem, 0, -1);
 			total++;
@@ -6517,7 +6527,7 @@ public cf_item_menu_handler(id, menu, item)
 						formatex(Item, charsmax(Item), "%s^3 (%s '%s')",
 						Item, g_iNameTagSkinLevel[id][index] == 1 ? "Common" : g_iNameTagSkinLevel[id][index] == 2 ? "Rare" : "Mythic", g_szSkinsTag[id][index]);
 					}	
-					else formatex(Item, charsmax(Item), "StatTrak (TM) %s", Item)
+					else formatex(Item, charsmax(Item), "StatTrak %s", Item)
 				}
 				
 				client_print_color(id, print_team_default, "^4%s^1 %L", CHAT_PREFIX, id, "TRADE_INVALID_ITEM", Item);
@@ -6660,7 +6670,7 @@ public confirm_cf_handler(id, menu, item)
 					formatex(tItemsz, charsmax(tItemsz), "%s^3 (%s '%s')",
 					tItemsz, g_iNameTagSkinLevel[id][tItem] == 1 ? "Common" : g_iNameTagSkinLevel[id][tItem] == 2 ? "Rare" : "Mythic", g_szSkinsTag[id][tItem]);
 				}	
-				else formatex(tItemsz, charsmax(tItemsz), "StatTrak (TM) %s", tItemsz)
+				else formatex(tItemsz, charsmax(tItemsz), "StatTrak %s", tItemsz)
 			}
 
 			client_print_color(id, id, "^4%s^1 %L", CHAT_PREFIX, id, "CF_ACCEPT");
@@ -6715,7 +6725,7 @@ public confirm_cf_handler(id, menu, item)
 		// 			g_iNameTagSkinLevel[id][tItem] = 0;
 		// 			g_szSkinsTag[id][tItem][0] = '0';
 		// 		}	
-		// 		else formatex(tItemsz, charsmax(tItemsz), "StatTrak (TM) %s", tItemsz)
+		// 		else formatex(tItemsz, charsmax(tItemsz), "StatTrak %s", tItemsz)
 				
 		// 		g_bIsWeaponStattrak[sender][tItem] = true
 		// 	}
@@ -6762,7 +6772,7 @@ public confirm_cf_handler(id, menu, item)
 						g_iNameTagSkinLevel[id][tItem] = 0;
 						g_szSkinsTag[id][tItem][0] = '0';
 					}	
-					else formatex(tItemsz, charsmax(tItemsz), "StatTrak (TM) %s", tItemsz)
+					else formatex(tItemsz, charsmax(tItemsz), "StatTrak %s", tItemsz)
 					
 					g_bIsWeaponStattrak[sender][tItem] = true
 				}
@@ -6808,7 +6818,7 @@ public confirm_cf_handler(id, menu, item)
 						g_iNameTagSkinLevel[sender][sItem] = 0;
 						g_szSkinsTag[sender][sItem][0] = '0';
 					}	
-					else formatex(sItemsz, charsmax(sItemsz), "StatTrak (TM) %s", sItemsz)
+					else formatex(sItemsz, charsmax(sItemsz), "StatTrak %s", sItemsz)
 					
 					g_bIsWeaponStattrak[id][sItem] = true
 				}
@@ -6866,7 +6876,7 @@ public clcmd_say_deny_cf(id)
 
 askWhichType(id, index)
 {
-	new iMenu = menu_create("Use StatTrak (TM)?", "ask_handler")
+	new iMenu = menu_create("Use StatTrak?", "ask_handler")
 	
 	new szIndex[5]
 	num_to_str(index, szIndex, charsmax(szIndex))
@@ -6995,7 +7005,7 @@ public ask_handler(id, menu, item)
 					formatex(szItem, charsmax(szItem), "%s^3 (%s '%s')",
 					szItem, g_iMarketNameTagsRarity[id] == 1 ? "Common" : g_iMarketNameTagsRarity[id] == 2 ? "Rare" : "Mythic", g_szSkinsTag[id][index]);
 				else 
-					formatex(szItem, charsmax(szItem), "StatTrak (TM) %s", szItem);
+					formatex(szItem, charsmax(szItem), "StatTrak %s", szItem);
 				client_print_color(id, id, "^4%s^1 %L", CHAT_PREFIX, id, "ASK_HANDLER_SELECTED", szItem);
 				_ShowTradeMenu(id);
 			}
@@ -7340,7 +7350,7 @@ _OpenCase(id)
 				if((random_num(1, 100) <= STATTRAK_CHANCE) && !g_bIsWeaponStattrak[id][rSkin])
 				{
 					g_bIsWeaponStattrak[id][rSkin] = true
-					formatex(szMessage, charsmax(szMessage), "%s^3 %s ^1opened ^4StatTrak (TM) %s^1 with a ^4chance of %d percent",
+					formatex(szMessage, charsmax(szMessage), "%s^3 %s ^1opened ^4StatTrak %s^1 with a ^4chance of %d percent",
 					CHAT_PREFIX, g_szName[id], Skin, 100 - wChance)
 					AddStatistics(id, DROPPED_STT_SKINS, 1, rSkin, .line = __LINE__)
 				}
@@ -7526,7 +7536,7 @@ _ShowMarketMenu(id)
 			if(!g_bHasSkinTag[id][index])
 			{
 				formatex(szItem, charsmax(szItem), "\r%s%s%s \r[%d$]",
-				g_bPublishedStattrakSkin[id] ? "StatTrak (TM) " : "", (ArrayGetCell(g_aSkinChance, index) == 101) ? "\y" : "\w", szSkin, g_iUserItemPrice[id]);
+				g_bPublishedStattrakSkin[id] ? "StatTrak " : "", (ArrayGetCell(g_aSkinChance, index) == 101) ? "\y" : "\w", szSkin, g_iUserItemPrice[id]);
 			}
 			else 
 			{
@@ -7595,7 +7605,7 @@ _ShowMarketMenu(id)
 				if(!g_bHasSkinTag[iPlayer][g_iUserSellItem[iPlayer]])
 				{
 					formatex(szItem, charsmax(szItem), "\w%s^n\r%s\w%s \r[%d$]",
-					g_szName[iPlayer], g_bPublishedStattrakSkin[iPlayer] ? "StatTrak (TM) " : "", szSkin, g_iUserItemPrice[iPlayer]);		
+					g_szName[iPlayer], g_bPublishedStattrakSkin[iPlayer] ? "StatTrak " : "", szSkin, g_iUserItemPrice[iPlayer]);		
 				}
 				else 
 				{
@@ -8159,7 +8169,7 @@ openSellMenu(id, iWeaponId)
 			}
 			
 			ArrayGetString(g_aSkinName, i, szSkin, 31);
-			formatex(temp, 63, "\r%s\w%s \r[%d]", g_bIsWeaponStattrak[id][i] ? "StatTrak (TM) " : "", szSkin, num);
+			formatex(temp, 63, "\r%s\w%s \r[%d]", g_bIsWeaponStattrak[id][i] ? "StatTrak " : "", szSkin, num);
 			num_to_str(i, szItem, charsmax(szItem));
 			menu_additem(menu, temp, szItem);
 			total++;
@@ -8233,10 +8243,10 @@ public item_menu_handler(id, menu, item)
 
 		if(g_bHasSkinTag[id][index])
 		{
-			formatex(szItem, charsmax(szItem), "StatTrak (TM) %s^3 (%s '%s')", szSkinName, 
+			formatex(szItem, charsmax(szItem), "StatTrak %s^3 (%s '%s')", szSkinName, 
 			g_iNameTagSkinLevel[id][index] == 1 ? "Common" : g_iNameTagSkinLevel[id][index] == 2 ? "Rare" : "Mythic", g_szSkinsTag[id][index]);
 		}
-		else formatex(szItem, charsmax(szItem), "StatTrak (TM) %s", szSkinName);
+		else formatex(szItem, charsmax(szItem), "StatTrak %s", szSkinName);
 	}
 	else g_bPublishedStattrakSkin[id] = false
 	
@@ -8459,7 +8469,7 @@ openDustbinSkins(id, iWeaponId)
 			}
 			ArrayGetString(g_aSkinName, i, szSkin, 31);
 		
-			formatex(temp, 63, "\r%s\w%s \r[%d]", g_bIsWeaponStattrak[id][i] ? "StatTrak (TM) " : "", szSkin, num);
+			formatex(temp, 63, "\r%s\w%s \r[%d]", g_bIsWeaponStattrak[id][i] ? "StatTrak " : "", szSkin, num);
 			num_to_str(i, szItem, charsmax(szItem));
 			menu_additem(menu, temp, szItem);
 			total++;
@@ -8647,7 +8657,7 @@ _ShowGiftMenu(id)
 
 		if(g_bGiftingStt[id] && !g_bHasSkinTag[id][g_iGiftItem[id]])
 		{
-			formatex(temp, 63, "\r%s\w%s^n", g_bGiftingStt[id] ? "StatTrak (TM) " : "", Item);
+			formatex(temp, 63, "\r%s\w%s^n", g_bGiftingStt[id] ? "StatTrak " : "", Item);
 		}
 		else if (g_bGiftingStt[id] && g_bHasSkinTag[id][g_iGiftItem[id]])
 		{
@@ -8909,7 +8919,7 @@ openGiftMenu(id, iWeaponId)
 			
 			ArrayGetString(g_aSkinName, i, szSkin, 31);
 
-			formatex(temp, 63, "\r%s\w%s \r[%d]", g_bIsWeaponStattrak[id][i] ? "StatTrak (TM) " : "", szSkin, num);
+			formatex(temp, 63, "\r%s\w%s \r[%d]", g_bIsWeaponStattrak[id][i] ? "StatTrak " : "", szSkin, num);
 			
 			num_to_str(i, szItem, charsmax(szItem));			
 			menu_additem(menu, temp, szItem);
@@ -8970,7 +8980,7 @@ public si_menu_handler(id, menu, item)
 						formatex(Item, charsmax(Item), "%s^3 (%s '%s')",
 						Item, g_iNameTagSkinLevel[id][index] == 1 ? "Common" : g_iNameTagSkinLevel[id][index] == 2 ? "Rare" : "Mythic", g_szSkinsTag[id][index]);
 					}	
-					else formatex(Item, charsmax(Item), "StatTrak (TM) %s", Item)
+					else formatex(Item, charsmax(Item), "StatTrak %s", Item)
 				}
 				client_print_color(id, print_team_default, "^4%s^1 %L", CHAT_PREFIX, id, "INVALID_GIFT", Item);
 				_SelectItem(id);
@@ -9054,7 +9064,7 @@ _ShowTradeMenu(id)
 		
 		if(!g_bHasSkinTag[id][g_iTradeItem[id]])
 		{
-			formatex(temp, 63, "\r%s\w%s^n", g_bTradingStt[id] ? "StatTrak (TM) " : "", Item);
+			formatex(temp, 63, "\r%s\w%s^n", g_bTradingStt[id] ? "StatTrak " : "", Item);
 		}
 		else 
 		{
@@ -9180,7 +9190,7 @@ public trade_menu_handler(id, menu, item)
 				{
 					if(!g_bHasSkinTag[id][index])
 					{
-						formatex(szItem, charsmax(szItem), "StatTrak (TM) %s", szItem)
+						formatex(szItem, charsmax(szItem), "StatTrak %s", szItem)
 					}
 					else 
 					{
@@ -9208,7 +9218,7 @@ public trade_menu_handler(id, menu, item)
 					
 					if(!g_bHasSkinTag[target][index])
 					{
-						formatex(yItem, charsmax(yItem), "StatTrak (TM) %s", yItem)
+						formatex(yItem, charsmax(yItem), "StatTrak %s", yItem)
 					}
 					else 
 					{
@@ -9366,7 +9376,7 @@ openTradeMenu(id, iWeaponId)
 			}
 			
 			ArrayGetString(g_aSkinName, i, szSkin, 31);
-			formatex(temp, 63, "\r%s\w%s \r[%d]", g_bIsWeaponStattrak[id][i] ? "StatTrak (TM) " : "", szSkin, num);
+			formatex(temp, 63, "\r%s\w%s \r[%d]", g_bIsWeaponStattrak[id][i] ? "StatTrak " : "", szSkin, num);
 			num_to_str(i, szItem, charsmax(szItem));
 			menu_additem(menu, temp, szItem, 0, -1);
 			total++;
@@ -9422,7 +9432,7 @@ public tsi_menu_handler(id, menu, item)
 				{
 					if(!g_bHasSkinTag[id][index])
 					{
-						formatex(Item, charsmax(Item), "StatTrak (TM) %s", Item)
+						formatex(Item, charsmax(Item), "StatTrak %s", Item)
 					}
 					else
 					{
@@ -9569,7 +9579,7 @@ public clcmd_say_accept(id)
 			g_bIsWeaponStattrak[id][sItem] = true
 			
 			if(!g_bHasSkinTag[sender][sItem])
-				formatex(sItemsz, charsmax(sItemsz), "StatTrak (TM) %s", sItemsz)
+				formatex(sItemsz, charsmax(sItemsz), "StatTrak %s", sItemsz)
 			else 
 			{
 				formatex(sItemsz, charsmax(sItemsz), "%s^3 (%s '%s')", sItemsz,
@@ -9593,7 +9603,7 @@ public clcmd_say_accept(id)
 			g_bIsWeaponStattrak[sender][tItem] = true
 			
 			if(!g_bHasSkinTag[id][tItem])
-				formatex(tItemsz, charsmax(tItemsz), "StatTrak (TM) %s", tItemsz)
+				formatex(tItemsz, charsmax(tItemsz), "StatTrak %s", tItemsz)
 			else 
 			{
 				formatex(tItemsz, charsmax(tItemsz), "%s^3 (%s '%s')", tItemsz,
@@ -10117,7 +10127,7 @@ _ShowJackpotMenu(id)
 		new Item[50];
 		_GetItemName(g_iUserJackpotItem[id], Item, charsmax(Item));
 		
-		formatex(temp, 63, "\r%s\w%s", g_bJackpotStt[id] ? "StatTrak (TM) " : "", Item);
+		formatex(temp, 63, "\r%s\w%s", g_bJackpotStt[id] ? "StatTrak " : "", Item);
 		szItem[0] = 1;
 		menu_additem(menu, temp, szItem, 0, -1);
 	}
@@ -10213,7 +10223,7 @@ public jackpot_menu_handler(id, menu, item)
 				
 				if(g_bJackpotStt[id])
 				{
-					format(szItem, charsmax(szItem), "StatTrak (TM) %s", szItem)
+					format(szItem, charsmax(szItem), "StatTrak %s", szItem)
 					
 					g_iUserStattrakKillCount[id][skin] = 0
 					g_bIsWeaponStattrak[id][skin] = false
@@ -10554,7 +10564,7 @@ RegisterCMDS()
 	register_concmd("amx_givenametags_rare", "concmd_giverarenametags", Access, "<name> <amount>", -1)
 	register_concmd("amx_givenametags_mythic", "concmd_givemythicnametags", Access, "<name> <amount>", -1)
 	register_concmd("amx_giveglovecases", "concmd_giveglovecases", Access, "<name> <amount>", -1)
-	register_concmd("amx_setskins", "concmd_giveskins", Access, "<name> <skinID or @ALL> <amount> <StatTrak (TM) status (1 or 0)", -1)
+	register_concmd("amx_setskins", "concmd_giveskins", Access, "<name> <skinID or @ALL> <amount> <StatTrak status (1 or 0)", -1)
 	register_concmd("amx_setrank", "concmd_setrank", Access, "<name> <rankID>", -1)
 	register_concmd("amx_finddata", "concmd_finddata", Access, "<name>", -1)
 	register_concmd("amx_resetdata", "concmd_resetdata", Access, "<name>", -1)
@@ -11493,7 +11503,7 @@ openJackpotMenu(id, iWeaponId)
 			}
 			
 			ArrayGetString(g_aSkinName, i, szSkin, 31);
-			formatex(temp, 63, "\r%s\w%s \r[%d]", g_bIsWeaponStattrak[id][i] ? "StatTrak (TM) " : "", szSkin, num);
+			formatex(temp, 63, "\r%s\w%s \r[%d]", g_bIsWeaponStattrak[id][i] ? "StatTrak " : "", szSkin, num);
 			num_to_str(i, szItem, charsmax(szItem));
 			menu_additem(menu, temp, szItem, 0, -1);
 			total++;
@@ -11554,7 +11564,7 @@ public jp_skins_menu_handler(id, menu, item)
 				formatex(Item, charsmax(Item), "%s^3 (%s '%s')",
 				Item, g_iNameTagSkinLevel[id][index] == 1 ? "Common" : g_iNameTagSkinLevel[id][index] == 2 ? "Rare" : "Mythic", g_szSkinsTag[id][index]);
 			}	
-			else formatex(Item, charsmax(Item), "StatTrak (TM) %s", Item)
+			else formatex(Item, charsmax(Item), "StatTrak %s", Item)
 		}
 		client_print_color(id, id, "^4%s^1 %L", CHAT_PREFIX, id, "CURRENTLY_SELLING");
 		_SelectJackpotSkin(id)
@@ -11972,11 +11982,11 @@ public clcmd_skin(id)
 	{
 		new eGlove[GLOVESINFO]
 		ArrayGetArray(g_aGloves, g_iWeaponGloves[iSpecPlayer][iWeaponID] == -1 ? 0 : g_iWeaponGloves[iSpecPlayer][iWeaponID], eGlove);
-		client_print_color(id, print_team_default, "%s %l", CHAT_PREFIX, "SPEC_IS_USING_SKIN_GLOVE", g_szName[iSpecPlayer], (g_bIsWeaponStattrak[iSpecPlayer][iWeaponID] && (g_bShallUseStt[iSpecPlayer][iWeaponID] == true)) ? " StatTrak (TM)" : "", szSkinName, eGlove[szGloveName]);
+		client_print_color(id, print_team_default, "%s %l", CHAT_PREFIX, "SPEC_IS_USING_SKIN_GLOVE", g_szName[iSpecPlayer], (g_bIsWeaponStattrak[iSpecPlayer][iWeaponID] && (g_bShallUseStt[iSpecPlayer][iWeaponID] == true)) ? " StatTrak" : "", szSkinName, eGlove[szGloveName]);
 	}
 	else 
 	{
-		client_print_color(id, print_team_default, "%s %l", CHAT_PREFIX, "SPEC_IS_USING_SKIN", g_szName[iSpecPlayer], (g_bIsWeaponStattrak[iSpecPlayer][iWeaponID] && (g_bShallUseStt[iSpecPlayer][iWeaponID] == true)) ? " StatTrak (TM)" : "", szSkinName);
+		client_print_color(id, print_team_default, "%s %l", CHAT_PREFIX, "SPEC_IS_USING_SKIN", g_szName[iSpecPlayer], (g_bIsWeaponStattrak[iSpecPlayer][iWeaponID] && (g_bShallUseStt[iSpecPlayer][iWeaponID] == true)) ? " StatTrak" : "", szSkinName);
 	}
 
 	new iMin, iMax;
@@ -13096,7 +13106,7 @@ public concmd_giveskins(id, level, cid)
 				g_iUserStattrakKillCount[target][skin] = 0
 			}
 			
-			format(szSkin, charsmax(szSkin), "StatTrak (TM) %s", szSkin)
+			format(szSkin, charsmax(szSkin), "StatTrak %s", szSkin)
 		}
 		
 		if(bAll)
@@ -13183,7 +13193,7 @@ public concmd_giveskins(id, level, cid)
 			
 			if(bStt)
 			{
-				format(szSkin, charsmax(szSkin), "StatTrak (TM) %s", bAll ? "Everything" : szSkin)
+				format(szSkin, charsmax(szSkin), "StatTrak %s", bAll ? "Everything" : szSkin)
 			}
 			else
 			{
@@ -14256,7 +14266,7 @@ public joinGiveaway(id)
 
 	if(total_players() >= g_CvarGiveawayMinPlayers)
 	{
-		formatex(szItem, charsmax(szItem), "Skin \r[StatTrak (TM) %s]", g_szSkinName)
+		formatex(szItem, charsmax(szItem), "Skin \r[StatTrak %s]", g_szSkinName)
 		menu_additem(iMenu, szItem)
 
 		formatex(szItem, charsmax(szItem), "Players \r[%d]", getGiveAwayPlayersNum())
@@ -14415,10 +14425,11 @@ public countDown()
 
 		new szWinnerName[MAX_PLAYERS]
 		get_user_name(iWinner, szWinnerName, charsmax(szWinnerName))
-		client_print_color(0, 0, "^4%s^1 ^4%s^1 won^3 StatTrak (TM) %s^1 at the ^4Giveaway", CHAT_PREFIX, szWinnerName, g_szSkinName)
+		client_print_color(0, 0, "^4%s^1 ^4%s^1 won^3 StatTrak %s^1 at the ^4Giveaway", CHAT_PREFIX, szWinnerName, g_szSkinName)
 
 		new iPlayers[MAX_PLAYERS], iNum
 		get_players(iPlayers, iNum, "ch")
+
 		for(new i;i < iNum;i++)
 		{
 			g_bJoinedGiveAway[iPlayers[i]] = false
