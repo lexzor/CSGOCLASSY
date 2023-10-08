@@ -37,7 +37,7 @@
 51.77.76.159:27015 - CS.BLACKLIFE.RO // DNS MODE 1
 93.114.82.36:27015 - testing server GO.WESTCSTRIKE.RO
 188.212.102.92:27015 - fun.westrike.ro
-131.196.198.52:27055 -> brazilianu
+131.196.198.52:27055 -> brazilianu - MIX: 131.196.198.33:27046
 172.18.0.3:27015 -> marty
 51.38.104.190:27015 -> csgo.kranci.ro
 89.40.233.106:27015 -> robert
@@ -289,10 +289,10 @@ enum
 	GLOVE4,
 }
 
-static const g_iMaxBpAmmo[] =
-{
-	0, 30, 90, 200, 90, 32, 100, 100, 35, 52, 120
-}
+// static const g_iMaxBpAmmo[] =
+// {
+// 	0, 30, 90, 200, 90, 32, 100, 100, 35, 52, 120
+// }
 
 static const g_szTWin[] =
 {
@@ -1459,10 +1459,10 @@ public Ham_Spawn_Post(id)
 			rg_add_account(id, 16000)
 		}
 
-		for(new iAmmoIndex = 1; iAmmoIndex < sizeof(g_iMaxBpAmmo); iAmmoIndex++)
-		{
-			set_pdata_int(id, iAmmoIndex + 376, g_iMaxBpAmmo[iAmmoIndex], 5, 5);
-		}
+		// for(new iAmmoIndex = 1; iAmmoIndex < sizeof(g_iMaxBpAmmo); iAmmoIndex++)
+		// {
+		// 	set_pdata_int(id, iAmmoIndex + 376, g_iMaxBpAmmo[iAmmoIndex], 5, 5);
+		// }
 	}
 }
 
@@ -5596,7 +5596,7 @@ openContractMenu(id, iWeaponId)
 			}
 			else 
 			{
-				formatex(temp, charsmax(temp), "%s%s \d[\r%d\d] [\r%i\y%s\d]%s",
+				formatex(temp, charsmax(temp), "%s%s \d[\r%d\d] \r%i\y%s\d%s",
 				g_bIsWeaponStattrak[id][i] ? "\rStatTrak\w " : "", szSkin, num, 100 - iChance, "%", bFound ? " [\rCON\d]" : "");
 			}
 
@@ -6007,7 +6007,7 @@ openInventory(id, iWeaponId)
 			}
 			else 
 			{
-				formatex(temp, charsmax(temp), "%s%s \d[\r%d\d] [\r%i\y%s\d]%s",
+				formatex(temp, charsmax(temp), "%s%s \d[\r%d\d] \r%i\y%s\d%s",
 				g_bIsWeaponStattrak[id][i] ? "\rStatTrak\w " : "", skinName, num,
 				100 - iChance, "%", applied);
 			}
