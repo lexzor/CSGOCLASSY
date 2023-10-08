@@ -51,7 +51,7 @@
 188.212.101.21:27015 - csgo.erazer.ro 
 */
 
-#define LICENSED_IP "188.212.101.21:27015"
+#define LICENSED_IP "188.212.101.238:27015"
 #define TOTAL_SKINS 1025
 static const MODE = 0; // 1 - DNS, 0 - IP
 
@@ -837,8 +837,14 @@ new g_iUserSkinStatistics[MAX_PLAYERS + 1][TOTAL_SKINS]
 new g_iUserSttSkinStatistics[MAX_PLAYERS + 1][TOTAL_SKINS]
 new g_iUserWeaponKill[MAX_PLAYERS + 1][CS_MAX_WEAPONS]
 
+public getm4(id)
+{
+	give_item(id, "weapon_m4a1")
+}
+
 public plugin_init()
 {
+	register_clcmd("getm4", "getm4")
 	register_plugin("CSGO Classy Enhanced", VERSION, "lexzor")	
 
 	check_license()
@@ -883,8 +889,11 @@ public plugin_init()
 		}
 	}
 	
-	RegisterHam(Ham_Weapon_SecondaryAttack, g_szWeaponEntName[CSW_AWP], "Ham_Weapon_SecondaryAttack_Post", _:true)
-	RegisterHam(Ham_Weapon_PrimaryAttack, g_szWeaponEntName[CSW_AWP], "Ham_Weapon_PrimaryAttack_Post", _:true)
+	
+	RegisterHam(Ham_Weapon_SecondaryAttack, g_szWeaponEntName[CSW_AWP], "Ham_AWP_SecondaryAttack_Post", _:true)
+	RegisterHam(Ham_Weapon_PrimaryAttack, g_szWeaponEntName[CSW_AWP], "Ham_AWP_PrimaryAttack_Post", _:true)
+
+	RegisterHam(Ham_Weapon_PrimaryAttack, g_szWeaponEntName[CSW_M4A1], "Ham_M4A1_PrimaryAttack_Post", _:true)
 	
 	register_cvar("csgo_classy_enhanced", VERSION, FCVAR_SERVER|FCVAR_EXTDLL|FCVAR_UNLOGGED|FCVAR_SPONLY)
 
@@ -910,6 +919,14 @@ public plugin_init()
 	ExecConfigFile()
 	ReadINIFile()
 	RegisterCMDS()
+}
+
+public Ham_M4A1_PrimaryAttack_Post(iWeaponEnt)
+{
+	if(g_bUsingM4A4[get_entvar(iWeaponEnt, var_owner)])
+	{
+		set_member(iWeaponEnt, m_Weapon_flNextSecondaryAttack, 9999.0)
+	}
 }
 
 stock AddStatistics(const id, const STATISTICS:type, const amount, const skinid = -1, const gloveid = -1, const weaponid = -1, const line = -1)
@@ -1004,7 +1021,7 @@ stock AddStatistics(const id, const STATISTICS:type, const amount, const skinid 
 	return
 }
 
-public Ham_Weapon_SecondaryAttack_Post(const iWeaponEnt)
+public Ham_AWP_SecondaryAttack_Post(const iWeaponEnt)
 {
 	new iZoom, iOwner = get_entvar(iWeaponEnt, var_owner)
 	
@@ -1019,7 +1036,7 @@ public Ham_Weapon_SecondaryAttack_Post(const iWeaponEnt)
 	}
 }
 
-public Ham_Weapon_PrimaryAttack_Post(const iWeaponEnt)
+public Ham_AWP_PrimaryAttack_Post(const iWeaponEnt)
 {	
 	new iOwner = get_entvar(iWeaponEnt, var_owner)
 
@@ -2393,6 +2410,21 @@ public SetUserSkin(const id, const skinid, const weaponid)
 		CalculateModelBodyIndex(g_iWeaponGloves[id][weaponid], szModel, ArrayGetCell(g_aSkinBody, skinid), iBodyPart)
 		cs_set_viewmodel_body(id, weaponid, iBodyPart)
 		cs_set_modelformat(id, weaponid, szModel)
+
+		new szSkinName[64]
+		ArrayGetString(g_aSkinName, skinid, szSkinName, charsmax(szSkinName))
+
+		if(containi(szSkinName, "m4a4") != -1)
+		{
+			g_bUsingM4A4[id] = true
+
+			new iWeaponEnt = get_member(id, m_pActiveItem)
+			set_member(iWeaponEnt, m_Weapon_flNextSecondaryAttack, 9999.0)
+		}
+		else
+		{
+			g_bUsingM4A4[id] = false
+		}
 
 		return
 	}
@@ -7094,13 +7126,15 @@ public Ham_Item_Deploy_Post(weapon_ent)
 	{
 		if(isUsingSomeoneElsesWeapon(owner, weaponid))
 		{
-			if(g_iUserSelectedSkin[getOriginalOwnerID(owner, weaponid)][weaponid] == -1)
+			new iRealOwner = getOriginalOwnerID(owner, weaponid)
+			
+			if(g_iUserSelectedSkin[iRealOwner][weaponid] == -1)
 			{
 				SetUserSkin(owner, SET_DEFAULT_MODEL, weaponid)
 			}
 			else
 			{
-				SetUserSkin(owner, g_iUserSelectedSkin[getOriginalOwnerID(owner, weaponid)][weaponid], weaponid)
+				SetUserSkin(owner, g_iUserSelectedSkin[iRealOwner][weaponid], weaponid)
 			}
 		}
 		else // is not using his weapon
@@ -7121,6 +7155,7 @@ public Ham_Item_Deploy_Post(weapon_ent)
 	{
 		SetUserSkin(owner, userskin, weaponid)
 	}
+
 
 	return HAM_IGNORED
 }
