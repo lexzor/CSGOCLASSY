@@ -51,7 +51,7 @@
 188.212.101.21:27015 - csgo.erazer.ro 
 */
 
-#define LICENSED_IP "188.212.101.238:27015"
+#define LICENSED_IP "188.212.101.21:27015"
 #define TOTAL_SKINS 1025
 static const MODE = 0; // 1 - DNS, 0 - IP
 
@@ -7519,7 +7519,7 @@ _ShowMarketMenu(id)
 				szItemID[0] = 37;
 				new eGlove[GLOVESINFO];
 				ArrayGetArray(g_aGloves, g_iMarketGloveID[id], eGlove);
-				formatex(szItem, charsmax(szItem), "\y%s\d Glove\r [%d$]", eGlove[szGloveName], g_iUserItemPrice[id]);
+				formatex(szItem, charsmax(szItem), "\y%s\r [%d$]", eGlove[szGloveName], g_iUserItemPrice[id]);
 				menu_additem(iMenu, szItem, szItemID);
 			}
 		}
@@ -7540,9 +7540,9 @@ _ShowMarketMenu(id)
 			}
 			else 
 			{
-				formatex(szItem, charsmax(szItem), "%s%s\r (%s '%s') \r[%d$]", (ArrayGetCell(g_aSkinChance, index) == 101) ? "\y" : "\w",
+				formatex(szItem, charsmax(szItem), "%s%s\r (%s '%s') \d[\r%s\y$\d]", (ArrayGetCell(g_aSkinChance, index) == 101) ? "\y" : "\w",
 				szSkin, g_iNameTagSkinLevel[id][index] == 1 ? "Common" : g_iNameTagSkinLevel[id][index] == 2 ? "Rare" : "Mythic",
-				g_szSkinsTag[id][index], g_iUserItemPrice[id]);
+				g_szSkinsTag[id][index], AddCommas(g_iUserItemPrice[id]));
 			}
 		}
 		else copy(szItem, charsmax(szItem), szSkin);
@@ -7604,33 +7604,33 @@ _ShowMarketMenu(id)
 			{
 				if(!g_bHasSkinTag[iPlayer][g_iUserSellItem[iPlayer]])
 				{
-					formatex(szItem, charsmax(szItem), "\w%s^n\r%s\w%s \r[%d$]",
-					g_szName[iPlayer], g_bPublishedStattrakSkin[iPlayer] ? "StatTrak " : "", szSkin, g_iUserItemPrice[iPlayer]);		
+					formatex(szItem, charsmax(szItem), "\w%s^n\r%s\w%s \d[\r%s\y$\d]",
+					g_szName[iPlayer], g_bPublishedStattrakSkin[iPlayer] ? "StatTrak " : "", szSkin, AddCommas(g_iUserItemPrice[iPlayer]));		
 				}
 				else 
 				{
-					formatex(szItem, charsmax(szItem), "\w%s^n\w%s %s '%s' \r[%d$]",
+					formatex(szItem, charsmax(szItem), "\w%s^n\w%s %s '%s' \d[\r%s\y$\d]",
 					g_szName[iPlayer], szSkin,
 					g_iMarketNameTagsRarity[iPlayer] == 1 ? "Common" : g_iMarketNameTagsRarity[iPlayer] == 2 ? "\yRare" : "\rMythic",
 					g_szSkinsTag[iPlayer][g_iUserSellItem[iPlayer]],
-					g_iUserItemPrice[iPlayer]);			
+					AddCommas(g_iUserItemPrice[iPlayer]));			
 				}
 			}
-			else formatex(szItem, charsmax(szItem), "%s^n%s\r [%d$]", g_szName[iPlayer], szSkin, g_iUserItemPrice[iPlayer])
+			else formatex(szItem, charsmax(szItem), "%s^n%s \d[\r%s\y$\d]", g_szName[iPlayer], szSkin, AddCommas(g_iUserItemPrice[iPlayer]))
 
 			menu_additem(iMenu, szItem, szParseData);
 		}
 		else if(g_bSellCapsule[iPlayer])
 		{
-			formatex(szItem, charsmax(szItem), "%s^n\w%s\w Name-Tag \r[%d$]",
+			formatex(szItem, charsmax(szItem), "%s^n\w%s\w Name-Tag \d[\r%s\y$\d]",
 			g_szName[iPlayer], g_iMarketNameTagsRarity[iPlayer] == 1 ? "\dCommon" :  g_iMarketNameTagsRarity[iPlayer] == 2 ? "\yRare" :  g_iMarketNameTagsRarity[iPlayer] == 3 ? "\rMythic" : "",
-			g_iUserItemPrice[iPlayer]);
+			AddCommas(g_iUserItemPrice[iPlayer]));
 			menu_additem(iMenu, szItem, szParseData);
 		}
 		else if(g_bSellGlove[iPlayer])
 		{
-			ArrayGetArray(g_aGloves, g_iMarketGloveID[id] == -1 ? 0 : g_iMarketGloveID[id], eGlove)
-			formatex(szItem, charsmax(szItem), "%s^n\y%s\w Glove\r [%d$]", g_szName[iPlayer], eGlove[szGloveName], g_iUserItemPrice[iPlayer]);
+			ArrayGetArray(g_aGloves, g_iMarketGloveID[iPlayer] == -1 ? 0 : g_iMarketGloveID[iPlayer], eGlove)
+			formatex(szItem, charsmax(szItem), "%s^n\y%s\d [\r%s\y$\d]", g_szName[iPlayer], eGlove[szGloveName], AddCommas(g_iUserItemPrice[iPlayer]));
 			menu_additem(iMenu, szItem, szParseData);
 		}
 		items++;	
