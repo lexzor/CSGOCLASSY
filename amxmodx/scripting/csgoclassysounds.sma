@@ -68,13 +68,17 @@ new const AllWeapons[][wWeaponData] =
 	{"weapon_p90", "weapons/csgo/wp_fire/p90_fire.wav", 3}
 }
 
-new const g_szM4A1FireSoundNoSilencer[] = "weapons/csgo/wp_fire/m4a4_fire.wav"
-new const g_szUSPFireSoundNoSilencer[] = "weapons/csgo/wp_fire/uspsno_fire.wav"
-new const g_szBurstSound[] = "weapons/csgo/wp_fire/burst.wav"
-new const g_szPlantingSound[] = "weapons/csgo/wp_fire/c4_initiate.wav"
+static const g_szM4A1FireSoundNoSilencer[] = "weapons/csgo/wp_fire/m4a4_fire.wav"
+static const g_szUSPFireSoundNoSilencer[] = "weapons/csgo/wp_fire/uspsno_fire.wav"
+static const g_szBurstSound[] = "weapons/csgo/wp_fire/burst.wav"
+static const g_szPlantingSound[] = "weapons/csgo/wp_fire/c4_initiate.wav"
+static const g_szR8FireSound[] = "weapons/csgo/wp_fire/r8_fire.wav"
 
 new g_iShellModel, g_iSmokeSprite
+
 native is_using_m4a4(id);
+native is_using_r8(id);
+
 public plugin_init() 
 {
 	register_plugin(PLUGIN, VERSION, AUTHOR)
@@ -109,6 +113,7 @@ public plugin_precache()
 
 	precache_sound(g_szM4A1FireSoundNoSilencer)
 	precache_sound(g_szUSPFireSoundNoSilencer)
+	precache_sound(g_szR8FireSound)
 	precache_sound(g_szBurstSound)
 	precache_sound(g_szPlantingSound)
 }
@@ -152,6 +157,7 @@ public Fw_UpdateClientData_Post(id, sendweapons, cd_handle)
 		return FMRES_IGNORED
 
 	set_cd(cd_handle, CD_flNextAttack, get_gametime() + 0.001)
+
 	return FMRES_HANDLED
 }
 
@@ -168,6 +174,7 @@ public fw_PlaybackEvent(flags, id, eventid, Float:delay, Float:origin[3], Float:
 	{
 		return FMRES_IGNORED
 	}
+
 	if(iUserWeapon == CSW_M4A1)
 	{
 		if(is_using_m4a4(id))
@@ -186,6 +193,13 @@ public fw_PlaybackEvent(flags, id, eventid, Float:delay, Float:origin[3], Float:
 			emit_sound(id, CHAN_WEAPON, g_szUSPFireSoundNoSilencer, VOL_NORM, ATTN_NORM, 0, PITCH_NORM); 
 		else emit_sound(id, CHAN_WEAPON, AllWeapons[iUserWeapon][szFireSound], VOL_NORM, ATTN_NORM, 0, PITCH_NORM); 
 
+	}
+	else if (iUserWeapon == CSW_DEAGLE)
+	{
+		if(is_using_r8(id))
+		{
+			emit_sound(id, CHAN_WEAPON, g_szR8FireSound, VOL_NORM, ATTN_NORM, 0, PITCH_NORM);
+		} else emit_sound(id, CHAN_WEAPON, AllWeapons[iUserWeapon][szFireSound], VOL_NORM, ATTN_NORM, 0, PITCH_NORM); 
 	}
 	else emit_sound(id, CHAN_WEAPON, AllWeapons[iUserWeapon][szFireSound], VOL_NORM, ATTN_NORM, 0, PITCH_NORM)
 
