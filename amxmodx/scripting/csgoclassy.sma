@@ -7572,7 +7572,7 @@ _OpenCase(id)
 
 			new Skin[32];
 			ArrayGetString(g_aSkinName, rSkin, Skin, 31);
-			if(g_iUserSkins[id][rSkin] >= SKIN_LIMIT)
+			if(g_iUserSkins[id][rSkin] + 1 >= SKIN_LIMIT)
 			{
 				new iRandomValue = random_num(0, 1);
 				new bool:bScrapsInstead = bool:(iRandomValue == 1);
@@ -7682,7 +7682,7 @@ _CraftSkin(id)
 			new Skin[32];
 			ArrayGetString(g_aSkinName, rSkin, Skin, 31);
 			
-			if(g_iUserSkins[id][rSkin] >= SKIN_LIMIT)
+			if(g_iUserSkins[id][rSkin] + 1 >= SKIN_LIMIT)
 			{
 				new iRandomValue = random_num(0, 1);
 				new bool:bScrapsInstead = bool:(iRandomValue == 1);
@@ -14873,10 +14873,10 @@ public client_disconnected(id)
 }
 
 public OnTakeDamage(iVictim, iInflictor, iAttacker, Float:fDamage, iDamageBits)  
-{  
+{
     if(is_user_connected(iAttacker) && iAttacker != iVictim && is_user_connected(iVictim))
     {
-        if(cs_get_user_team(iAttacker) != cs_get_user_team(iVictim))  
+        if(cs_get_user_team(iAttacker) != cs_get_user_team(iVictim))
             g_fDmg[iAttacker] += fDamage
         else
             g_fDmg[iAttacker] -= fDamage
@@ -14884,15 +14884,15 @@ public OnTakeDamage(iVictim, iInflictor, iAttacker, Float:fDamage, iDamageBits)
 }
 
 public OnPlayerKilled()
-{  
-    new iAttacker = read_data(1), iVictim = read_data(2)  
-      
+{
+    new iAttacker = read_data(1), iVictim = read_data(2)
+
     if(is_user_connected(iAttacker) && iAttacker != iVictim && is_user_connected(iVictim))
     {
         if(cs_get_user_team(iAttacker) != cs_get_user_team(iVictim))
         {
             g_iKills[iAttacker]++
-            
+
             if(read_data(3))
                 g_iHS[iAttacker]++
         }

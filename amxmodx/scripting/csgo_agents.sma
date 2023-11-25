@@ -510,6 +510,8 @@ public terrorists_menu(id)
         formatex(szMenuItem, charsmax(szMenuItem), "Default Skin -\y [%s]^n", g_iPlayerSkin[id][T] == NON_USED_SKIN ? "ON" : "OFF");
         menu_additem(iMenu, szMenuItem);
 
+        new szPrice[32];
+
         for (new i = 0; i < g_iTerorristTotalSkins; i++)
         {
             if(g_TSkin[i][iTID] == g_iPlayerSkin[id][T])
@@ -519,7 +521,16 @@ public terrorists_menu(id)
             }
             else if(g_iTPlayerSkins[id][i] == 0)
             {
-                formatex(szMenuItem, charsmax(szMenuItem), "%s \r[\w%s\y$\r]%s", g_TSkin[i][szTModelName], AddCommas(g_iTSkinPrice[i]), g_TSkin[i][iTVIPOnly] == 1 ? " \y[VIP]" : "")
+                if(g_iTSkinPrice[i] == 0)
+                {
+                    copy(szPrice, charsmax(szPrice), "FREE")
+                }
+                else 
+                {
+                    copy(szPrice, charsmax(szPrice), AddCommas(g_iTSkinPrice[i]))
+                }
+
+                formatex(szMenuItem, charsmax(szMenuItem), "%s \r[\w%s\y%s\r]%s", g_TSkin[i][szTModelName], szPrice, g_iTSkinPrice[i] == 0 ? "" : "$", g_TSkin[i][iTVIPOnly] == 1 ? " \y[VIP]" : "")
                 menu_additem(iMenu, szMenuItem);
             }
             else 
@@ -643,6 +654,8 @@ public counter_terrorists_menu(id)
         formatex(szMenuItem[0], charsmax(szMenuItem), "Default Skin -\y [%s]^n", g_iPlayerSkin[id][CT] == NON_USED_SKIN ? "ON" : "OFF");
         menu_additem(iMenu, szMenuItem[0]);
 
+        new szPrice[32]
+
         for (new i; i < g_iCounterTotalSkins; i++)
         {
             if(g_CTSkin[i][iCTID] == g_iPlayerSkin[id][CT])
@@ -652,7 +665,16 @@ public counter_terrorists_menu(id)
             }
             else if(g_iCTPlayerSkins[id][i] == 0)
             {
-                formatex(szMenuItem, charsmax(szMenuItem), "%s \r[\w%s\y$\r]%s", g_CTSkin[i][szCTModelName], AddCommas(g_iCTSkinPrice[i]), g_CTSkin[i][iCTVIPOnly] == 1 ? " \y[VIP]" : "")
+                if(g_iCTSkinPrice[i] == 0)
+                {
+                    copy(szPrice, charsmax(szPrice), "FREE")
+                }
+                else 
+                {
+                    copy(szPrice, charsmax(szPrice), AddCommas(g_iCTSkinPrice[i]))
+                }
+
+                formatex(szMenuItem, charsmax(szMenuItem), "%s \r[\w%s\y%s\r]%s", g_CTSkin[i][szCTModelName], szPrice, g_iCTSkinPrice[i] == 0 ? "" : "$", g_CTSkin[i][iCTVIPOnly] == 1 ? " \y[VIP]" : "")
                 menu_additem(iMenu, szMenuItem);
             }
             else 
