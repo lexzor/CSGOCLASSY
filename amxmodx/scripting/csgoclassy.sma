@@ -55,9 +55,9 @@
 #define TOTAL_SKINS 1025
 static const MODE = 0; // 1 - DNS, 0 - IP
 
-#define MENU_PREFIX "\y[\dCSGO Classy\y]\w"
-#define CHAT_PREFIX "^4[^3CSGO Classy^4]^1"
-#define CONSOLE_PREFIX "[CSGO Classy]"
+#define MENU_PREFIX "\y[\dERAZER\y]\w"
+#define CHAT_PREFIX "^4[^3ERAZER^4]^1"
+#define CONSOLE_PREFIX "[ERAZER]"
 
 #define MAIN_MENU_DEFAULT_ITEMS_COUNT 14
 #define INVENTORY_DEFAULT_ITEMS_COUNT 3
@@ -3949,7 +3949,7 @@ public show_stattrak_inventory(id)
 {
 	new iMenu = menu_create(fmt("%s %l", MENU_PREFIX, "STATTRAK_INVENTORY_TITLE"), "show_stattrak_inventory_handler");
 	
-	new szItem[128], szData[5], iWeaponID;
+	new szItem[128], szData[5];
 
 	for(new i; i < sizeof(g_WeapMenu); i++)
 	{
@@ -3962,7 +3962,7 @@ public show_stattrak_inventory(id)
 			{
 				formatex(szItem, charsmax(szItem), "%s \r[\w%d\r]", g_WeapMenu[i][WeapName], getUserStattrakSkins(id, g_WeapMenu[i][WeaponID], .check_m4a4 = true))
 			}
-			else if (g_WeapMenu[i][iWeaponID] == CSW_DEAGLE && i == R8_MENU_ID)
+			else if (g_WeapMenu[i][WeaponID] == CSW_DEAGLE && i == R8_MENU_ID)
 			{
 				formatex(szItem, charsmax(szItem), "%s \r[\w%d\r]", g_WeapMenu[i][WeapName], getUserStattrakSkins(id, g_WeapMenu[i][WeaponID], .check_r8 = true))
 			}
@@ -3978,6 +3978,7 @@ public show_stattrak_inventory(id)
 	
 	if(is_user_connected(id))
 	{
+		menu_setprop(iMenu, MPROP_EXIT, MEXIT_ALL)
 		menu_display(id, iMenu)
 	}
 	else 
@@ -3995,14 +3996,13 @@ public show_stattrak_inventory_handler(id, menu, item)
 		return PLUGIN_HANDLED;
 	}
 
-	new szWeaponID[4], szParseItemName[64], szItemName[64], temp[2];
+	new szWeaponID[4], szParseItemName[64], szItemName[64];
 	menu_item_getinfo(menu, item, _, szWeaponID, charsmax(szWeaponID), szParseItemName, charsmax(szParseItemName));
 
-	strtok2(szParseItemName, szItemName, charsmax(szItemName), temp, charsmax(temp), '\');
-	trim(szItemName);
+	strtok2(szParseItemName, szItemName, charsmax(szItemName), szParseItemName, charsmax(szParseItemName), '\', TRIM_FULL);
 
-	new bool:bCheckM4A4 = bool:(containi(szItemName, "m4a4") == -1)
-	new bool:bCheckR8 = bool:(containi(szItemName, "r8") == -1)
+	new bool:bCheckM4A4 = bool:(containi(szItemName, "m4a4") != -1)
+	new bool:bCheckR8 = bool:(containi(szItemName, "r8") != -1)
 
 	new szSkinName[64], szItem[90], szParseData[5];
 	new iMenu = menu_create(fmt("%s %s %l", MENU_PREFIX, szItemName, "WEAPON_STATTRAK_SKINS_TITLE"), "add_skin_tag_menu_handler");
@@ -4015,30 +4015,31 @@ public show_stattrak_inventory_handler(id, menu, item)
 		if(ArrayGetCell(g_aSkinWeaponID, i) != iWeaponID)
 				continue;
 
-		if((iWeaponID == CSW_M4A1 && bCheckM4A4 && containi(szSkinName, "m4a4") != -1)
-		|| (iWeaponID == CSW_M4A1 && !bCheckM4A4 && containi(szSkinName, "m4a4") == -1))
+		ArrayGetString(g_aSkinName, i, szSkinName, charsmax(g_szSkinName))
+
+		if((iWeaponID == CSW_M4A1 && bCheckM4A4 && (containi(szSkinName, "m4a4") == -1))
+		|| (iWeaponID == CSW_M4A1 && !bCheckM4A4 && (containi(szSkinName, "m4a4") != -1)))
 		{
 			continue
 		}
 
-		if((iWeaponID == CSW_DEAGLE && bCheckR8 && containi(szSkinName, "r8") != -1) 
-		|| (iWeaponID == CSW_DEAGLE && !bCheckR8 && containi(szSkinName, "r8") == -1))
+		if((iWeaponID == CSW_DEAGLE && bCheckR8 && (containi(szSkinName, "r8") == -1)) 
+		|| (iWeaponID == CSW_DEAGLE && !bCheckR8 && (containi(szSkinName, "r8") != -1)))
 		{
 			continue
 		}
 
 		if(g_iUserSkins[id][i] > 0 && g_bIsWeaponStattrak[id][i])
 		{
-			ArrayGetString(g_aSkinName, i, szSkinName, charsmax(g_szSkinName))
 			formatex(szItem, charsmax(szItem), "\rStatTrak\w %s", szSkinName);
-			
 			num_to_str(i, szParseData, charsmax(szParseData))
 			menu_additem(iMenu, szItem, szParseData);
+
 			iTotalSkins++;
 		}
 	}
 
-	if(iTotalSkins == 0)	menu_additem(iMenu, fmt("%l", "NO_STATTRAK_TO_SHOW"));
+	if(iTotalSkins == 0)	menu_additem(iMenu, fmt("%l", "NO_STATTRAK_TO_SHOW"), "NO_SKINS");
 
 	if(is_user_connected(id))
 	{
@@ -4063,17 +4064,25 @@ public add_skin_tag_menu_handler(id, menu, item)
 		return PLUGIN_HANDLED;
 	}
 
-	new szSkinName[64], szParseData[5];
+
+	new szSkinName[64], szData[9];
+	menu_item_getinfo(menu, item, _, szData, charsmax(szData), _, _, _);
+	
+	if(equal(szData, "NO_SKINS"))
+	{
+
+		show_stattrak_inventory(id);
+		return PLUGIN_HANDLED;
+	}
 
 	if(g_szCurrentSkinThatGetTag[id][0] == EOS)
 	{
-		new szData[5], index;
+		new index;
 
 		if(menu != 0)
-		{
-			menu_item_getinfo(menu, item, _, szData, charsmax(szData), _, _, _);
 			index = str_to_num(szData);
-		} else index = g_iTagCurrentWeaponID[id];
+		else
+			index = g_iTagCurrentWeaponID[id];
 
 		if(index == -1)
 			return PLUGIN_HANDLED
@@ -4104,7 +4113,7 @@ public add_skin_tag_menu_handler(id, menu, item)
 	formatex(szItem, charsmax(szItem), "Name-Tag Rarity: %s^n^n", g_iSelectedNameTagRarity[id] == 1 ? "Common" : g_iSelectedNameTagRarity[id] == 2 ? "\yRare" : g_iSelectedNameTagRarity[id] == 3 ? "\rMythic" : "\dNot selected");
 	menu_additem(iMenu, szItem);
 
-	menu_additem(iMenu, "Confirm", szParseData);
+	menu_additem(iMenu, "Confirm");
 
 	if(is_user_connected(id))
 	{
@@ -4227,7 +4236,6 @@ public add_tag_to_skin_handler(id, menu, item)
 				default:
 				{
 					client_print_color(id, print_team_default, "%s %l", CHAT_PREFIX, "MUST_SELECT_RARITY")
-				
 					add_skin_tag_menu_handler(id, 0, 0);
 
 					return PLUGIN_HANDLED;
@@ -4244,7 +4252,6 @@ public add_tag_to_skin_handler(id, menu, item)
 			arrayset(g_szCurrentSkinThatGetTag[id], 0, charsmax(g_szCurrentSkinThatGetTag[]));
 			g_iSelectedNameTagRarity[id] = 0;
 			g_iTagCurrentWeaponID[id] = -1;
-
 		}
 	}
 
@@ -4417,6 +4424,7 @@ getUserStattrakSkins(id, iWeaponID, bool:check_m4a4 = false, bool:check_r8 = fal
 			}
 		}
 	}
+
 	return iTotalSkins;
 }
 
@@ -4453,6 +4461,7 @@ public open_preview_menu(id)
 	
 	if(is_user_connected(id))
 	{
+		menu_setprop(iMenu, MPROP_EXIT, MEXIT_ALL)
 		menu_display(id, iMenu)
 	}
 	else 
@@ -4466,7 +4475,7 @@ public preview_menu_handler(id, menu, item)
 	if(item == MENU_EXIT)
 	{
 		menu_destroy(menu);
-		open_preview_menu(id);
+		_ShowMainMenu(id);
 		return PLUGIN_HANDLED;
 	}
 
@@ -4511,6 +4520,7 @@ public preview_menu_handler(id, menu, item)
 
 	if(is_user_connected(id))
 	{
+		menu_setprop(iMenu, MPROP_EXIT, MEXIT_ALL)
 		menu_display(id, iMenu, 0, -1);
 	}
 	else 
@@ -4702,7 +4712,7 @@ public open_gloves_menu_handler(id, menu, item)
 
 			if(iCount == 0)
 			{
-				menu_additem(iMenu, fmt("%l", "NO_ITEMS"), "595995")
+				menu_additem(iMenu, fmt("%l", "NO_ITEMS"), "NO_SKINS")
 			}	
 
 			menu_setprop(iMenu, MPROP_EXIT, MEXIT_ALL)
@@ -4772,12 +4782,12 @@ public show_gloves_weapon_menu(id, menu, item)
 		return PLUGIN_HANDLED;
 	}
 
-	new szData[5], szWeapName[32], szTemp[1], szItem[64], szParseData[128], iGlovesCount, eGlove[GLOVESINFO];
+	new szData[9], szWeapName[32], szTemp[1], szItem[64], szParseData[128], iGlovesCount, eGlove[GLOVESINFO];
 
 	menu_item_getinfo(menu, item, _, szData, charsmax(szData), szWeapName, charsmax(szWeapName), _);
 	strtok2(szWeapName, szWeapName, charsmax(szWeapName), szTemp, charsmax(szTemp), '\', TRIM_FULL);
 
-	if(equal(szData, "595995"))
+	if(equal(szData, "NO_SKINS"))
 	{
 		open_gloves_menu_handler(id, 0, 2);
 		return PLUGIN_HANDLED;
