@@ -58,7 +58,7 @@
 */
 
 // #define AWP_SKIN_BUG
-#define LICENSED_IP "188.212.101.21:27015"
+#define LICENSED_IP "188.212.101.238:27015"
 #define TOTAL_SKINS 1025
 static const MODE = 0; // 1 - DNS, 0 - IP
 
@@ -850,14 +850,8 @@ new g_iUserSkinStatistics[MAX_PLAYERS + 1][TOTAL_SKINS]
 new g_iUserSttSkinStatistics[MAX_PLAYERS + 1][TOTAL_SKINS]
 new g_iUserWeaponKill[MAX_PLAYERS + 1][CS_MAX_WEAPONS]
 
-public getm4(id)
-{
-	give_item(id, "weapon_m4a1")
-}
-
 public plugin_init()
 {
-	register_clcmd("getm4", "getm4")
 	register_plugin("CSGO Classy Enhanced", VERSION, "lexzor")	
 
 	check_license()
@@ -2384,9 +2378,6 @@ public GetUserData(FailState, Handle:Query, szError[], ErrorCode, szData[], iSiz
 
 public SetUserSkin(const id, const skinid, const weaponid)
 {
-	if(!is_user_alive(id))
-		return
-
 	new iBodyPart
 
 	if(skinid != -1)
@@ -2401,8 +2392,8 @@ public SetUserSkin(const id, const skinid, const weaponid)
 		new szSkinName[64]
 		ArrayGetString(g_aSkinName, skinid, szSkinName, charsmax(szSkinName))
 
-		g_bUsingR8[id] = bool:(containi(szSkinName, "Deagle") == -1)
-		g_bUsingM4A4[id] = bool:((containi(szSkinName, "M4A1") == -1))
+		g_bUsingR8[id] 		= weaponid == CSW_DEAGLE ? containi(szSkinName, "Deagle") == -1 : false
+		g_bUsingM4A4[id] 	= weaponid == CSW_M4A1 ? containi(szSkinName, "M4A1") == -1 : false
 
 		if(g_bUsingM4A4[id])
 		{
@@ -6010,8 +6001,6 @@ _ShowSkinMenu(id)
 			bCheckM4A4,
 			bCheckR8)
 
-		client_print(id, print_chat, "skins num: %i", iMaxSkins)
-
 		if(iMaxSkins > 0)
 		{							
 			iWeapSkins = getUserSkinsValue(id, iWeaponID, bCheckM4A4, bCheckR8)
@@ -6124,8 +6113,6 @@ public skins_handler(id, iMenu, iItem)
 
 	new const bool:bCheckM4A4 = iWeaponID == CSW_M4A1 ? containi(szItemName, "M4A1") == -1 : false 
 	new const bool:bCheckR8 = iWeaponID == CSW_DEAGLE ? containi(szItemName, "Deagle") == -1 : false
-
-	client_print(id, print_chat, "itemname: %s, weapid: %i, m4a4 = %i, r8 = %i", szItemName, iWeaponID, _:bCheckM4A4, _:bCheckR8)
 
 	g_iWeaponIdToCheck[id] = iWeaponID
 
@@ -14846,6 +14833,7 @@ getGiveAwayPlayersNum()
 checkInstantDefault(id, iItemID)
 {
 	new iWeaponId = ArrayGetCell(g_aSkinWeaponID, iItemID)
+
 	if(iItemID == g_iUserSelectedSkin[id][iWeaponId])
 	{
 		if(get_user_weapon(id) == iWeaponId)
