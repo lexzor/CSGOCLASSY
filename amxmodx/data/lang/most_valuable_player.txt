@@ -30,7 +30,8 @@ MVP_USER_NOT_LOGGED_IN = ^3%n^1 is not logged in and he doesn't get^4 MVP Bonus
 [ro]
 MVP_MENU_TITLE = Meniu MVP
 MVP_SHOW_MVP_COUNT = Ai fost de \r%d ori\y MVP\w!
-MVP_CHOOSE_TRACK = Alege o melodie^n-Monetar\w:\r %s\y$^n^n\dPagina curenta:\r
+MVP_CHOOSE_TRACK_TITLE = Melodii disponibile^n-Monetar\w:\r %s\y$^n^n\dPagina curenta:\r
+MVP_CHOOSE_TRAGE = Alege o melodie
 MVP_TRACK_LIST = Vezi lista melodiilor
 MVP_SOUNDS_ON_OFF = Sunete MVP: \y%s
 MVP_TRACK_X_SELECTED = Ai selectat melodia: ^4%s

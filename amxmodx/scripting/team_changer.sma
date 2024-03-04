@@ -1,6 +1,7 @@
 #include <amxmodx>
 #include <amxmisc>
 #include <reapi>
+#include <fakemeta>
 #include <csgoclassy>
 
 #define ADMIN_FLAG "c"
@@ -17,7 +18,7 @@ static const g_szTeamNames[][] =
 
 public plugin_init()
 {
-    register_plugin("[REAPI] Team Changer", "0.1", "lexzor")
+    register_plugin("[REAPI] Team Changer", "0.2", "lexzor")
 
     new iFlags = read_flags(ADMIN_FLAG)
     register_clcmd("say", "sayHook", iFlags)
@@ -101,11 +102,12 @@ public changeTeam(id, level, cid)
 
         default:
         {
+            log_error(AMX_ERR_NATIVE, "Unkown team id: %i", _:tnTeam)
             return PLUGIN_HANDLED
         }
     }
 
-    new iTarget = cmd_target(id, szName, CMDTARGET_ALLOW_SELF | CMDTARGET_NO_BOTS)
+    new const iTarget = cmd_target(id, szName, CMDTARGET_ALLOW_SELF | CMDTARGET_NO_BOTS)
 
     if(!iTarget)
     {
@@ -121,20 +123,16 @@ public changeTeam(id, level, cid)
         return PLUGIN_HANDLED
     }
 
-    new bool:bAlive
+    new const bool:bAlive = bool:is_user_alive(iTarget)
 
-    if(is_user_alive(iTarget))
-    {
-        user_kill(iTarget)
-        bAlive = true
-    }
-
+    if(bAlive) user_kill(iTarget)
+    
     if(tnUserTeam == TEAM_TERRORIST || tnUserTeam == TEAM_CT)
     {
-        new iAlivePlayers
-        get_players_ex(_, iAlivePlayers, GetPlayers_ExcludeDead | GetPlayers_MatchNameSubstring, tnUserTeam == TEAM_TERRORIST ? "T" : "CT")
+        new const iAlivePlayers = get_member_game(tnUserTeam == TEAM_TERRORIST ? m_iNumTerrorist : m_iNumCT)
 
-        rg_set_user_team(iTarget, tnTeam, .check_win_conditions = bool:(iAlivePlayers == 1))
+        //check win conditions if no player alive from his team because we killed him above
+        rg_set_user_team(iTarget, tnTeam, .check_win_conditions = bool:(iAlivePlayers == 0))
     }
     else 
     {
@@ -144,16 +142,15 @@ public changeTeam(id, level, cid)
     if(bAlive)
     {
         set_member(iTarget, m_iDeaths, get_member(iTarget, m_iDeaths) - 1)
+        set_pev(iTarget, pev_frags, pev(iTarget, pev_frags) + 1.0)
     }
 
     if(iTarget == id)
     {
-        client_print_color(0, print_team_default, "%s^3 %n^1 moved^3 himself^1 to^4 %s^1 team", CHAT_PREFIX, id, g_szTeamNames[_:tnTeam])
+        if(!is_user_admin(id))
+            client_print_color(0, print_team_default, "%s^3 %n^1 moved^3 himself^1 to^4 %s^1 team", CHAT_PREFIX, id, g_szTeamNames[_:tnTeam])
     }
-    else 
-    {
-        client_print_color(0, print_team_default, "%s^3 %n^1 moved^3 %n^1 to^4 %s^1 team", CHAT_PREFIX, id, iTarget, g_szTeamNames[_:tnTeam])
-    }
+    else client_print_color(0, print_team_default, "%s^3 %n^1 moved^3 %n^1 to^4 %s^1 team", CHAT_PREFIX, id, iTarget, g_szTeamNames[_:tnTeam])
 
     return PLUGIN_HANDLED
 }

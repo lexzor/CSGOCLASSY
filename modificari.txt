@@ -1,0 +1,4 @@
+- Cand un jucator are selectat nu skin care nu mai exista (exemplu: are selectat skinul 350 dintr-un total de 349 de skinuri) ii va fi aplicat skinul default
+- Rezolvat bug meniuri M4A1-S/M4A4 si Deagle/R8
+- Rezolvat bug selectare automata din mod a unui skin atunci cand nu sunt arme stt pentru o categorie de arme.
+- Agentii care au pret 0 sunt marcati in meniul cu FREE in loc de 0$

@@ -2,7 +2,6 @@
 #endinput
 #endif
 
-
 //Max menu item string length.
 #define MAX_MENU_ITEM_LENGTH 128
 
@@ -18,12 +17,13 @@
 enum _:NativeErrorCode
 {
 	USER_NOT_LOGGED,			// User is not logged in.
-	USER_NOT_CONNECTED,		// User is not connected on the server.
+	USER_NOT_CONNECTED,			// User is not connected on the server.
+	USER_NOT_ALIVE,				// User is not alive.
 	INVALID_PARAM_VALUE,		// A param is not used properly (value is too high or to low)
-	INVALID_SAVE_TYPE,		// Returned when trying to get connection data for database and sqlx handle 
-	INVALID_MENU_CODE,		// If the menu code is (somehow) incorrect, will return this error code.
+	INVALID_SAVE_TYPE,			// Returned when trying to get connection data for database and sqlx handle 
+	INVALID_MENU_CODE,			// If the menu code is (somehow) incorrect, will return this error code.
 	INVALID_MENU_ID,			// Occurs when trying to update menu inventory value amount, but the menu id is invalid
-	INVALID_RANK_ID			// Rankid is smaller or higher than the existent rankids
+	INVALID_RANK_ID				// Rankid is smaller or higher than the existent rankids
 }
 
 
@@ -471,6 +471,16 @@ native any:toggle_autologin(const id);
 */
 native any:display_menu(const id, MenuCode:menu_code);
 
+/**
+* Check if a logged in user is using default skins.
+*
+* @param id 			User Index  
+*
+* @note 				User must be connected and logged in.
+*
+* @return				true or false. NativeErrorCode value on error. 		
+*/
+native any:csgo_is_using_default_skin(const id);
 
 /**
 * Used to format the price in the mode.

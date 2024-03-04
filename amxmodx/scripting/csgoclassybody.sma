@@ -87,6 +87,8 @@
 #define CLIENT_DATA(%0,%1,%2) (get_user_info(%0, %1, %2, charsmax(%2)))
 #define HOOK_DATA(%0,%1,%2) (set_user_info(%0, %1, %2))
 
+new static TASK_DELAY = 5224;
+
 stock m_iId = 43
 
 stock m_flNextPrimaryAttack = 46
@@ -461,7 +463,7 @@ public knife_override(weapon)
 
 public inspect_weapon(id)
 {
-	if (!is_user_alive(id) || cs_get_user_shield(id) || cs_get_user_zoom(id) > 1 || pev_valid(id) != PDATA_SAFE) 
+	if (!is_user_alive(id) || cs_get_user_shield(id) || cs_get_user_zoom(id) > 1 || pev_valid(id) != PDATA_SAFE || csgo_is_using_default_skin(id)) 
 		return PLUGIN_HANDLED;
 
 	new weaponId = get_user_weapon(id);

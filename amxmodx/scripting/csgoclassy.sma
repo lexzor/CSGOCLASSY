@@ -38,26 +38,33 @@
 93.114.82.36:27015 - testing server GO.WESTCSTRIKE.RO
 188.212.102.92:27015 - fun.westrike.ro
 131.196.198.52:27055 -> brazilianu - MIX: 131.196.198.33:27046
-172.18.0.3:27015 -> marty
 51.38.104.190:27015 -> csgo.kranci.ro
 89.40.233.106:27015 -> robert
 93.114.82.106:27015 -> sandu
 
 //last version
+188.212.101.238:27015 - TEST ERAZER
+
+188.212.101.21:27015 - csgo.erazer.ro 
 172.18.0.2:27015 - devilboy extreamcs
 188.212.101.144:27015 - go.weststrike.ro
 188.212.102.180:27015 - CSGO.NEBUNATICII.RO
-188.212.101.238:27015 - TEST ERAZER
-188.212.101.21:27015 - csgo.erazer.ro 
+172.18.0.2:27015 -> marty
+93.114.82.116:27015 -> TecH
+93.114.82.73:27015 -> global.leaguecs.ro
+93.114.82.98:27015 -> knd.leaguecs.ro // no awp bug
+51.68.162.219:27015 -> csgo.devilz.ro
+93.114.82.16:27015 -> teste csgo.devilz.ro
 */
 
+// #define AWP_SKIN_BUG
 #define LICENSED_IP "188.212.101.21:27015"
 #define TOTAL_SKINS 1025
 static const MODE = 0; // 1 - DNS, 0 - IP
 
 #define MENU_PREFIX "\y[\dERAZER\y]\w"
 #define CHAT_PREFIX "^4[^3ERAZER^4]^1"
-#define CONSOLE_PREFIX "[ERAZER]"
+#define CONSOLE_PREFIX "[CSGO Classy]"
 
 #define MAIN_MENU_DEFAULT_ITEMS_COUNT 14
 #define INVENTORY_DEFAULT_ITEMS_COUNT 3
@@ -527,33 +534,33 @@ static const R8_MENU_ID = 6
 
 static const g_WeapMenu[][WEAPONS] =
 {
-	{"Knives", CSW_KNIFE},
-	{"AK-47", CSW_AK47},
-	{"M4A1-S", CSW_M4A1},
-	{"M4A4", CSW_M4A1},
-	{"AWP", CSW_AWP},	
-	{"Deagle", CSW_DEAGLE},
-	{"R8", CSW_DEAGLE},
-	{"Glock", CSW_GLOCK18},
-	{"USP-S", CSW_USP},
-	{"Famas", CSW_FAMAS},
-	{"Galil-AR", CSW_GALIL},
-	{"AUG", CSW_AUG},
-	{"SSG", CSW_SCOUT},
-	{"SG552", CSW_SG552},
-	{"SG550", CSW_SG550},
-	{"G3SG1", CSW_G3SG1},
-	{"Negev", CSW_M249},
-	{"MP7", CSW_MP5NAVY},
-	{"MP9", CSW_TMP},
-	{"UMP-45", CSW_UMP45},
-	{"MAC-10", CSW_MAC10},
-	{"P90", CSW_P90},
-	{"P250", CSW_P228},
-	{"FiveSeven", CSW_FIVESEVEN},
-	{"Dual Berettas", CSW_ELITE},
-	{"XM1014", CSW_XM1014},
-	{"Nova", CSW_M3}
+	{ "Knives", CSW_KNIFE },
+	{ "AK47", CSW_AK47 },
+	{ "M4A1-S", CSW_M4A1 },
+	{ "M4A4", CSW_M4A1 },
+	{ "AWP", CSW_AWP },	
+	{ "Deagle", CSW_DEAGLE },
+	{ "R8", CSW_DEAGLE },
+	{ "Glock", CSW_GLOCK18 },
+	{ "USP-S", CSW_USP },
+	{ "Famas", CSW_FAMAS },
+	{ "Galil-AR", CSW_GALIL },
+	{ "AUG", CSW_AUG },
+	{ "SSG", CSW_SCOUT },
+	{ "SG552", CSW_SG552 },
+	{ "SG550", CSW_SG550 },
+	{ "G3SG1", CSW_G3SG1 },
+	{ "Negev", CSW_M249 },
+	{ "MP7", CSW_MP5NAVY },
+	{ "MP9", CSW_TMP },
+	{ "UMP-45", CSW_UMP45 },
+	{ "MAC-10", CSW_MAC10 },
+	{ "P90", CSW_P90 },
+	{ "P250", CSW_P228 },
+	{ "FiveSeven", CSW_FIVESEVEN },
+	{ "Dual Berettas", CSW_ELITE },
+	{ "XM1014", CSW_XM1014 },
+	{ "Nova", CSW_M3 }
 }
 
 static const g_szDefaultSkinModels[][] = {
@@ -880,7 +887,6 @@ public plugin_init()
 	register_event("Damage", "ev_Damage", "b", "2!0", "3=0", "4!0")
 	register_event("DeathMsg", "OnPlayerKilled", "a")
 	register_logevent("OnRoundEnd", 2, "1=Round_End")
-	
 	register_forward(FM_ClientKill, "concmd_kill")
 
 	g_WarmUpSync = CreateHudSyncObj(0)
@@ -894,7 +900,6 @@ public plugin_init()
 			fw_ICD[i] = RegisterHam(Ham_CS_Item_CanDrop, g_szWeaponEntName[i], "Ham_Item_Can_Drop", 0)
 		}
 	}
-	
 	
 	RegisterHam(Ham_Weapon_SecondaryAttack, g_szWeaponEntName[CSW_AWP], "Ham_AWP_SecondaryAttack_Post", _:true)
 	RegisterHam(Ham_Weapon_PrimaryAttack, g_szWeaponEntName[CSW_AWP], "Ham_AWP_PrimaryAttack_Post", _:true)
@@ -1144,46 +1149,47 @@ public plugin_natives()
 
 	register_library("csgoclassy");
 
-	register_native("csgo_add_inventory_item_value", "native_csgo_add_inventory_item_value", 0)
-	register_native("csgo_additional_menu_name", "native_csgo_additional_menu_name", 0)
-	register_native("csgo_register_menu", "native_csgo_register_menu", 0)
+	register_native("csgo_is_using_default_skin", "native_csgo_is_using_default_skins")
+	register_native("csgo_add_inventory_item_value", "native_csgo_add_inventory_item_value")
+	register_native("csgo_additional_menu_name", "native_csgo_additional_menu_name")
+	register_native("csgo_register_menu", "native_csgo_register_menu")
 	register_native("csgo_get_prefixes", "native_csgo_get_prefixes")
 	register_native("csgo_directory", "native_csgo_directory")
 	register_native("csgo_get_mysql", "native_csgo_get_mysql");
-	register_native("is_warmup", "native_is_warmup", 0);
-	register_native("was_warmup", "native_was_warmup", 0);
-	register_native("round_num", "native_round_num", 0);
-	register_native("set_user_login_value", "native_force_user_log_in", 0);
-	register_native("has_skin_tag", "native_has_skin_tag", 0);
-	register_native("get_skin_tag", "native_get_skin_tag", 0);
-	register_native("get_skin_level", "native_get_skin_level", 0);
-	register_native("is_in_preview", "native_is_in_preview", 0);
-	register_native("display_menu", "native_display_menu", 0);
-	register_native("get_skin_name", "native_get_skin_name", 0);
-	register_native("get_skins_num", "native_get_skins_num", 0);
-	register_native("get_weapon_max_skins", "native_get_weapon_max_skins", 0);
-	register_native("get_skin_weaponid", "native_get_skin_weaponid", 0);
-	register_native("get_warmup_time", "native_get_warmup_time", 0);
-	register_native("get_user_capsules", "native_get_user_capsules", 0);
-	register_native("get_user_common", "native_get_user_common", 0);
-	register_native("get_user_rare", "native_get_user_rare", 0);
-	register_native("get_user_mythic", "native_get_user_mythic", 0);
-	register_native("get_user_rank_id", "native_get_user_rank_id", 0);
-	register_native("is_using_default_skins", "native_is_using_default_skins", 0);
+	register_native("is_warmup", "native_is_warmup");
+	register_native("was_warmup", "native_was_warmup");
+	register_native("round_num", "native_round_num");
+	register_native("set_user_login_value", "native_force_user_log_in");
+	register_native("has_skin_tag", "native_has_skin_tag");
+	register_native("get_skin_tag", "native_get_skin_tag");
+	register_native("get_skin_level", "native_get_skin_level");
+	register_native("is_in_preview", "native_is_in_preview");
+	register_native("display_menu", "native_display_menu");
+	register_native("get_skin_name", "native_get_skin_name");
+	register_native("get_skins_num", "native_get_skins_num");
+	register_native("get_weapon_max_skins", "native_get_weapon_max_skins");
+	register_native("get_skin_weaponid", "native_get_skin_weaponid");
+	register_native("get_warmup_time", "native_get_warmup_time");
+	register_native("get_user_capsules", "native_get_user_capsules");
+	register_native("get_user_common", "native_get_user_common");
+	register_native("get_user_rare", "native_get_user_rare");
+	register_native("get_user_mythic", "native_get_user_mythic");
+	register_native("get_user_rank_id", "native_get_user_rank_id");
+	register_native("is_using_default_skins", "native_is_using_default_skins");
 	register_native("get_user_password", "native_get_user_password");
-	register_native("get_user_money", "native_get_user_money", 0);
-	register_native("set_user_money", "native_set_user_money", 0);
-	register_native("get_user_cases", "native_get_user_cases", 0);
-	register_native("set_user_cases", "native_set_user_cases", 0);
-	register_native("get_user_keys", "native_get_user_keys", 0);
-	register_native("set_user_keys", "native_set_user_keys", 0);
-	register_native("get_user_scraps", "native_get_user_scraps", 0);
-	register_native("set_user_scraps", "native_set_user_scraps", 0);
-	register_native("get_user_rank", "native_get_user_rank", 0);
-	register_native("set_user_rank", "native_set_user_rank", 0);
-	register_native("get_user_skins", "native_get_user_skins", 0);
-	register_native("set_user_skins", "native_set_user_skins", 0);
-	register_native("is_user_logged", "native_is_user_logged", 0);
+	register_native("get_user_money", "native_get_user_money");
+	register_native("set_user_money", "native_set_user_money");
+	register_native("get_user_cases", "native_get_user_cases");
+	register_native("set_user_cases", "native_set_user_cases");
+	register_native("get_user_keys", "native_get_user_keys");
+	register_native("set_user_keys", "native_set_user_keys");
+	register_native("get_user_scraps", "native_get_user_scraps");
+	register_native("set_user_scraps", "native_set_user_scraps");
+	register_native("get_user_rank", "native_get_user_rank");
+	register_native("set_user_rank", "native_set_user_rank");
+	register_native("get_user_skins", "native_get_user_skins");
+	register_native("set_user_skins", "native_set_user_skins");
+	register_native("is_user_logged", "native_is_user_logged");
 	register_native("is_using_m4a4", "native_is_using_m4a4");
 	register_native("is_using_r8", "native_is_using_r8");
 	register_native("getSkinName", "_getSkinName");
@@ -1192,47 +1198,6 @@ public plugin_natives()
 	register_native("set_user_randomskin", "_setRandom");
 	register_native("force_user_login", "_allow")
 	register_native("aug_sg_unscope", "native_aug_sg_unscope")
-}
-
-public native_aug_sg_unscope(iPluginID, iParams)
-{
-	new iOwner = get_param(1)
-	if(is_user_alive(iOwner))
-	{
-		new iWeaponID = get_user_weapon(iOwner)
-		new iBodyPart
-
-		if(!g_bLogged[iOwner])
-		{
-			set_entvar(iOwner, var_viewmodel, g_szDefaultSkinModels[iWeaponID])
-			return
-		}
-
-
-		if(g_iUserSelectedSkin[iOwner][iWeaponID] != -1)
-		{
-			new szModel[256]
-			ArrayGetString(g_aSkinModel, g_iUserSelectedSkin[iOwner][iWeaponID], szModel, charsmax(szModel))
-
-			CalculateModelBodyIndex(g_iWeaponGloves[iOwner][iWeaponID], szModel, ArrayGetCell(g_aSkinBody, g_iUserSelectedSkin[iOwner][iWeaponID]), iBodyPart)
-
-			set_entvar(iOwner, var_viewmodel, szModel)
-			set_entvar(iOwner, var_body, iBodyPart)
-		}
-		else 
-		{
-			if(!g_bUserDefaultModels[iOwner])
-			{
-				CalculateModelBodyIndex(-1, g_eDefaultModels[iWeaponID][PATH], g_eDefaultModels[iWeaponID][BODYINDEX] > -1 ? g_eDefaultModels[iWeaponID][BODYINDEX] : 0, iBodyPart);
-				set_entvar(iOwner, var_viewmodel, g_eDefaultModels[iWeaponID][PATH])
-				set_entvar(iOwner, var_body, iBodyPart)
-			}
-			else 
-			{
-				set_entvar(iOwner, var_viewmodel, g_szDefaultSkinModels[iWeaponID])
-			}
-		}
-	}
 }
 
 public plugin_end()
@@ -1628,7 +1593,7 @@ public ev_RoundWon_T()
 
 	if (IsHalf())
 	{
-		g_iFreezetime = p_Freezetime
+		g_iFreezetime = get_pcvar_num(p_Freezetime)
 		set_pcvar_num(p_Freezetime, 10)
 		set_task(1.0, "task_reset_kills")
 	}
@@ -1643,7 +1608,7 @@ public ev_RoundWon_CT()
 
 	if (IsHalf())
 	{
-		g_iFreezetime = p_Freezetime
+		g_iFreezetime = get_pcvar_num(p_Freezetime)
 		set_pcvar_num(p_Freezetime, 10)
 		set_task(1.0, "task_reset_kills")
 	}
@@ -2027,7 +1992,8 @@ SaveSQLData(id)
 	new szSkinName[256]
 
 	for(new i = 1; i < CS_MAX_WEAPONS; i++)
-	{
+	{		
+
 		if(g_iUserSelectedSkin[id][i] != -1)
 		{
 			ArrayGetString(g_aSkinName, g_iUserSelectedSkin[id][i], szSkinName, charsmax(szSkinName))
@@ -2221,8 +2187,8 @@ public GetUserData(FailState, Handle:Query, szError[], ErrorCode, szData[], iSiz
 		return;
 	}
 
-	new iResult = SQL_NumResults(Query)
-	new id = szData[0];
+	new const iResult = SQL_NumResults(Query)
+	new const id = szData[0];
 
 	g_bWaitingResponse[id] = false;
 
@@ -2267,6 +2233,9 @@ public GetUserData(FailState, Handle:Query, szError[], ErrorCode, szData[], iSiz
 		while (j < g_iSkinsNum && szQueryData[0] && strtok2(szQueryData, szValue, charsmax(szValue), szQueryData, charsmax(szQueryData), ','))
 		{
 			g_iUserSkins[id][j] = str_to_num(szValue);
+		
+			if(g_iUserSkins[id][j] > SKIN_LIMIT)
+				g_iUserSkins[id][j] = SKIN_LIMIT
 			j++;
 		}
 
@@ -2290,10 +2259,17 @@ public GetUserData(FailState, Handle:Query, szError[], ErrorCode, szData[], iSiz
 
 		SQL_ReadResult(Query, SQL_FieldNameToNum(Query, "selected_skins"), szQueryData, charsmax(szQueryData))
 		j = 1;
+		
+		new iSelectedSkin
 
 		while(j < 31 && szQueryData[0] && strtok(szQueryData, szValue, charsmax(szValue), szQueryData, charsmax(szQueryData), ','))
 		{
-			g_iUserSelectedSkin[id][j] = str_to_num(szValue);
+			iSelectedSkin = str_to_num(szValue)
+
+			if(iSelectedSkin > g_iSkinsNum)
+				iSelectedSkin = -1
+
+			g_iUserSelectedSkin[id][j] = iSelectedSkin;
 			j++;
 		}
 
@@ -2408,6 +2384,9 @@ public GetUserData(FailState, Handle:Query, szError[], ErrorCode, szData[], iSiz
 
 public SetUserSkin(const id, const skinid, const weaponid)
 {
+	if(!is_user_alive(id))
+		return
+
 	new iBodyPart
 
 	if(skinid != -1)
@@ -2422,19 +2401,14 @@ public SetUserSkin(const id, const skinid, const weaponid)
 		new szSkinName[64]
 		ArrayGetString(g_aSkinName, skinid, szSkinName, charsmax(szSkinName))
 
-		if(containi(szSkinName, "m4a4") != -1)
-		{
-			g_bUsingM4A4[id] = true
+		g_bUsingR8[id] = bool:(containi(szSkinName, "Deagle") == -1)
+		g_bUsingM4A4[id] = bool:((containi(szSkinName, "M4A1") == -1))
 
-			new iWeaponEnt = get_member(id, m_pActiveItem)
-			set_member(iWeaponEnt, m_Weapon_flNextSecondaryAttack, 9999.0)
-		}
-		else
+		if(g_bUsingM4A4[id])
 		{
-			g_bUsingM4A4[id] = false
+			new iM4A4Ent = get_member(id, m_pActiveItem)
+			set_member(iM4A4Ent, m_Weapon_flNextSecondaryAttack, 9999.0)
 		}
-		
-		g_bUsingR8[id] = bool:(containi(szSkinName, "r8") != -1)
 
 		return
 	}
@@ -2504,9 +2478,16 @@ GetVaultData(id)
 		arrayset(buffer, 0, charsmax(buffer));
 		strtok2(Data, buffer, charsmax(buffer), Data, charsmax(Data), '#');
 
+		new iSelectedSkin
+
 		while (j < 31 && buffer[0] && strtok(buffer, szValue, charsmax(szValue), buffer, charsmax(buffer), ','))
 		{
-			g_iUserSelectedSkin[id][j] = str_to_num(szValue);
+			iSelectedSkin = str_to_num(szValue)
+
+			if(iSelectedSkin > g_iSkinsNum)
+				iSelectedSkin = -1
+
+			g_iUserSelectedSkin[id][j] = iSelectedSkin;
 			j++;
 		}
 
@@ -2547,6 +2528,7 @@ loadStattrakStatus(id)
 			j++;
 		}
 	}
+	
 	loadStattrakKills(id);
 }
 
@@ -3949,29 +3931,18 @@ public show_stattrak_inventory(id)
 {
 	new iMenu = menu_create(fmt("%s %l", MENU_PREFIX, "STATTRAK_INVENTORY_TITLE"), "show_stattrak_inventory_handler");
 	
-	new szItem[128], szData[5];
+	new szItem[128], szData[16];
 
-	for(new i; i < sizeof(g_WeapMenu); i++)
+	for(new i, bool:bCheckM4A4, bool:bCheckR8; i < sizeof(g_WeapMenu); i++)
 	{
-		if(getMaxSkinsOfWeapon(
-			g_WeapMenu[i][WeaponID],
-			.check_m4a4 = (g_WeapMenu[i][WeaponID] == CSW_M4A1 && i == M4A4_MENU_ID),
-			.check_r8 = (g_WeapMenu[i][WeaponID] == CSW_DEAGLE && i == R8_MENU_ID)) > 0)
-		{							
-			if(g_WeapMenu[i][WeaponID] == CSW_M4A1 && i == M4A4_MENU_ID)
-			{
-				formatex(szItem, charsmax(szItem), "%s \r[\w%d\r]", g_WeapMenu[i][WeapName], getUserStattrakSkins(id, g_WeapMenu[i][WeaponID], .check_m4a4 = true))
-			}
-			else if (g_WeapMenu[i][WeaponID] == CSW_DEAGLE && i == R8_MENU_ID)
-			{
-				formatex(szItem, charsmax(szItem), "%s \r[\w%d\r]", g_WeapMenu[i][WeapName], getUserStattrakSkins(id, g_WeapMenu[i][WeaponID], .check_r8 = true))
-			}
-			else 
-			{
-				formatex(szItem, charsmax(szItem), "%s \r[\w%d\r]", g_WeapMenu[i][WeapName], getUserStattrakSkins(id, g_WeapMenu[i][WeaponID]))
-			}	
+		bCheckM4A4 = bool:(g_WeapMenu[i][WeaponID] == CSW_M4A1 && i == M4A4_MENU_ID)
+		bCheckR8 = bool:(g_WeapMenu[i][WeaponID] == CSW_DEAGLE && i == R8_MENU_ID)
+		
+		if(getMaxSkinsOfWeapon(g_WeapMenu[i][WeaponID], bCheckM4A4, bCheckR8 ))
+		{
+			formatex(szItem, charsmax(szItem), "%s \r[\w%d\r]", g_WeapMenu[i][WeapName], getUserStattrakSkins(id, g_WeapMenu[i][WeaponID], bCheckM4A4, bCheckR8))
 
-			num_to_str(g_WeapMenu[i][WeaponID], szData, charsmax(szData))
+			formatex(szData, charsmax(szData), "%i#%i#%i", g_WeapMenu[i][WeaponID], _:bCheckM4A4, _:bCheckR8)
 			menu_additem(iMenu, szItem, szData);
 		}
 	}
@@ -3996,35 +3967,38 @@ public show_stattrak_inventory_handler(id, menu, item)
 		return PLUGIN_HANDLED;
 	}
 
-	new szWeaponID[4], szParseItemName[64], szItemName[64];
-	menu_item_getinfo(menu, item, _, szWeaponID, charsmax(szWeaponID), szParseItemName, charsmax(szParseItemName));
+	new szPassedData[16], szItemName[64]
+	menu_item_getinfo(menu, item, _, szPassedData, charsmax(szPassedData), szItemName, charsmax(szItemName), _);
 
-	strtok2(szParseItemName, szItemName, charsmax(szItemName), szParseItemName, charsmax(szParseItemName), '\', TRIM_FULL);
+	new szWeaponID[6], szCheckM4A4[6], szCheckR8[6], iWeaponID, bool:bCheckM4A4, bool:bCheckR8
+	parse(szPassedData, szWeaponID, charsmax(szWeaponID), szCheckM4A4, charsmax(szCheckM4A4), szCheckR8, charsmax(szCheckR8))
 
-	new bool:bCheckM4A4 = bool:(containi(szItemName, "m4a4") != -1)
-	new bool:bCheckR8 = bool:(containi(szItemName, "r8") != -1)
+
+	iWeaponID = str_to_num(szWeaponID)
+	bCheckM4A4 = bool:(str_to_num(szCheckM4A4))
+	bCheckR8 = bool:(str_to_num(szCheckR8))
+
+	strtok2(szItemName, szItemName, charsmax(szItemName), szPassedData, charsmax(szPassedData)) // No reason for chosing szPassedData as stored variable for right part of the token
 
 	new szSkinName[64], szItem[90], szParseData[5];
 	new iMenu = menu_create(fmt("%s %s %l", MENU_PREFIX, szItemName, "WEAPON_STATTRAK_SKINS_TITLE"), "add_skin_tag_menu_handler");
 	new iTotalSkins;
-
-	new iWeaponID = str_to_num(szWeaponID)
 
 	for(new i; i < g_iSkinsNum; i++)
 	{
 		if(ArrayGetCell(g_aSkinWeaponID, i) != iWeaponID)
 				continue;
 
-		ArrayGetString(g_aSkinName, i, szSkinName, charsmax(g_szSkinName))
+		ArrayGetString(g_aSkinName, i, szSkinName, charsmax(szSkinName))
 
-		if((iWeaponID == CSW_M4A1 && bCheckM4A4 && (containi(szSkinName, "m4a4") == -1))
-		|| (iWeaponID == CSW_M4A1 && !bCheckM4A4 && (containi(szSkinName, "m4a4") != -1)))
+		if((iWeaponID == CSW_M4A1 && bCheckM4A4 && containi(szSkinName, "M4A1") == -1)
+		|| (iWeaponID == CSW_M4A1 && !bCheckM4A4 && containi(szSkinName, "M4A1") != -1))
 		{
 			continue
 		}
 
-		if((iWeaponID == CSW_DEAGLE && bCheckR8 && (containi(szSkinName, "r8") == -1)) 
-		|| (iWeaponID == CSW_DEAGLE && !bCheckR8 && (containi(szSkinName, "r8") != -1)))
+		if((iWeaponID == CSW_DEAGLE && bCheckR8 && containi(szSkinName, "Deagle") == -1) 
+		|| (iWeaponID == CSW_DEAGLE && !bCheckR8 && containi(szSkinName, "Deagle") != -1))
 		{
 			continue
 		}
@@ -4063,7 +4037,6 @@ public add_skin_tag_menu_handler(id, menu, item)
 		show_stattrak_inventory(id);
 		return PLUGIN_HANDLED;
 	}
-
 
 	new szSkinName[64], szData[9];
 	menu_item_getinfo(menu, item, _, szData, charsmax(szData), _, _, _);
@@ -4405,19 +4378,19 @@ getUserStattrakSkins(id, iWeaponID, bool:check_m4a4 = false, bool:check_r8 = fal
 			
 			if(check_m4a4)
 			{
-				iTotalSkins = bool:(containi(szSkinName, "m4a4") != -1 ) ? (iTotalSkins + 1) : iTotalSkins
+				iTotalSkins = bool:(containi(szSkinName, "M4A1") == -1 ) ? (iTotalSkins + 1) : iTotalSkins
 			}
 
 			if(check_r8)
 			{
-				iTotalSkins = bool:(containi(szSkinName, "r8") != -1 ) ? (iTotalSkins + 1) : iTotalSkins
+				iTotalSkins = bool:(containi(szSkinName, "Deagle") == -1 ) ? (iTotalSkins + 1) : iTotalSkins
 			}
 		}
 		else 
 		{
 			if(
-				containi(szSkinName, "m4a4") == -1 &&
-				containi(szSkinName, "r8") == -1
+				containi(szSkinName, "M4A1") != -1 &&
+				containi(szSkinName, "Deagle") != -1
 			)
 			{
 				iTotalSkins++;
@@ -4438,16 +4411,16 @@ public open_preview_menu(id)
 	{
 		if(getMaxSkinsOfWeapon(
 			g_WeapMenu[i][WeaponID],
-			.check_m4a4 = (g_WeapMenu[i][WeaponID] == CSW_M4A1 && i == M4A4_MENU_ID),
-			.check_r8 = (g_WeapMenu[i][WeaponID] == CSW_DEAGLE && i == R8_MENU_ID)) > 0)
+			(g_WeapMenu[i][WeaponID] == CSW_M4A1 && i == M4A4_MENU_ID),
+			(g_WeapMenu[i][WeaponID] == CSW_DEAGLE && i == R8_MENU_ID)) > 0)
 		{							
 			if(g_WeapMenu[i][WeaponID] == CSW_M4A1 && i == M4A4_MENU_ID)
 			{
-				formatex(szItem, charsmax(szItem), "%s \r[\w%d\r]", g_WeapMenu[i][WeapName], getMaxSkinsOfWeapon(g_WeapMenu[i][WeaponID], .check_m4a4 = true))
+				formatex(szItem, charsmax(szItem), "%s \r[\w%d\r]", g_WeapMenu[i][WeapName], getMaxSkinsOfWeapon(g_WeapMenu[i][WeaponID], true))
 			}
 			else if (g_WeapMenu[i][WeaponID] == CSW_DEAGLE && i == R8_MENU_ID)
 			{
-				formatex(szItem, charsmax(szItem), "%s \r[\w%d\r]", g_WeapMenu[i][WeapName], getMaxSkinsOfWeapon(g_WeapMenu[i][WeaponID], .check_r8 = true))
+				formatex(szItem, charsmax(szItem), "%s \r[\w%d\r]", g_WeapMenu[i][WeapName], getMaxSkinsOfWeapon(g_WeapMenu[i][WeaponID], true))
 			}
 			else 
 			{
@@ -4483,8 +4456,8 @@ public preview_menu_handler(id, menu, item)
 	menu_item_getinfo(menu, item, _, szWeaponID, charsmax(szWeaponID), szItemName, charsmax(szItemName), _);
 	new iWeaponID = str_to_num(szWeaponID);
 
-	new bool:bCheckM4A4 = bool:(containi(szItemName, "m4a4") == -1)
-	new bool:bCheckR8 = bool:(containi(szItemName, "r8") == -1)
+	new bool:bCheckM4A4 = iWeaponID == CSW_M4A1 ? containi(szItemName, "M4A1") == -1 : false
+	new bool:bCheckR8 = iWeaponID == CSW_DEAGLE ? containi(szItemName, "Deagle") == -1 : false
 
 	new iMenu = menu_create(fmt("%s Preview skin menu^n^n\dCurrent page\w:\r", MENU_PREFIX), "preview_skin_handler");
 	new szData[6], szSkinName[64], szItem[100];
@@ -4496,14 +4469,14 @@ public preview_menu_handler(id, menu, item)
 
 		ArrayGetString(g_aSkinName, i, szSkinName, charsmax(szSkinName));		
 
-		if((iWeaponID == CSW_M4A1 && bCheckM4A4 && containi(szSkinName, "m4a4") != -1)
-		|| (iWeaponID == CSW_M4A1 && !bCheckM4A4 && containi(szSkinName, "m4a4") == -1))
+		if((iWeaponID == CSW_M4A1 && bCheckM4A4 && containi(szSkinName, "M4A1") == -1)
+		|| (iWeaponID == CSW_M4A1 && !bCheckM4A4 && containi(szSkinName, "M4A1") != -1))
 		{
 			continue
 		}
 
-		if((iWeaponID == CSW_DEAGLE && bCheckR8 && containi(szSkinName, "r8") != -1) 
-		|| (iWeaponID == CSW_DEAGLE && !bCheckR8 && containi(szSkinName, "r8") == -1))
+		if((iWeaponID == CSW_DEAGLE && bCheckR8 && containi(szSkinName, "Deagle") == -1) 
+		|| (iWeaponID == CSW_DEAGLE && !bCheckR8 && containi(szSkinName, "Deagle") != -1))
 		{
 			continue
 		}
@@ -5202,15 +5175,15 @@ openUpgradeMenu(const id, const iWeaponId, const bool:check_m4a4, const bool:che
 			
 			ArrayGetString(g_aSkinName, i, szSkin, 31);
 
-			if((wid == CSW_M4A1 && check_m4a4 && containi(szSkin, "m4a4") != -1)
-			|| (wid == CSW_M4A1 && !check_m4a4 && containi(szSkin, "m4a4") == -1))
+			if((wid == CSW_M4A1 && check_m4a4 && containi(szSkin, "M4A1") == -1)
+			|| (wid == CSW_M4A1 && !check_m4a4 && containi(szSkin, "M4A1") != -1))
 			{
 				i++
 				continue
 			}
 
-			if((wid == CSW_DEAGLE && check_r8 && containi(szSkin, "r8") != -1) 
-			|| (wid == CSW_DEAGLE && !check_r8 && containi(szSkin, "r8") == -1))
+			if((wid == CSW_DEAGLE && check_r8 && containi(szSkin, "Deagle") == -1) 
+			|| (wid == CSW_DEAGLE && !check_r8 && containi(szSkin, "Deagle") != -1))
 			{
 				i++
 				continue
@@ -5730,17 +5703,17 @@ openContractMenu(const id, const iWeaponId, const bool:check_m4a4, const bool:ch
 				continue
 			}
 			
-			ArrayGetString(g_aSkinName, i, szSkin, 31);
+			ArrayGetString(g_aSkinName, i, szSkin, charsmax(szSkin));
 
-			if((wid == CSW_M4A1 && check_m4a4 && containi(szSkin, "m4a4") != -1)
-			|| (wid == CSW_M4A1 && !check_m4a4 && containi(szSkin, "m4a4") == -1))
+			if((wid == CSW_M4A1 && check_m4a4 && containi(szSkin, "M4A1") == -1)
+			|| (wid == CSW_M4A1 && !check_m4a4 && containi(szSkin, "M4A1") != -1))
 			{
 				i++
 				continue
 			}
 
-			if((wid == CSW_DEAGLE && check_r8 && containi(szSkin, "r8") != -1) 
-			|| (wid == CSW_DEAGLE && !check_r8 && containi(szSkin, "r8") == -1))
+			if((wid == CSW_DEAGLE && check_r8 && containi(szSkin, "Deagle") == -1) 
+			|| (wid == CSW_DEAGLE && !check_r8 && containi(szSkin, "Deagle") != -1))
 			{
 				i++
 				continue
@@ -5947,7 +5920,7 @@ public confirmation_handler(id, menu, item)
 		new iRandomSkin = contractitem(); new name[48];
 		ArrayGetString(g_aSkinName, iRandomSkin, name, charsmax(name));
 
-		if(g_iUserSkins[id][iRandomSkin] >= SKIN_LIMIT)
+		if(g_iUserSkins[id][iRandomSkin] == SKIN_LIMIT)
 		{
 			new iValue, iRandom = random_num(0, 1)
 			if(iRandom)
@@ -6023,18 +5996,25 @@ _ShowSkinMenu(id)
 	new iMenu = menu_create(szTitle, "skins_handler")	
 	new szItem[128], szData[5], iWeaponID, iMaxSkins, iUserTotalSkins, iWeapSkins
 
+	new bool:bCheckM4A4, bool:bCheckR8;
+
 	for(new i; i < sizeof(g_WeapMenu); i++)
 	{
 		iWeaponID = g_WeapMenu[i][WeaponID];
 
+		bCheckM4A4	= 	g_WeapMenu[i][WeaponID] == CSW_M4A1 && i == M4A4_MENU_ID
+		bCheckR8 	= 	g_WeapMenu[i][WeaponID] == CSW_DEAGLE && i == R8_MENU_ID
+
 		iMaxSkins = getMaxSkinsOfWeapon(
 			g_WeapMenu[i][WeaponID],
-			.check_m4a4 = (g_WeapMenu[i][WeaponID] == CSW_M4A1 && i == M4A4_MENU_ID),
-			.check_r8 = (g_WeapMenu[i][WeaponID] == CSW_DEAGLE && i == R8_MENU_ID))
+			bCheckM4A4,
+			bCheckR8)
+
+		client_print(id, print_chat, "skins num: %i", iMaxSkins)
 
 		if(iMaxSkins > 0)
 		{							
-			iWeapSkins = getUserSkinsValue(id, iWeaponID, .check_m4a4 = (g_WeapMenu[i][WeaponID] == CSW_M4A1 && i == M4A4_MENU_ID), .check_r8 = (g_WeapMenu[i][WeaponID] == CSW_DEAGLE && i == R8_MENU_ID))
+			iWeapSkins = getUserSkinsValue(id, iWeaponID, bCheckM4A4, bCheckR8)
 			
 			formatex(szItem, charsmax(szItem), "%s \d[\r%d\w/\y%d\d]", g_WeapMenu[i][WeapName], iWeapSkins, iMaxSkins * 5);
 			
@@ -6074,23 +6054,17 @@ stock getUserSkinsValue(const id, const iWeaponID, const bool:check_m4a4 = false
 		{
 			if(check_m4a4)
 			{
-				iTotalSkins += bool:(containi(szSkinName, "m4a4") != -1) ? g_iUserSkins[id][i] : 0
+				iTotalSkins += bool:(containi(szSkinName, "M4A1") == -1) ? g_iUserSkins[id][i] : 0
 			}
 
 			if(check_r8)
 			{
-				iTotalSkins += bool:(containi(szSkinName, "r8") != -1) ? g_iUserSkins[id][i] : 0
+				iTotalSkins += bool:(containi(szSkinName, "Deagle") == -1) ? g_iUserSkins[id][i] : 0
 			}
 		}
 		else 
 		{
-			if(
-				containi(szSkinName, "m4a4") == -1 &&
-				containi(szSkinName, "r8") == -1
-			)
-			{
-				iTotalSkins += g_iUserSkins[id][i]
-			}
+			iTotalSkins += g_iUserSkins[id][i]
 		}
 
 	}
@@ -6117,23 +6091,17 @@ stock getMaxSkinsOfWeapon(const iWeaponID, const bool:check_m4a4 = false, const 
 		{
 			if(check_m4a4)
 			{
-				iTotalSkins += bool:(containi(szSkinName, "m4a4") != -1) ? 1 : 0
+				iTotalSkins += bool:(containi(szSkinName, "M4A1") == -1) ? 1 : 0
 			}
 
 			if(check_r8)
 			{
-				iTotalSkins += bool:(containi(szSkinName, "r8") != -1) ? 1 : 0
+				iTotalSkins += bool:(containi(szSkinName, "Deagle") == -1) ? 1 : 0
 			}
 		}
 		else 
 		{
-			if(
-				containi(szSkinName, "m4a4") == -1 &&
-				containi(szSkinName, "r8") == -1
-			)
-			{
-				iTotalSkins++;
-			}
+			iTotalSkins++;
 		}
 	}
 
@@ -6148,28 +6116,30 @@ public skins_handler(id, iMenu, iItem)
 		menu_destroy(iMenu)
 		return PLUGIN_HANDLED
 	}
+
 	new szData[6], szItemName[64]
-	new _access, item_callback
-	menu_item_getinfo(iMenu, iItem, _access, szData, charsmax(szData), szItemName, charsmax(szItemName), item_callback)
+	menu_item_getinfo(iMenu, iItem, _, szData, charsmax(szData), szItemName, charsmax(szItemName), _)
 	
-	new bool:bCheckM4A4 = bool:(containi(szItemName, "m4a4") == -1)
-	new bool:bCheckR8 = bool:(containi(szItemName, "r8") == -1)
+	new const iWeaponID = str_to_num(szData)
 
-	new iData = str_to_num(szData)
+	new const bool:bCheckM4A4 = iWeaponID == CSW_M4A1 ? containi(szItemName, "M4A1") == -1 : false 
+	new const bool:bCheckR8 = iWeaponID == CSW_DEAGLE ? containi(szItemName, "Deagle") == -1 : false
 
-	g_iWeaponIdToCheck[id] = iData
+	client_print(id, print_chat, "itemname: %s, weapid: %i, m4a4 = %i, r8 = %i", szItemName, iWeaponID, _:bCheckM4A4, _:bCheckR8)
+
+	g_iWeaponIdToCheck[id] = iWeaponID
 
 	switch(g_iMenuToOpen[id])
 	{
-		case 0: 	openInventory(id, iData, .check_m4a4 = bCheckM4A4, .check_r8 = bCheckR8)
-		case 1:	 	openContractMenu(id, iData, .check_m4a4 = bCheckM4A4, .check_r8 = bCheckR8)
-		case 2: 	openCoinflipMenu(id, iData, .check_m4a4 = bCheckM4A4, .check_r8 = bCheckR8)
-		case 3: 	openSellMenu(id, iData, .check_m4a4 = bCheckM4A4, .check_r8 = bCheckR8)
-		case 4: 	openDustbinSkins(id, iData, .check_m4a4 = bCheckM4A4, .check_r8 = bCheckR8)
-		case 5: 	openGiftMenu(id, iData, .check_m4a4 = bCheckM4A4, .check_r8 = bCheckR8)
-		case 6:		openTradeMenu(id, iData, .check_m4a4 = bCheckM4A4, .check_r8 = bCheckR8)
-		case 7:		openJackpotMenu(id, iData, .check_m4a4 = bCheckM4A4, .check_r8 = bCheckR8)
-		case 8:		openUpgradeMenu(id, iData, .check_m4a4 = bCheckM4A4, .check_r8 = bCheckR8)
+		case 0: 	openInventory(id, iWeaponID, bCheckM4A4, bCheckR8)
+		case 1:	 	openContractMenu(id, iWeaponID, bCheckM4A4, bCheckR8)
+		case 2: 	openCoinflipMenu(id, iWeaponID, bCheckM4A4, bCheckR8)
+		case 3: 	openSellMenu(id, iWeaponID, bCheckM4A4, bCheckR8)
+		case 4: 	openDustbinSkins(id, iWeaponID, bCheckM4A4, bCheckR8)
+		case 5: 	openGiftMenu(id, iWeaponID, bCheckM4A4, bCheckR8)
+		case 6:		openTradeMenu(id, iWeaponID, bCheckM4A4, bCheckR8)
+		case 7:		openJackpotMenu(id, iWeaponID, bCheckM4A4, bCheckR8)
+		case 8:		openUpgradeMenu(id, iWeaponID, bCheckM4A4, bCheckR8)
 	}
 
 	return PLUGIN_HANDLED
@@ -6205,15 +6175,15 @@ openInventory(const id, const iWeaponId, const bool:check_m4a4, const bool:check
 
 			ArrayGetString(g_aSkinName, i, skinName, 47);
 
-			if((wid == CSW_M4A1 && check_m4a4 && containi(skinName, "m4a4") != -1)
-			|| (wid == CSW_M4A1 && !check_m4a4 && containi(skinName, "m4a4") == -1))
+			if((wid == CSW_M4A1 && check_m4a4 && containi(skinName, "M4A1") != -1) 
+			|| (wid == CSW_M4A1 && !check_m4a4 && containi(skinName, "M4A1") == -1)) 
 			{
 				i++
 				continue
 			}
-
-			if((wid == CSW_DEAGLE && check_r8 && containi(skinName, "r8") != -1) 
-			|| (wid == CSW_DEAGLE && !check_r8 && containi(skinName, "r8") == -1))
+			
+			if((wid == CSW_DEAGLE && check_r8 && containi(skinName, "Deagle") != -1)
+			|| (wid == CSW_DEAGLE && !check_r8 && containi(skinName, "Deagle") == -1))
 			{
 				i++
 				continue
@@ -6521,7 +6491,7 @@ public cf_main_menu_handler(id, menu, item)
 					return PLUGIN_HANDLED
 				}
 				
-				if(g_iUserSkins[target][_item] >= SKIN_LIMIT)
+				if(g_iUserSkins[target][_item] == SKIN_LIMIT)
 				{
 					client_print_color(id, id, "^4%s %L", CHAT_PREFIX, id, "CANT_RECEIVE", g_szName[target]);
 					_ShowCFMenu(id)
@@ -6552,7 +6522,7 @@ public cf_main_menu_handler(id, menu, item)
 				}
 				else
 				{
-					if(g_iUserSkins[id][_item] >= SKIN_LIMIT)
+					if(g_iUserSkins[id][_item] == SKIN_LIMIT)
 					{
 						client_print_color(id, id, "^4%s %L", CHAT_PREFIX, id, "CANT_RECEIVE", g_szName[id]);
 						_ShowCFMenu(target)
@@ -6711,15 +6681,15 @@ openCoinflipMenu(const id, const iWeaponId, const bool:check_m4a4, const bool:ch
 			
 			ArrayGetString(g_aSkinName, i, szSkin, 31);
 
-			if((wid == CSW_M4A1 && check_m4a4 && containi(szSkin, "m4a4") != -1)
-			|| (wid == CSW_M4A1 && !check_m4a4 && containi(szSkin, "m4a4") == -1))
+			if((wid == CSW_M4A1 && check_m4a4 && containi(szSkin, "M4A1") == -1)
+			|| (wid == CSW_M4A1 && !check_m4a4 && containi(szSkin, "M4A1") != -1))
 			{
 				i++
 				continue
 			}
 
-			if((wid == CSW_DEAGLE && check_r8 && containi(szSkin, "r8") != -1) 
-			|| (wid == CSW_DEAGLE && !check_r8 && containi(szSkin, "r8") == -1))
+			if((wid == CSW_DEAGLE && check_r8 && containi(szSkin, "Deagle") == -1) 
+			|| (wid == CSW_DEAGLE && !check_r8 && containi(szSkin, "Deagle") != -1))
 			{
 				i++
 				continue
@@ -7582,7 +7552,8 @@ _OpenCase(id)
 
 			new Skin[32];
 			ArrayGetString(g_aSkinName, rSkin, Skin, 31);
-			if(g_iUserSkins[id][rSkin] + 1 >= SKIN_LIMIT)
+
+			if(g_iUserSkins[id][rSkin] == SKIN_LIMIT)
 			{
 				new iRandomValue = random_num(0, 1);
 				new bool:bScrapsInstead = bool:(iRandomValue == 1);
@@ -7692,7 +7663,7 @@ _CraftSkin(id)
 			new Skin[32];
 			ArrayGetString(g_aSkinName, rSkin, Skin, 31);
 			
-			if(g_iUserSkins[id][rSkin] + 1 >= SKIN_LIMIT)
+			if(g_iUserSkins[id][rSkin] == SKIN_LIMIT)
 			{
 				new iRandomValue = random_num(0, 1);
 				new bool:bScrapsInstead = bool:(iRandomValue == 1);
@@ -8071,7 +8042,7 @@ public market_menu_handler(id, menu, item)
 				
 				if(tItem != -1 && !g_bSellCapsule[index] && !g_bSellGlove[index])
 				{
-					if(g_iUserSkins[id][tItem] >= SKIN_LIMIT)
+					if(g_iUserSkins[id][tItem] == SKIN_LIMIT)
 					{
 						client_print_color(id, id, "^4%s^1 %L", CHAT_PREFIX, id, "CANT_BUY");
 						_ShowMarketMenu(id);
@@ -8433,15 +8404,15 @@ openSellMenu(const id, const iWeaponId, const bool:check_m4a4, const bool:check_
 			
 			ArrayGetString(g_aSkinName, i, szSkin, 31);
 
-			if((wid == CSW_M4A1 && check_m4a4 && containi(szSkin, "m4a4") != -1)
-			|| (wid == CSW_M4A1 && !check_m4a4 && containi(szSkin, "m4a4") == -1))
+			if((wid == CSW_M4A1 && check_m4a4 && containi(szSkin, "M4A1") == -1)
+			|| (wid == CSW_M4A1 && !check_m4a4 && containi(szSkin, "M4A1") != -1))
 			{
 				i++
 				continue
 			}
 
-			if((wid == CSW_DEAGLE && check_r8 && containi(szSkin, "r8") != -1) 
-			|| (wid == CSW_DEAGLE && !check_r8 && containi(szSkin, "r8") == -1))
+			if((wid == CSW_DEAGLE && check_r8 && containi(szSkin, "Deagle") == -1) 
+			|| (wid == CSW_DEAGLE && !check_r8 && containi(szSkin, "Deagle") != -1))
 			{
 				i++
 				continue
@@ -8747,15 +8718,15 @@ openDustbinSkins(const id, const iWeaponId, const bool:check_m4a4, const bool:ch
 			}
 			ArrayGetString(g_aSkinName, i, szSkin, 31);
 		
-			if((wid == CSW_M4A1 && check_m4a4 && containi(szSkin, "m4a4") != -1)
-			|| (wid == CSW_M4A1 && !check_m4a4 && containi(szSkin, "m4a4") == -1))
+			if((wid == CSW_M4A1 && check_m4a4 && containi(szSkin, "M4A1") == -1)
+			|| (wid == CSW_M4A1 && !check_m4a4 && containi(szSkin, "M4A1") != -1))
 			{
 				i++
 				continue
 			}
 
-			if((wid == CSW_DEAGLE && check_r8 && containi(szSkin, "r8") != -1) 
-			|| (wid == CSW_DEAGLE && !check_r8 && containi(szSkin, "r8") == -1))
+			if((wid == CSW_DEAGLE && check_r8 && containi(szSkin, "Deagle") == -1) 
+			|| (wid == CSW_DEAGLE && !check_r8 && containi(szSkin, "Deagle") != -1))
 			{
 				i++
 				continue
@@ -9029,7 +9000,7 @@ public gift_menu_handler(id, menu, item)
 
 giftPlayer(id, target, iSkin)
 {		
-	if(g_iUserSkins[target][iSkin] >= SKIN_LIMIT)
+	if(g_iUserSkins[target][iSkin] == SKIN_LIMIT)
 	{
 		client_print_color(id, id, "^4%s %L", CHAT_PREFIX, id, "CANT_RECEIVE", g_szName[target]);
 		_ShowGiftMenu(id);
@@ -9210,16 +9181,15 @@ openGiftMenu(const id, const iWeaponId, const bool:check_m4a4, const bool:check_
 			}
 			
 			ArrayGetString(g_aSkinName, i, szSkin, 31);
-
-			if((wid == CSW_M4A1 && check_m4a4 && containi(szSkin, "m4a4") != -1)
-			|| (wid == CSW_M4A1 && !check_m4a4 && containi(szSkin, "m4a4") == -1))
+			if((wid == CSW_M4A1 && check_m4a4 && containi(szSkin, "M4A1") == -1)
+			|| (wid == CSW_M4A1 && !check_m4a4 && containi(szSkin, "M4A1") != -1))
 			{
 				i++
 				continue
 			}
 
-			if((wid == CSW_DEAGLE && check_r8 && containi(szSkin, "r8") != -1) 
-			|| (wid == CSW_DEAGLE && !check_r8 && containi(szSkin, "r8") == -1))
+			if((wid == CSW_DEAGLE && check_r8 && containi(szSkin, "Deagle") == -1) 
+			|| (wid == CSW_DEAGLE && !check_r8 && containi(szSkin, "Deagle") != -1))
 			{
 				i++
 				continue
@@ -9478,7 +9448,7 @@ public trade_menu_handler(id, menu, item)
 					return PLUGIN_HANDLED
 				}
 				
-				if(g_iUserSkins[target][_item] >= SKIN_LIMIT)
+				if(g_iUserSkins[target][_item] == SKIN_LIMIT)
 				{
 					client_print_color(id, id, "^4%s %L", CHAT_PREFIX, id, "CANT_RECEIVE", g_szName[target]);
 					_ShowGiftMenu(id);
@@ -9512,7 +9482,7 @@ public trade_menu_handler(id, menu, item)
 				}
 				else
 				{
-					if(g_iUserSkins[id][_item] >= SKIN_LIMIT)
+					if(g_iUserSkins[id][_item] == SKIN_LIMIT)
 					{
 						client_print_color(id, id, "^4%s %L", CHAT_PREFIX, id, "CANT_RECEIVE", g_szName[id]);
 						_ShowTradeMenu(target)
@@ -9683,15 +9653,15 @@ openTradeMenu(const id, const iWeaponId, const bool:check_m4a4, const bool:check
 			
 			ArrayGetString(g_aSkinName, i, szSkin, 31);
 
-			if((wid == CSW_M4A1 && check_m4a4 && containi(szSkin, "m4a4") != -1)
-			|| (wid == CSW_M4A1 && !check_m4a4 && containi(szSkin, "m4a4") == -1))
+			if((wid == CSW_M4A1 && check_m4a4 && containi(szSkin, "M4A1") == -1)
+			|| (wid == CSW_M4A1 && !check_m4a4 && containi(szSkin, "M4A1") != -1))
 			{
 				i++
 				continue
 			}
 
-			if((wid == CSW_DEAGLE && check_r8 && containi(szSkin, "r8") != -1) 
-			|| (wid == CSW_DEAGLE && !check_r8 && containi(szSkin, "r8") == -1))
+			if((wid == CSW_DEAGLE && check_r8 && containi(szSkin, "Deagle") == -1) 
+			|| (wid == CSW_DEAGLE && !check_r8 && containi(szSkin, "Deagle") != -1))
 			{
 				i++
 				continue
@@ -9858,23 +9828,14 @@ public clcmd_say_accept(id)
 			_ResetTradeData(sender);
 			return 1;
 		}
-		switch (sItem)
-		{
-			default:
-			{
-				g_iUserSkins[id][sItem]++;
-				g_iUserSkins[sender][sItem]--;
-			}
-		}
-		switch (tItem)
-		{
-			default:
-			{
-				g_iUserSkins[id][tItem]--;
-				g_iUserSkins[sender][tItem]++;
-			}
-		}
-		
+
+		g_iUserSkins[id][sItem]++;
+		g_iUserSkins[sender][sItem]--;
+
+
+		g_iUserSkins[id][tItem]--;
+		g_iUserSkins[sender][tItem]++;
+
 		checkInstantDefault(sender, sItem)
 		checkInstantDefault(id, tItem)
 	
@@ -11825,15 +11786,15 @@ openJackpotMenu(const id, const iWeaponId, const bool:check_m4a4, const bool:che
 			
 			ArrayGetString(g_aSkinName, i, szSkin, 31);
 
-			if((wid == CSW_M4A1 && check_m4a4 && containi(szSkin, "m4a4") != -1)
-			|| (wid == CSW_M4A1 && !check_m4a4 && containi(szSkin, "m4a4") == -1))
+			if((wid == CSW_M4A1 && check_m4a4 && containi(szSkin, "M4A1") == -1)
+			|| (wid == CSW_M4A1 && !check_m4a4 && containi(szSkin, "M4A1") != -1))
 			{
 				i++
 				continue
 			}
 
-			if((wid == CSW_DEAGLE && check_r8 && containi(szSkin, "r8") != -1) 
-			|| (wid == CSW_DEAGLE && !check_r8 && containi(szSkin, "r8") == -1))
+			if((wid == CSW_DEAGLE && check_r8 && containi(szSkin, "Deagle") == -1) 
+			|| (wid == CSW_DEAGLE && !check_r8 && containi(szSkin, "Deagle") != -1))
 			{
 				i++
 				continue
@@ -13542,6 +13503,75 @@ public concmd_giveskins(id, level, cid)
 	return PLUGIN_HANDLED;
 }
 
+public any:native_csgo_is_using_default_skins(iPluginID, iParams)
+{
+	new const id = get_param(1)
+
+	if (!IsValidPlayer(id) || !is_user_connected(id))
+	{
+		log_error(AMX_ERR_NATIVE, "[CSGO Classy] Player is not connected [%d]", id);
+		return NativeErrorCode:USER_NOT_CONNECTED;
+	}
+
+	if(!g_bLogged[id])
+	{
+		log_error(AMX_ERR_NATIVE, "[CSGO Classy] Player is not logged in [%d]", id);
+		return NativeErrorCode:USER_NOT_LOGGED;
+	}
+
+	if(!is_user_alive(id))
+	{
+		log_error(AMX_ERR_NATIVE, "[CSGO Classy] Player is not alive [%d]", id);
+		return NativeErrorCode:USER_NOT_LOGGED;
+	}
+
+	new iWeapon = get_member(id, m_pActiveItem)
+	new iWeaponID = get_member(iWeapon, m_iId) 
+
+	return g_bUserDefaultModels[id] && g_iUserSelectedSkin[id][iWeaponID] == -1
+}
+
+public native_aug_sg_unscope(iPluginID, iParams)
+{
+	new iOwner = get_param(1)
+	if(is_user_alive(iOwner))
+	{
+		new iWeaponID = get_user_weapon(iOwner)
+		new iBodyPart
+
+		if(!g_bLogged[iOwner])
+		{
+			set_entvar(iOwner, var_viewmodel, g_szDefaultSkinModels[iWeaponID])
+			return
+		}
+
+
+		if(g_iUserSelectedSkin[iOwner][iWeaponID] != -1)
+		{
+			new szModel[256]
+			ArrayGetString(g_aSkinModel, g_iUserSelectedSkin[iOwner][iWeaponID], szModel, charsmax(szModel))
+
+			CalculateModelBodyIndex(g_iWeaponGloves[iOwner][iWeaponID], szModel, ArrayGetCell(g_aSkinBody, g_iUserSelectedSkin[iOwner][iWeaponID]), iBodyPart)
+
+			set_entvar(iOwner, var_viewmodel, szModel)
+			set_entvar(iOwner, var_body, iBodyPart)
+		}
+		else 
+		{
+			if(!g_bUserDefaultModels[iOwner])
+			{
+				CalculateModelBodyIndex(-1, g_eDefaultModels[iWeaponID][PATH], g_eDefaultModels[iWeaponID][BODYINDEX] > -1 ? g_eDefaultModels[iWeaponID][BODYINDEX] : 0, iBodyPart);
+				set_entvar(iOwner, var_viewmodel, g_eDefaultModels[iWeaponID][PATH])
+				set_entvar(iOwner, var_body, iBodyPart)
+			}
+			else 
+			{
+				set_entvar(iOwner, var_viewmodel, g_szDefaultSkinModels[iWeaponID])
+			}
+		}
+	}
+}
+
 public bool:native_is_using_r8(iPluginID, iParamNum)
 {
 	return g_bUsingR8[get_param(1)]
@@ -14686,7 +14716,7 @@ public ga_handler(id, iMenu, iItem)
 				return PLUGIN_HANDLED
 			}
 			
-			if(g_iUserSkins[id][g_iSkinID] >= SKIN_LIMIT)
+			if(g_iUserSkins[id][g_iSkinID] == SKIN_LIMIT)
 			{
 				client_print_color(id, id, "^4%s^1 %L", CHAT_PREFIX, id, "CANT_JOIN_GIVEAWAY", g_szSkinName)
 				joinGiveaway(id)
