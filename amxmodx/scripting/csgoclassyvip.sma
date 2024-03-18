@@ -185,6 +185,7 @@ enum _:CVARS (+= 1)
 	FREEZE_PRICE,
 	BHOP_PRICE,
 	GOD_MODE_PRICE,
+	GIVE_FLASHBANG
 }
 
 new g_cvar[CVARS];
@@ -226,6 +227,8 @@ public plugin_init()
 
 	data = register_cvar("god_mode_price", "10000")
 	g_cvar[TRIPLE_JUMP_PRICE] = get_pcvar_num(data)
+
+	g_cvar[GIVE_FLASHBANG] = register_cvar("give_flashbang", "1")
 
 	g_iGodModeDuration = get_pcvar_num(g_cvar[GODMODE_TIME]);
 	BUNNYJUMP_MAX_SPEED_FACTOR = get_pcvar_float(g_cvar[BHOP_SPEED]);
@@ -555,14 +558,17 @@ public ShowPistols_handler(id,menu,item)
 	strip_user_weapons(id)
 	give_item(id,"weapon_knife")
 	give_item(id,"weapon_hegrenade")
-	give_item(id,"weapon_flashbang")
 	
 	if(get_pcvar_num(gSmoke) > 0)
 	{
 		give_item(id, "weapon_smokegrenade")
 	}
 
-	cs_set_user_bpammo(id, CSW_FLASHBANG, 2)
+	if(get_pcvar_num(g_cvar[GIVE_FLASHBANG]))
+	{
+		give_item(id,"weapon_flashbang")
+		cs_set_user_bpammo(id, CSW_FLASHBANG, 2)
+	}
 		
 	PistolsSelected[id] = true
 		
@@ -615,14 +621,18 @@ public ShowSecondary_handler(id,menu,item)
 	strip_user_weapons(id)	
 	give_item(id,"weapon_knife")	
 	give_item(id,"weapon_hegrenade")
-	give_item(id,"weapon_flashbang")
 
 	if(get_pcvar_num(gSmoke) > 0)
 	{
 		give_item(id, "weapon_smokegrenade")
 	}
 
-	cs_set_user_bpammo(id, CSW_FLASHBANG, 2)	
+	if(get_pcvar_num(g_cvar[GIVE_FLASHBANG]))
+	{
+		give_item(id,"weapon_flashbang")
+		cs_set_user_bpammo(id, CSW_FLASHBANG, 2)
+	}
+
 	SecondarySelected[id] = true	
 	give_item( id, SecondaryWeapons[ item ][ SecID ] )
 	cs_set_user_bpammo( id, get_weaponid( SecondaryWeapons[ item ][ SecID ] ), SecondaryWeapons[ item ][ SecAmmo ] )
@@ -678,13 +688,18 @@ public vip_weapons_handler(id,menu,item)
 	strip_user_weapons(id)
 	give_item(id,"weapon_knife")
 	give_item(id,"weapon_hegrenade")
-	give_item(id,"weapon_flashbang")
 
 	if(get_pcvar_num(gSmoke) > 0)
 	{
 		give_item(id, "weapon_smokegrenade")
 	}
-	cs_set_user_bpammo(id, CSW_FLASHBANG, 2)	
+
+	if(get_pcvar_num(g_cvar[GIVE_FLASHBANG]))
+	{
+		give_item(id,"weapon_flashbang")
+		cs_set_user_bpammo(id, CSW_FLASHBANG, 2)
+	}
+
 	WeaponSelected[id] = true
 	SecondarySelected[id] = true
 	PistolsSelected[id] = true
@@ -1387,14 +1402,17 @@ public SilverShowPistols_handler(id, menu, item)
 		
 	give_item(id,"weapon_knife")
 	give_item(id,"weapon_hegrenade")
-	give_item(id,"weapon_flashbang")
 	
 	if(get_pcvar_num(gSmoke) > 0)
 	{
 		give_item(id, "weapon_smokegrenade")
 	}
 
-	cs_set_user_bpammo(id, CSW_FLASHBANG, 2)
+	if(get_pcvar_num(g_cvar[GIVE_FLASHBANG]))
+	{
+		give_item(id,"weapon_flashbang")
+		cs_set_user_bpammo(id, CSW_FLASHBANG, 2)
+	}
 		
 	SilverPistolsSelected[id] = true
 		
@@ -1446,14 +1464,18 @@ public SilverShowSecondary_handler(id,menu,item)
 	strip_user_weapons(id)	
 	give_item(id,"weapon_knife")	
 	give_item(id,"weapon_hegrenade")
-	give_item(id,"weapon_flashbang")
 
 	if(get_pcvar_num(gSmoke) > 0)
 	{
 		give_item(id, "weapon_smokegrenade")
 	}
 
-	cs_set_user_bpammo(id, CSW_FLASHBANG, 2)	
+	if(get_pcvar_num(g_cvar[GIVE_FLASHBANG]))
+	{
+		give_item(id,"weapon_flashbang")
+		cs_set_user_bpammo(id, CSW_FLASHBANG, 2)
+	}
+
 	SilverSecondarySelected[id] = true	
 	give_item( id, SilverSecondaryWeapons[ item ][ SecID ] )
 	cs_set_user_bpammo( id, get_weaponid( SilverSecondaryWeapons[ item ][ SecID ] ), SilverSecondaryWeapons[ item ][ SecAmmo ] )
@@ -1510,14 +1532,17 @@ public Silvervip_weapons_handler(id,menu,item)
 		
 	give_item(id,"weapon_knife")
 	give_item(id,"weapon_hegrenade")
-	give_item(id,"weapon_flashbang")
 	
 	if(get_pcvar_num(gSmoke) > 0)
 	{
 		give_item(id, "weapon_smokegrenade")
 	}
 	
-	cs_set_user_bpammo(id, CSW_FLASHBANG, 2)
+	if(get_pcvar_num(g_cvar[GIVE_FLASHBANG]))
+	{
+		give_item(id,"weapon_flashbang")
+		cs_set_user_bpammo(id, CSW_FLASHBANG, 2)
+	}
 		
 	SilverWeaponSelected[id] = true
 	SilverSecondarySelected[id] = true

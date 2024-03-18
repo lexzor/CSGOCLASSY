@@ -49,21 +49,20 @@
 172.18.0.2:27015 - devilboy extreamcs
 188.212.101.144:27015 - go.weststrike.ro
 188.212.102.180:27015 - CSGO.NEBUNATICII.RO
-172.18.0.2:27015 -> marty
+51.195.74.62:27015 -> marty
 93.114.82.116:27015 -> TecH
 93.114.82.73:27015 -> global.leaguecs.ro
 93.114.82.98:27015 -> knd.leaguecs.ro // no awp bug
-51.68.162.219:27015 -> csgo.devilz.ro
-93.114.82.16:27015 -> teste csgo.devilz.ro
+51.38.117.63:27015 -> bddygal
 */
 
 // #define AWP_SKIN_BUG
-#define LICENSED_IP "188.212.101.238:27015"
+#define LICENSED_IP "51.38.117.63:27015"
 #define TOTAL_SKINS 1025
 static const MODE = 0; // 1 - DNS, 0 - IP
 
-#define MENU_PREFIX "\y[\dERAZER\y]\w"
-#define CHAT_PREFIX "^4[^3ERAZER^4]^1"
+#define MENU_PREFIX "\y[\dCSGO Classy\y]\w"
+#define CHAT_PREFIX "^4[^3CSGO Classy^4]^1"
 #define CONSOLE_PREFIX "[CSGO Classy]"
 
 #define MAIN_MENU_DEFAULT_ITEMS_COUNT 14
@@ -1143,7 +1142,7 @@ public plugin_natives()
 
 	register_library("csgoclassy");
 
-	register_native("csgo_is_using_default_skin", "native_csgo_is_using_default_skins")
+	register_native("csgo_is_using_default_skin", "native_csgo_is_using_default_skin")
 	register_native("csgo_add_inventory_item_value", "native_csgo_add_inventory_item_value")
 	register_native("csgo_additional_menu_name", "native_csgo_additional_menu_name")
 	register_native("csgo_register_menu", "native_csgo_register_menu")
@@ -13490,20 +13489,17 @@ public concmd_giveskins(id, level, cid)
 	return PLUGIN_HANDLED;
 }
 
-public any:native_csgo_is_using_default_skins(iPluginID, iParams)
+public any:native_csgo_is_using_default_skin(iPluginID, iParams)
 {
 	new const id = get_param(1)
 
+	if(!g_bLogged[id])
+		return false
+	
 	if (!IsValidPlayer(id) || !is_user_connected(id))
 	{
 		log_error(AMX_ERR_NATIVE, "[CSGO Classy] Player is not connected [%d]", id);
 		return NativeErrorCode:USER_NOT_CONNECTED;
-	}
-
-	if(!g_bLogged[id])
-	{
-		log_error(AMX_ERR_NATIVE, "[CSGO Classy] Player is not logged in [%d]", id);
-		return NativeErrorCode:USER_NOT_LOGGED;
 	}
 
 	if(!is_user_alive(id))
