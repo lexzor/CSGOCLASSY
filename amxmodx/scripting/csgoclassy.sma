@@ -49,15 +49,18 @@
 172.18.0.2:27015 - devilboy extreamcs
 188.212.101.144:27015 - go.weststrike.ro
 188.212.102.180:27015 - CSGO.NEBUNATICII.RO
-51.195.74.62:27015 -> marty
+51.195.74.62:27015 / 172.18.0.5:27015(ala nou) -> marty
 93.114.82.116:27015 -> TecH
 93.114.82.73:27015 -> global.leaguecs.ro
 93.114.82.98:27015 -> knd.leaguecs.ro // no awp bug
 51.38.117.63:27015 -> bddygal
+CSGO.VIPARENA.RO -> CoX
+51.68.162.219:27015 -> BMW
+104.234.189.173:27058 -> brazilianu
 */
 
 // #define AWP_SKIN_BUG
-#define LICENSED_IP "51.38.117.63:27015"
+#define LICENSED_IP "104.234.189.173:27058"
 #define TOTAL_SKINS 1025
 static const MODE = 0; // 1 - DNS, 0 - IP
 
@@ -234,6 +237,12 @@ enum _:RANG_DATA
 {
 	RANG_NAME[64],
 	RANG_EXP
+}
+
+enum _:ActiveAdditionalSkins
+{
+	M4A4,
+	R8
 }
 
 enum
@@ -531,7 +540,7 @@ static const g_szStatsLang[][] =
 static const M4A4_MENU_ID = 3
 static const R8_MENU_ID = 6
 
-static const g_WeapMenu[][WEAPONS] =
+static const g_eWeaponMenu[][WEAPONS] =
 {
 	{ "Knives", CSW_KNIFE },
 	{ "AK47", CSW_AK47 },
@@ -799,9 +808,11 @@ g_CvarMVPMinCases,g_CvarMVPMaxKeys,g_CvarMVPMinKeys,g_CvarMVPMinScraps,g_CvarMVP
 g_CvarSkinType, g_CvarSaveType, g_CvarKnifeKillScraps, g_CvarDoubleScope, g_CvarStatsCountCmds;
 new msgScreenFade;
 new g_hWeekBonus;
+new g_iRoundsToPlay;
 new bool:g_bWeekBonusActive;
 new bool:g_bActiveGloveSystem;
-new g_iRoundsToPlay;
+
+new bool:g_bActiveSkins[ActiveAdditionalSkins]
 
 new g_eForwards[FORWARDS]
 
@@ -1961,7 +1972,7 @@ _SaveData(id)
 	}
 }
 
-SaveSQLData(id)
+SaveSQLData(const id)
 {
 	static szQuery[TOTAL_SKINS * 10], iTotalInventoryValue, iQueryLen, weaponkill[4096];
 	static droppedskins[2][TOTAL_SKINS * 6], weapbuff[TOTAL_SKINS * 6], stattrackkill[TOTAL_SKINS * 6], stattrackskins[TOTAL_SKINS * 6];
@@ -1982,16 +1993,8 @@ SaveSQLData(id)
 	iLen[1] = 0
 	iLen[2] = 0
 
-	new szSkinName[256]
-
 	for(new i = 1; i < CS_MAX_WEAPONS; i++)
-	{		
-
-		if(g_iUserSelectedSkin[id][i] != -1)
-		{
-			ArrayGetString(g_aSkinName, g_iUserSelectedSkin[id][i], szSkinName, charsmax(szSkinName))
-		}
-		
+	{				
 		iLen[0] += formatex(skinbuff[iLen[0]], charsmax(skinbuff), "%d,", g_iUserSelectedSkin[id][i]);
 		iLen[1] += formatex(stattrakbuff[iLen[1]], charsmax(stattrakbuff), "%d,", _:g_bShallUseStt[id][i])
 		iLen[2] += formatex(weaponkill[iLen[2]], charsmax(weaponkill), "%d,", g_iUserWeaponKill[id][i])
@@ -2150,9 +2153,7 @@ _LoadData(id)
 GetSQLData(id)
 {
 	if(IsRegistered(id))
-	{
-		return PLUGIN_HANDLED;
-	}
+		return;
 
 	g_bWaitingResponse[id] = true;
 	new iData[1]; iData[0] = id; new szQuery[512];
@@ -2168,7 +2169,7 @@ GetSQLData(id)
 											g_szTables[PLAYER_DATA], g_szSQLName[id]);
 
 	SQL_ThreadQuery(g_SqlTuple, "GetUserData", szQuery, iData, sizeof(iData));
-	return PLUGIN_CONTINUE;
+	return;
 }
 
 public GetUserData(FailState, Handle:Query, szError[], ErrorCode, szData[], iSize)
@@ -2375,6 +2376,16 @@ public GetUserData(FailState, Handle:Query, szError[], ErrorCode, szData[], iSiz
 	return;
 }
 
+bool:IsSkinDeagle(const name[])
+{
+	return containi(name, "Deagle") != -1 || containi(name, "Desert Eagle") != -1
+}
+
+bool:IsSkinM4A1(const name[])
+{
+	return containi(name, "M4A1") != -1
+}
+
 public SetUserSkin(const id, const skinid, const weaponid)
 {
 	new iBodyPart
@@ -2391,8 +2402,8 @@ public SetUserSkin(const id, const skinid, const weaponid)
 		new szSkinName[64]
 		ArrayGetString(g_aSkinName, skinid, szSkinName, charsmax(szSkinName))
 
-		g_bUsingR8[id] 		= weaponid == CSW_DEAGLE ? containi(szSkinName, "Deagle") == -1 : false
-		g_bUsingM4A4[id] 	= weaponid == CSW_M4A1 ? containi(szSkinName, "M4A1") == -1 : false
+		g_bUsingR8[id] 		= weaponid == CSW_DEAGLE ? !IsSkinDeagle(szSkinName) : false
+		g_bUsingM4A4[id] 	= weaponid == CSW_M4A1 ? !IsSkinM4A1(szSkinName) : false
 
 		if(g_bUsingM4A4[id])
 		{
@@ -2422,7 +2433,8 @@ public FreeHandle(FailState, Handle:Query, szError[], ErrorCode, szData[], iSize
 {
 	if(FailState || ErrorCode)
 	{
-		log_to_file(LOG_FILE, "[FREEHANDLE] [LINE: %i] An SQL Error has been encoutered. Error code %i.^nError: %s", szData[0], ErrorCode, szError);
+		log_to_file(LOG_FILE, "[FREEHANDLE] [LINE: %i] Threaded query critical error (query failed). Error code %i.^nError: %s", szData[0], ErrorCode, szError);
+		log_amx("Error while executing query. Check %s", LOG_FILE)
 	}
 
 	SQL_FreeHandle(Query);
@@ -3923,16 +3935,22 @@ public show_stattrak_inventory(id)
 	
 	new szItem[128], szData[16];
 
-	for(new i, bool:bCheckM4A4, bool:bCheckR8; i < sizeof(g_WeapMenu); i++)
+	for(new i, bool:bCheckM4A4, bool:bCheckR8; i < sizeof(g_eWeaponMenu); i++)
 	{
-		bCheckM4A4 = bool:(g_WeapMenu[i][WeaponID] == CSW_M4A1 && i == M4A4_MENU_ID)
-		bCheckR8 = bool:(g_WeapMenu[i][WeaponID] == CSW_DEAGLE && i == R8_MENU_ID)
-		
-		if(getMaxSkinsOfWeapon(g_WeapMenu[i][WeaponID], bCheckM4A4, bCheckR8 ))
-		{
-			formatex(szItem, charsmax(szItem), "%s \r[\w%d\r]", g_WeapMenu[i][WeapName], getUserStattrakSkins(id, g_WeapMenu[i][WeaponID], bCheckM4A4, bCheckR8))
+		bCheckM4A4 = bool:(g_eWeaponMenu[i][WeaponID] == CSW_M4A1 && i == M4A4_MENU_ID)
+		bCheckR8 = bool:(g_eWeaponMenu[i][WeaponID] == CSW_DEAGLE && i == R8_MENU_ID)
 
-			formatex(szData, charsmax(szData), "%i#%i#%i", g_WeapMenu[i][WeaponID], _:bCheckM4A4, _:bCheckR8)
+		if(bCheckM4A4 && !g_bActiveSkins[M4A4])
+			continue
+		
+		if(bCheckR8 && !g_bActiveSkins[R8])
+			continue
+		
+		if(getMaxSkinsOfWeapon(g_eWeaponMenu[i][WeaponID], bCheckM4A4, bCheckR8))
+		{
+			formatex(szItem, charsmax(szItem), "%s \r[\w%d\r]", g_eWeaponMenu[i][WeapName], getUserStattrakSkins(id, g_eWeaponMenu[i][WeaponID], bCheckM4A4, bCheckR8))
+
+			formatex(szData, charsmax(szData), "%i %i %i", g_eWeaponMenu[i][WeaponID], _:bCheckM4A4, _:bCheckR8)
 			menu_additem(iMenu, szItem, szData);
 		}
 	}
@@ -3963,7 +3981,6 @@ public show_stattrak_inventory_handler(id, menu, item)
 	new szWeaponID[6], szCheckM4A4[6], szCheckR8[6], iWeaponID, bool:bCheckM4A4, bool:bCheckR8
 	parse(szPassedData, szWeaponID, charsmax(szWeaponID), szCheckM4A4, charsmax(szCheckM4A4), szCheckR8, charsmax(szCheckR8))
 
-
 	iWeaponID = str_to_num(szWeaponID)
 	bCheckM4A4 = bool:(str_to_num(szCheckM4A4))
 	bCheckR8 = bool:(str_to_num(szCheckR8))
@@ -3981,14 +3998,14 @@ public show_stattrak_inventory_handler(id, menu, item)
 
 		ArrayGetString(g_aSkinName, i, szSkinName, charsmax(szSkinName))
 
-		if((iWeaponID == CSW_M4A1 && bCheckM4A4 && containi(szSkinName, "M4A1") == -1)
-		|| (iWeaponID == CSW_M4A1 && !bCheckM4A4 && containi(szSkinName, "M4A1") != -1))
+		if((iWeaponID == CSW_M4A1 && bCheckM4A4 && IsSkinM4A1(szSkinName))
+		|| (iWeaponID == CSW_M4A1 && !bCheckM4A4 && containi(szSkinName, "M4A1") == -1))
 		{
 			continue
 		}
 
-		if((iWeaponID == CSW_DEAGLE && bCheckR8 && containi(szSkinName, "Deagle") == -1) 
-		|| (iWeaponID == CSW_DEAGLE && !bCheckR8 && containi(szSkinName, "Deagle") != -1))
+		if((iWeaponID == CSW_DEAGLE && bCheckR8 && IsSkinDeagle(szSkinName)) 
+		|| (iWeaponID == CSW_DEAGLE && !bCheckR8 && !IsSkinDeagle(szSkinName)))
 		{
 			continue
 		}
@@ -4365,26 +4382,19 @@ getUserStattrakSkins(id, iWeaponID, bool:check_m4a4 = false, bool:check_r8 = fal
 		
 		if(check_m4a4 || check_r8)
 		{
-			
 			if(check_m4a4)
 			{
-				iTotalSkins = bool:(containi(szSkinName, "M4A1") == -1 ) ? (iTotalSkins + 1) : iTotalSkins
+				iTotalSkins += IsSkinM4A1(szSkinName) ? 0 : 1
 			}
 
 			if(check_r8)
 			{
-				iTotalSkins = bool:(containi(szSkinName, "Deagle") == -1 ) ? (iTotalSkins + 1) : iTotalSkins
+				iTotalSkins += IsSkinDeagle(szSkinName) ? 0 : 1
 			}
 		}
 		else 
 		{
-			if(
-				containi(szSkinName, "M4A1") != -1 &&
-				containi(szSkinName, "Deagle") != -1
-			)
-			{
-				iTotalSkins++;
-			}
+			iTotalSkins++;
 		}
 	}
 
@@ -4395,29 +4405,38 @@ public open_preview_menu(id)
 {
 	new iMenu = menu_create(fmt("%s Preview Menu", MENU_PREFIX), "preview_menu_handler");
 	
-	new szItem[128], szData[5]
+	new szItem[128], szData[32], bool:bCheckM4A4, bool:bCheckR8
 
-	for(new i; i < sizeof(g_WeapMenu); i++)
+	for(new i; i < sizeof(g_eWeaponMenu); i++)
 	{
+		bCheckM4A4 = g_eWeaponMenu[i][WeaponID] == CSW_M4A1 && i == M4A4_MENU_ID
+		bCheckR8 = g_eWeaponMenu[i][WeaponID] == CSW_DEAGLE && i == R8_MENU_ID
+
+		if(bCheckM4A4 && !g_bActiveSkins[M4A4])
+			continue
+		
+		if(bCheckR8 && !g_bActiveSkins[R8])
+			continue
+
 		if(getMaxSkinsOfWeapon(
-			g_WeapMenu[i][WeaponID],
-			(g_WeapMenu[i][WeaponID] == CSW_M4A1 && i == M4A4_MENU_ID),
-			(g_WeapMenu[i][WeaponID] == CSW_DEAGLE && i == R8_MENU_ID)) > 0)
+			g_eWeaponMenu[i][WeaponID],
+			bCheckM4A4,
+			bCheckR8) > 0)
 		{							
-			if(g_WeapMenu[i][WeaponID] == CSW_M4A1 && i == M4A4_MENU_ID)
+			if(bCheckM4A4)
 			{
-				formatex(szItem, charsmax(szItem), "%s \r[\w%d\r]", g_WeapMenu[i][WeapName], getMaxSkinsOfWeapon(g_WeapMenu[i][WeaponID], true))
+				formatex(szItem, charsmax(szItem), "%s \r[\w%d\r]", g_eWeaponMenu[i][WeapName], getMaxSkinsOfWeapon(g_eWeaponMenu[i][WeaponID], true))
 			}
-			else if (g_WeapMenu[i][WeaponID] == CSW_DEAGLE && i == R8_MENU_ID)
+			else if (bCheckR8)
 			{
-				formatex(szItem, charsmax(szItem), "%s \r[\w%d\r]", g_WeapMenu[i][WeapName], getMaxSkinsOfWeapon(g_WeapMenu[i][WeaponID], true))
+				formatex(szItem, charsmax(szItem), "%s \r[\w%d\r]", g_eWeaponMenu[i][WeapName], getMaxSkinsOfWeapon(g_eWeaponMenu[i][WeaponID], true))
 			}
 			else 
 			{
-				formatex(szItem, charsmax(szItem), "%s \r[\w%d\r]", g_WeapMenu[i][WeapName], getMaxSkinsOfWeapon(g_WeapMenu[i][WeaponID]))
+				formatex(szItem, charsmax(szItem), "%s \r[\w%d\r]", g_eWeaponMenu[i][WeapName], getMaxSkinsOfWeapon(g_eWeaponMenu[i][WeaponID]))
 			}		
 
-			num_to_str(g_WeapMenu[i][WeaponID], szData, charsmax(szData))
+			formatex(szData, charsmax(szData), "%i %i %i", g_eWeaponMenu[i][WeaponID], _:bCheckM4A4, _:bCheckR8)
 			menu_additem(iMenu, szItem, szData);
 		}
 	}
@@ -4442,15 +4461,23 @@ public preview_menu_handler(id, menu, item)
 		return PLUGIN_HANDLED;
 	}
 
-	new szWeaponID[4], szItemName[32];
-	menu_item_getinfo(menu, item, _, szWeaponID, charsmax(szWeaponID), szItemName, charsmax(szItemName), _);
-	new iWeaponID = str_to_num(szWeaponID);
+	enum _:SkinMenuData
+	{
+		WEAPONID,
+		CHECK_M4A4,
+		CHECK_R8
+	}
 
-	new bool:bCheckM4A4 = iWeaponID == CSW_M4A1 ? containi(szItemName, "M4A1") == -1 : false
-	new bool:bCheckR8 = iWeaponID == CSW_DEAGLE ? containi(szItemName, "Deagle") == -1 : false
+	new szData[32], szParsedData[SkinMenuData][9], szItemName[32];
+	menu_item_getinfo(menu, item, _, szData, charsmax(szData), szItemName, charsmax(szItemName), _);
+	parse(szData, szParsedData[WEAPONID], charsmax(szParsedData[]), szParsedData[CHECK_M4A4], charsmax(szParsedData[]), szParsedData[CHECK_R8], charsmax(szParsedData[]))
+
+	new const iWeaponID = str_to_num(szParsedData[WEAPONID])
+	new const bool:bCheckM4A4 = bool:str_to_num(szParsedData[CHECK_M4A4])
+	new const bool:bCheckR8 = bool:str_to_num(szParsedData[CHECK_R8])
 
 	new iMenu = menu_create(fmt("%s Preview skin menu^n^n\dCurrent page\w:\r", MENU_PREFIX), "preview_skin_handler");
-	new szData[6], szSkinName[64], szItem[100];
+	new szSkinID[6], szSkinName[64], szItem[100];
 
 	for(new i; i < g_iSkinsNum; i++)
 	{
@@ -4459,14 +4486,14 @@ public preview_menu_handler(id, menu, item)
 
 		ArrayGetString(g_aSkinName, i, szSkinName, charsmax(szSkinName));		
 
-		if((iWeaponID == CSW_M4A1 && bCheckM4A4 && containi(szSkinName, "M4A1") == -1)
-		|| (iWeaponID == CSW_M4A1 && !bCheckM4A4 && containi(szSkinName, "M4A1") != -1))
+		if((iWeaponID == CSW_M4A1 && bCheckM4A4 && IsSkinM4A1(szSkinName))
+		|| (iWeaponID == CSW_M4A1 && !bCheckM4A4 && containi(szSkinName, "M4A1") == -1))
 		{
 			continue
 		}
 
-		if((iWeaponID == CSW_DEAGLE && bCheckR8 && containi(szSkinName, "Deagle") == -1) 
-		|| (iWeaponID == CSW_DEAGLE && !bCheckR8 && containi(szSkinName, "Deagle") != -1))
+		if((iWeaponID == CSW_DEAGLE && bCheckR8 && IsSkinDeagle(szSkinName)) 
+		|| (iWeaponID == CSW_DEAGLE && !bCheckR8 && !IsSkinDeagle(szSkinName)))
 		{
 			continue
 		}
@@ -4477,8 +4504,8 @@ public preview_menu_handler(id, menu, item)
 		}
 		else copy(szItem, charsmax(szItem), szSkinName);
 
-		num_to_str(i, szData, charsmax(szData))
-		menu_additem(iMenu, szItem, szData);
+		num_to_str(i, szSkinID, charsmax(szSkinID))
+		menu_additem(iMenu, szItem, szSkinID);
 	}
 
 	if(is_user_connected(id))
@@ -4524,9 +4551,9 @@ public preview_skin_handler(id, menu, item)
 		iChance = random_num(1, 100);
 
 	if(iChance < 0 && g_CvarShowSpecialSkins)
-		client_print_color(id, print_team_default, "^4[CSGO Classy]^1 This skin cannot be obtained!");
+		client_print_color(id, print_team_default, "%s This skin cannot be obtained!", CHAT_PREFIX);
 	else
-		client_print_color(id, print_team_default, "^4[CSGO Classy]^1 Price: ^4%d$^1. Chance: ^4%d^3/^4%s^1.", ArrayGetCell(g_aSkinCostMin, index), iChance, "100");
+		client_print_color(id, print_team_default, "%s Price: ^4%d$^1. Chance: ^4%d^3/^4%s^1.", CHAT_PREFIX, ArrayGetCell(g_aSkinCostMin, index), iChance, "100");
 	
 	g_bIsInPreview[id] = true;
 
@@ -4580,7 +4607,7 @@ public open_gloves_menu_handler(id, menu, item)
 		if(menu != 0)
 			menu_destroy(menu);
 		ShowInventoryMenu(id);
-		return PLUGIN_HANDLED;
+		return;
 	}
 
 	new szMessage[192], szItem[64];
@@ -4592,7 +4619,7 @@ public open_gloves_menu_handler(id, menu, item)
 			if(g_iGlovesCases[id] == 0 || g_iUserKeys[id] == 0)
 			{
 				open_gloves_menu(id);
-				return PLUGIN_HANDLED;
+				return;
 			}
 			new iRandom= random_num(0, 100);
 
@@ -4608,10 +4635,10 @@ public open_gloves_menu_handler(id, menu, item)
 				new eGlove[GLOVESINFO];
 				ArrayGetArray(g_aGloves, iRandomGlove, eGlove);
 
-				formatex(szMessage, charsmax(szMessage), "^4[CSGO Classy] %s^1 dropped^3 %s", g_szName[id], eGlove[szGloveName]);
+				formatex(szMessage, charsmax(szMessage), "%s %s^1 dropped^3 %s", CHAT_PREFIX, g_szName[id], eGlove[szGloveName]);
 				send_message(id, szMessage);
 			}
-			else client_print_color(id, print_team_default, "^4[CSGO Classy]^1 You didn't get a^3 glove");
+			else client_print_color(id, print_team_default, "%s You didn't get a^3 glove", CHAT_PREFIX);
 
 			g_iUserKeys[id]--;
 			g_iGlovesCases[id]--;
@@ -4657,17 +4684,18 @@ public open_gloves_menu_handler(id, menu, item)
 			new iMenu = menu_create(fmt("%s Add gloves to a weapon^n^n%l", MENU_PREFIX, "MENU_ADD_GLOVES_TEXT"), "show_gloves_weapon_menu");
 			new szData[5], eGlove[GLOVESINFO], szActiveGloveName[64], iWeaponID, iCount, szItem[64];
 
-			for(new i; i < sizeof(g_WeapMenu); i++)
+			for(new i; i < sizeof(g_eWeaponMenu); i++)
 			{
-				iWeaponID = g_WeapMenu[i][WeaponID];
+				iWeaponID = g_eWeaponMenu[i][WeaponID];
 
-				if(getMaxSkinsOfWeapon(iWeaponID) > 0 && ArrayFindValue(g_aWeapIDs, iWeaponID) != -1)
+				// if(getMaxSkinsOfWeapon(iWeaponID) > 0 && ArrayFindValue(g_aWeapIDs, iWeaponID) != -1)
+				if(getMaxSkinsOfWeapon(iWeaponID) > 0) // TODO: Why i searchef if the skin has a weapon id? (CHECK 4 ERRORS)
 				{									
 					ArrayGetArray(g_aGloves, g_iWeaponGloves[id][iWeaponID] == -1 ? 0 : g_iWeaponGloves[id][iWeaponID], eGlove);
 					formatex(szActiveGloveName, charsmax(szActiveGloveName), " \r[%s%s\r]", g_iWeaponGloves[id][iWeaponID] == -1 ? "\d" : "\y", eGlove[szGloveName]);
 
-					formatex(szItem, charsmax(szItem), "%s%s", g_WeapMenu[i][WeapName], szActiveGloveName);
-					num_to_str(g_WeapMenu[i][WeaponID], szData, charsmax(szData))
+					formatex(szItem, charsmax(szItem), "%s%s", g_eWeaponMenu[i][WeapName], szActiveGloveName);
+					num_to_str(g_eWeaponMenu[i][WeaponID], szData, charsmax(szData))
 					menu_additem(iMenu, szItem, szData);
 					iCount++;
 				}
@@ -4692,7 +4720,7 @@ public open_gloves_menu_handler(id, menu, item)
 		}
 	}
 
-	return PLUGIN_CONTINUE;
+	return;
 }
 
 getRandomGlove(bool:bVIP)
@@ -4819,21 +4847,21 @@ public add_gloves_to_weapon_handler(id, menu, item)
 
 	if(g_bSellGlove[id] == true && (g_iMarketGloveID[id] == iGloveID) && g_iUserGloves[id][iGloveID] < 2)
 	{
-		client_print_color(id, print_team_default, "^4[CSGO Classy]^1 Can't^4 perform^1 this action because you are selling^3 %s^4 glove", eGlove[szGloveName]);
+		client_print_color(id, print_team_default, "%s Can't^4 perform^1 this action because you are selling^3 %s^4 glove", CHAT_PREFIX, eGlove[szGloveName]);
 		open_gloves_menu_handler(id, 0, 2);
 		return PLUGIN_HANDLED
 	}
 
 	if(!g_CvarCanUserUseVIPGloves && eGlove[iVIPOnly] && !is_user_gold_vip(id))
 	{
-		client_print_color(id, print_team_default, "^4[CSGO Classy]^1 You must be^3 Gold VIP^1 to set^3 %s^4 glove^1 on^4 %s^1 skins", eGlove[szGloveName], szWeapName);
+		client_print_color(id, print_team_default, "%s You must be^3 Gold VIP^1 to set^3 %s^4 glove^1 on^4 %s^1 skins", CHAT_PREFIX, eGlove[szGloveName], szWeapName);
 		open_gloves_menu_handler(id, 0, 2);
 		return PLUGIN_HANDLED;
 	}
 
 	if(g_iWeaponGloves[id][iWeaponID] == iGloveID)
 	{
-		client_print_color(id, print_team_default, "^4[CSGO Classy]^1 You already use this type of^3 glove");
+		client_print_color(id, print_team_default, "%s You already use this type of^3 glove", CHAT_PREFIX);
 		open_gloves_menu_handler(id, 0, 2);
 		return PLUGIN_HANDLED;
 	}
@@ -4862,7 +4890,7 @@ public add_gloves_to_weapon_handler(id, menu, item)
 
 	save_user_gloves(id);
 
-	client_print_color(id, print_team_default, "^4[CSGO Classy]^1 You set^3 %s^1 for^4 %s^1 skins%s %s",
+	client_print_color(id, print_team_default, "%s You set^3 %s^1 for^4 %s^1 skins%s %s", CHAT_PREFIX,
 	eGlove[szGloveName], szWeapName, iUsedGloveID == -1 ? "" : " and got back your^3", iUsedGloveID == -1 ? "" : szLastGloveName);
 
 	return PLUGIN_CONTINUE;
@@ -5151,6 +5179,7 @@ openUpgradeMenu(const id, const iWeaponId, const bool:check_m4a4, const bool:che
 	new num;
 	new total;
 	new i, wid;
+
 	while (i < g_iSkinsNum)
 	{
 		num = g_iUserSkins[id][i];
@@ -5165,15 +5194,15 @@ openUpgradeMenu(const id, const iWeaponId, const bool:check_m4a4, const bool:che
 			
 			ArrayGetString(g_aSkinName, i, szSkin, 31);
 
-			if((wid == CSW_M4A1 && check_m4a4 && containi(szSkin, "M4A1") == -1)
-			|| (wid == CSW_M4A1 && !check_m4a4 && containi(szSkin, "M4A1") != -1))
+			if((wid == CSW_M4A1 && check_m4a4 && IsSkinM4A1(szSkin))
+			|| (wid == CSW_M4A1 && !check_m4a4 && !IsSkinM4A1(szSkin)))
 			{
 				i++
 				continue
 			}
 
-			if((wid == CSW_DEAGLE && check_r8 && containi(szSkin, "Deagle") == -1) 
-			|| (wid == CSW_DEAGLE && !check_r8 && containi(szSkin, "Deagle") != -1))
+			if((wid == CSW_DEAGLE && check_r8 && IsSkinDeagle(szSkin)) 
+			|| (wid == CSW_DEAGLE && !check_r8 && !IsSkinDeagle(szSkin)))
 			{
 				i++
 				continue
@@ -5695,15 +5724,15 @@ openContractMenu(const id, const iWeaponId, const bool:check_m4a4, const bool:ch
 			
 			ArrayGetString(g_aSkinName, i, szSkin, charsmax(szSkin));
 
-			if((wid == CSW_M4A1 && check_m4a4 && containi(szSkin, "M4A1") == -1)
-			|| (wid == CSW_M4A1 && !check_m4a4 && containi(szSkin, "M4A1") != -1))
+			if((wid == CSW_M4A1 && check_m4a4 && IsSkinM4A1(szSkin))
+			|| (wid == CSW_M4A1 && !check_m4a4 && !IsSkinM4A1(szSkin)))
 			{
 				i++
 				continue
 			}
 
-			if((wid == CSW_DEAGLE && check_r8 && containi(szSkin, "Deagle") == -1) 
-			|| (wid == CSW_DEAGLE && !check_r8 && containi(szSkin, "Deagle") != -1))
+			if((wid == CSW_DEAGLE && check_r8 && IsSkinDeagle(szSkin)) 
+			|| (wid == CSW_DEAGLE && !check_r8 && !IsSkinDeagle(szSkin)))
 			{
 				i++
 				continue
@@ -5984,19 +6013,25 @@ _ShowSkinMenu(id)
 	new szTitle[256]
 	formatex(szTitle, charsmax(szTitle), "%s %L", MENU_PREFIX, id, "MENU_SKINS")
 	new iMenu = menu_create(szTitle, "skins_handler")	
-	new szItem[128], szData[5], iWeaponID, iMaxSkins, iUserTotalSkins, iWeapSkins
+	new szItem[128], szData[32], iWeaponID, iMaxSkins, iUserTotalSkins, iWeapSkins
 
 	new bool:bCheckM4A4, bool:bCheckR8;
 
-	for(new i; i < sizeof(g_WeapMenu); i++)
+	for(new i; i < sizeof(g_eWeaponMenu); i++)
 	{
-		iWeaponID = g_WeapMenu[i][WeaponID];
+		iWeaponID = g_eWeaponMenu[i][WeaponID];
 
-		bCheckM4A4	= 	g_WeapMenu[i][WeaponID] == CSW_M4A1 && i == M4A4_MENU_ID
-		bCheckR8 	= 	g_WeapMenu[i][WeaponID] == CSW_DEAGLE && i == R8_MENU_ID
+		bCheckM4A4	= 	iWeaponID == CSW_M4A1 && i == M4A4_MENU_ID
+		bCheckR8 	= 	iWeaponID == CSW_DEAGLE && i == R8_MENU_ID
+
+		if(bCheckM4A4 && !g_bActiveSkins[M4A4])
+			continue
+		
+		if(bCheckR8 && !g_bActiveSkins[R8])
+			continue
 
 		iMaxSkins = getMaxSkinsOfWeapon(
-			g_WeapMenu[i][WeaponID],
+			iWeaponID,
 			bCheckM4A4,
 			bCheckR8)
 
@@ -6004,9 +6039,9 @@ _ShowSkinMenu(id)
 		{							
 			iWeapSkins = getUserSkinsValue(id, iWeaponID, bCheckM4A4, bCheckR8)
 			
-			formatex(szItem, charsmax(szItem), "%s \d[\r%d\w/\y%d\d]", g_WeapMenu[i][WeapName], iWeapSkins, iMaxSkins * 5);
+			formatex(szItem, charsmax(szItem), "%s \d[\r%d\w/\y%d\d]", g_eWeaponMenu[i][WeapName], iWeapSkins, iMaxSkins * 5);
 			
-			num_to_str(g_WeapMenu[i][WeaponID], szData, charsmax(szData));
+			formatex(szData, charsmax(szData), "%i %i %i", iWeaponID, _:bCheckM4A4, _:bCheckR8)
 			menu_additem(iMenu, szItem, szData);
 
 			iUserTotalSkins += iWeapSkins
@@ -6047,7 +6082,7 @@ stock getUserSkinsValue(const id, const iWeaponID, const bool:check_m4a4 = false
 
 			if(check_r8)
 			{
-				iTotalSkins += bool:(containi(szSkinName, "Deagle") == -1) ? g_iUserSkins[id][i] : 0
+				iTotalSkins += bool:(!IsSkinDeagle(szSkinName)) ? g_iUserSkins[id][i] : 0
 			}
 		}
 		else 
@@ -6084,7 +6119,7 @@ stock getMaxSkinsOfWeapon(const iWeaponID, const bool:check_m4a4 = false, const 
 
 			if(check_r8)
 			{
-				iTotalSkins += bool:(containi(szSkinName, "Deagle") == -1) ? 1 : 0
+				iTotalSkins += bool:(!IsSkinDeagle(szSkinName)) ? 1 : 0
 			}
 		}
 		else 
@@ -6105,13 +6140,13 @@ public skins_handler(id, iMenu, iItem)
 		return PLUGIN_HANDLED
 	}
 
-	new szData[6], szItemName[64]
+	new szData[32], szItemName[64], szPassedData[3][9]
 	menu_item_getinfo(iMenu, iItem, _, szData, charsmax(szData), szItemName, charsmax(szItemName), _)
-	
-	new const iWeaponID = str_to_num(szData)
+	parse(szData, szPassedData[0], charsmax(szPassedData[]), szPassedData[1], charsmax(szPassedData[]), szPassedData[2], charsmax(szPassedData[]))
 
-	new const bool:bCheckM4A4 = iWeaponID == CSW_M4A1 ? containi(szItemName, "M4A1") == -1 : false 
-	new const bool:bCheckR8 = iWeaponID == CSW_DEAGLE ? containi(szItemName, "Deagle") == -1 : false
+	new const iWeaponID = str_to_num(szPassedData[0])
+	new const bool:bCheckM4A4 = bool:str_to_num(szPassedData[1])
+	new const bool:bCheckR8 = bool:str_to_num(szPassedData[2])
 
 	g_iWeaponIdToCheck[id] = iWeaponID
 
@@ -6161,15 +6196,15 @@ openInventory(const id, const iWeaponId, const bool:check_m4a4, const bool:check
 
 			ArrayGetString(g_aSkinName, i, skinName, 47);
 
-			if((wid == CSW_M4A1 && check_m4a4 && containi(skinName, "M4A1") != -1) 
-			|| (wid == CSW_M4A1 && !check_m4a4 && containi(skinName, "M4A1") == -1)) 
+			if((wid == CSW_M4A1 && check_m4a4 && IsSkinM4A1(skinName)) 
+			|| (wid == CSW_M4A1 && !check_m4a4 && !IsSkinM4A1(skinName))) 
 			{
 				i++
 				continue
 			}
 			
-			if((wid == CSW_DEAGLE && check_r8 && containi(skinName, "Deagle") != -1)
-			|| (wid == CSW_DEAGLE && !check_r8 && containi(skinName, "Deagle") == -1))
+			if((wid == CSW_DEAGLE && check_r8 && IsSkinDeagle(skinName))
+			|| (wid == CSW_DEAGLE && !check_r8 && !IsSkinDeagle(skinName)))
 			{
 				i++
 				continue
@@ -6667,15 +6702,15 @@ openCoinflipMenu(const id, const iWeaponId, const bool:check_m4a4, const bool:ch
 			
 			ArrayGetString(g_aSkinName, i, szSkin, 31);
 
-			if((wid == CSW_M4A1 && check_m4a4 && containi(szSkin, "M4A1") == -1)
-			|| (wid == CSW_M4A1 && !check_m4a4 && containi(szSkin, "M4A1") != -1))
+			if((wid == CSW_M4A1 && check_m4a4 && IsSkinM4A1(szSkin))
+			|| (wid == CSW_M4A1 && !check_m4a4 && !IsSkinM4A1(szSkin)))
 			{
 				i++
 				continue
 			}
 
-			if((wid == CSW_DEAGLE && check_r8 && containi(szSkin, "Deagle") == -1) 
-			|| (wid == CSW_DEAGLE && !check_r8 && containi(szSkin, "Deagle") != -1))
+			if((wid == CSW_DEAGLE && check_r8 && IsSkinDeagle(szSkin)) 
+			|| (wid == CSW_DEAGLE && !check_r8 && !IsSkinDeagle(szSkin)))
 			{
 				i++
 				continue
@@ -8390,15 +8425,15 @@ openSellMenu(const id, const iWeaponId, const bool:check_m4a4, const bool:check_
 			
 			ArrayGetString(g_aSkinName, i, szSkin, 31);
 
-			if((wid == CSW_M4A1 && check_m4a4 && containi(szSkin, "M4A1") == -1)
-			|| (wid == CSW_M4A1 && !check_m4a4 && containi(szSkin, "M4A1") != -1))
+			if((wid == CSW_M4A1 && check_m4a4 && IsSkinM4A1(szSkin))
+			|| (wid == CSW_M4A1 && !check_m4a4 && !IsSkinM4A1(szSkin)))
 			{
 				i++
 				continue
 			}
 
-			if((wid == CSW_DEAGLE && check_r8 && containi(szSkin, "Deagle") == -1) 
-			|| (wid == CSW_DEAGLE && !check_r8 && containi(szSkin, "Deagle") != -1))
+			if((wid == CSW_DEAGLE && check_r8 && IsSkinDeagle(szSkin)) 
+			|| (wid == CSW_DEAGLE && !check_r8 && !IsSkinDeagle(szSkin)))
 			{
 				i++
 				continue
@@ -8704,15 +8739,15 @@ openDustbinSkins(const id, const iWeaponId, const bool:check_m4a4, const bool:ch
 			}
 			ArrayGetString(g_aSkinName, i, szSkin, 31);
 		
-			if((wid == CSW_M4A1 && check_m4a4 && containi(szSkin, "M4A1") == -1)
-			|| (wid == CSW_M4A1 && !check_m4a4 && containi(szSkin, "M4A1") != -1))
+			if((wid == CSW_M4A1 && check_m4a4 && IsSkinM4A1(szSkin))
+			|| (wid == CSW_M4A1 && !check_m4a4 && !IsSkinM4A1(szSkin)))
 			{
 				i++
 				continue
 			}
 
-			if((wid == CSW_DEAGLE && check_r8 && containi(szSkin, "Deagle") == -1) 
-			|| (wid == CSW_DEAGLE && !check_r8 && containi(szSkin, "Deagle") != -1))
+			if((wid == CSW_DEAGLE && check_r8 && IsSkinDeagle(szSkin)) 
+			|| (wid == CSW_DEAGLE && !check_r8 && !IsSkinDeagle(szSkin)))
 			{
 				i++
 				continue
@@ -9167,15 +9202,16 @@ openGiftMenu(const id, const iWeaponId, const bool:check_m4a4, const bool:check_
 			}
 			
 			ArrayGetString(g_aSkinName, i, szSkin, 31);
-			if((wid == CSW_M4A1 && check_m4a4 && containi(szSkin, "M4A1") == -1)
-			|| (wid == CSW_M4A1 && !check_m4a4 && containi(szSkin, "M4A1") != -1))
+
+			if((wid == CSW_M4A1 && check_m4a4 && IsSkinM4A1(szSkin))
+			|| (wid == CSW_M4A1 && !check_m4a4 && !IsSkinM4A1(szSkin)))
 			{
 				i++
 				continue
 			}
 
-			if((wid == CSW_DEAGLE && check_r8 && containi(szSkin, "Deagle") == -1) 
-			|| (wid == CSW_DEAGLE && !check_r8 && containi(szSkin, "Deagle") != -1))
+			if((wid == CSW_DEAGLE && check_r8 && IsSkinDeagle(szSkin)) 
+			|| (wid == CSW_DEAGLE && !check_r8 && !IsSkinDeagle(szSkin)))
 			{
 				i++
 				continue
@@ -9639,15 +9675,15 @@ openTradeMenu(const id, const iWeaponId, const bool:check_m4a4, const bool:check
 			
 			ArrayGetString(g_aSkinName, i, szSkin, 31);
 
-			if((wid == CSW_M4A1 && check_m4a4 && containi(szSkin, "M4A1") == -1)
-			|| (wid == CSW_M4A1 && !check_m4a4 && containi(szSkin, "M4A1") != -1))
+			if((wid == CSW_M4A1 && check_m4a4 && IsSkinM4A1(szSkin))
+			|| (wid == CSW_M4A1 && !check_m4a4 && !IsSkinM4A1(szSkin)))
 			{
 				i++
 				continue
 			}
 
-			if((wid == CSW_DEAGLE && check_r8 && containi(szSkin, "Deagle") == -1) 
-			|| (wid == CSW_DEAGLE && !check_r8 && containi(szSkin, "Deagle") != -1))
+			if((wid == CSW_DEAGLE && check_r8 && IsSkinDeagle(szSkin)) 
+			|| (wid == CSW_DEAGLE && !check_r8 && !IsSkinDeagle(szSkin)))
 			{
 				i++
 				continue
@@ -10646,6 +10682,16 @@ public ReadINIFile()
 				if (!file_exists(weaponmodel))
 				{
 					set_fail_state("[CSGO Classy] You have a missing model ^"%s^" in the [SKINS] section of csgoclassy.ini", weaponmodel);
+				}
+
+				if(!g_bActiveSkins[M4A4])
+				{
+					g_bActiveSkins[M4A4] = containi(weaponname, "M4A4") != -1;
+				}
+
+				if(!g_bActiveSkins[R8])
+				{
+					g_bActiveSkins[R8] = containi(weaponname, "R8") != -1;
 				}
 				
 				if(g_CvarSkinType)
@@ -11772,15 +11818,15 @@ openJackpotMenu(const id, const iWeaponId, const bool:check_m4a4, const bool:che
 			
 			ArrayGetString(g_aSkinName, i, szSkin, 31);
 
-			if((wid == CSW_M4A1 && check_m4a4 && containi(szSkin, "M4A1") == -1)
-			|| (wid == CSW_M4A1 && !check_m4a4 && containi(szSkin, "M4A1") != -1))
+			if((wid == CSW_M4A1 && check_m4a4 && IsSkinM4A1(szSkin))
+			|| (wid == CSW_M4A1 && !check_m4a4 && !IsSkinM4A1(szSkin)))
 			{
 				i++
 				continue
 			}
 
-			if((wid == CSW_DEAGLE && check_r8 && containi(szSkin, "Deagle") == -1) 
-			|| (wid == CSW_DEAGLE && !check_r8 && containi(szSkin, "Deagle") != -1))
+			if((wid == CSW_DEAGLE && check_r8 && IsSkinDeagle(szSkin)) 
+			|| (wid == CSW_DEAGLE && !check_r8 && !IsSkinDeagle(szSkin)))
 			{
 				i++
 				continue
@@ -13494,7 +13540,7 @@ public any:native_csgo_is_using_default_skin(iPluginID, iParams)
 	new const id = get_param(1)
 
 	if(!g_bLogged[id])
-		return false
+		return true
 	
 	if (!IsValidPlayer(id) || !is_user_connected(id))
 	{
