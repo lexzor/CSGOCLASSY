@@ -52,15 +52,16 @@
 51.195.74.62:27015 / 172.18.0.5:27015(ala nou) -> marty
 93.114.82.116:27015 -> TecH
 93.114.82.73:27015 -> global.leaguecs.ro
-93.114.82.98:27015 -> knd.leaguecs.ro // no awp bug
+51.89.59.156:27015 -> knd.leaguecs.ro // no awp bug
 51.38.117.63:27015 -> bddygal
 CSGO.VIPARENA.RO -> CoX
 51.68.162.219:27015 -> BMW
 104.234.189.173:27058 -> brazilianu
+93.114.82.27:27015 - BogdanFCV
 */
 
 // #define AWP_SKIN_BUG
-#define LICENSED_IP "104.234.189.173:27058"
+#define LICENSED_IP "51.89.59.156:27015"
 #define TOTAL_SKINS 1025
 static const MODE = 0; // 1 - DNS, 0 - IP
 
@@ -185,7 +186,8 @@ enum _:FORWARDS
 	LOGIN,
 	REGISTER,
 	MENU_ITEM_SELECTED,
-	CONFIG_EXECUTED
+	CONFIG_EXECUTED,
+	MYSQL_CONNECTED
 }
 
 enum _:SQLDATA 
@@ -919,6 +921,7 @@ public plugin_init()
 	g_eForwards[REGISTER] = CreateMultiForward("user_register_post", ET_IGNORE, FP_CELL)
 	g_eForwards[MENU_ITEM_SELECTED] = CreateMultiForward("csgo_menu_item_selected", ET_IGNORE, FP_CELL, FP_CELL, FP_CELL)
 	g_eForwards[CONFIG_EXECUTED] = CreateMultiForward("csgo_config_executed", ET_IGNORE)
+	g_eForwards[MYSQL_CONNECTED] = CreateMultiForward("csgo_mysql_connected", ET_IGNORE)
 
 	if(weekend_event() && g_CvarWeekendHud)
 	{
@@ -1325,8 +1328,6 @@ public client_connect(id)
 		mysql_escape_string(g_szSQLName[id], charsmax(g_szSQLName[]))
 	}
 	
-	g_bAccountExists[id] = false;
-	g_bMultipleAccounts[id] = false;
 	g_iNameTagCapsule[id] = 0;
 	g_iCommonNameTag[id] = 0;
 	g_iRareNameTag[id] = 0;
@@ -1345,6 +1346,8 @@ public client_connect(id)
 
 	g_iUserItemPrice[id] = 0;
 
+	g_bAccountExists[id] = false;
+	g_bMultipleAccounts[id] = false;
 	g_bWaitingResponse[id] = false
 	g_bWaitingSkins[id] = false
 
@@ -2156,7 +2159,8 @@ GetSQLData(id)
 		return;
 
 	g_bWaitingResponse[id] = true;
-	new iData[1]; iData[0] = id; new szQuery[512];
+	new iData[1]; iData[0] = id;
+	new szQuery[700];
 	
 	formatex(szQuery, charsmax(szQuery), 	"SELECT %s.*, %s.*, %s.* FROM %s \
 											JOIN %s ON %s.id = %s.id \
@@ -11770,6 +11774,8 @@ connectToDatabase()
 	{
 		set_fail_state(g_Error);
 	}
+
+	ExecuteForward(g_eForwards[MYSQL_CONNECTED])
 	
 	new szQuery[2048]
 	new Handle:Queries

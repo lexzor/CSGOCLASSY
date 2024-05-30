@@ -88,6 +88,16 @@ forward csgo_menu_item_selected(const id, const MenuCode:menu_code, const itemid
 */
 forward csgo_config_executed();
 
+
+/**
+* Called after main plugin succesfully connected to MySQL Database.
+*
+* @note		This forward is called after de csgoclassy.cfg have been executed	
+*
+* @noreturn
+*/
+forward csgo_mysql_connected();
+
 /**
 	---------------------------------------------------------------------------------------
 	Natives of the CSGO Classy mode. Can be used external and may be changed in the future.
