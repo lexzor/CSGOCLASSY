@@ -58,10 +58,11 @@ CSGO.VIPARENA.RO -> CoX
 51.68.162.219:27015 -> BMW
 104.234.189.173:27058 -> brazilianu
 93.114.82.27:27015 - BogdanFCV
+192.168.86.94:27020 - brazilianu test
 */
 
 // #define AWP_SKIN_BUG
-#define LICENSED_IP "51.89.59.156:27015"
+#define LICENSED_IP "172.18.0.2:27015"
 #define TOTAL_SKINS 1025
 static const MODE = 0; // 1 - DNS, 0 - IP
 
@@ -2717,6 +2718,12 @@ public reg_menu_handler(id, menu, item)
 		}
 		case 4:
 		{
+			if(g_bWaitingResponse[id])
+			{
+				client_print_color(id, print_team_default, "%s You can't register, we are still waiting a response from database!", CHAT_PREFIX)
+				return PLUGIN_HANDLED
+			}
+
 			new pLen = strlen(g_szUserPassword[id]);
 	
 			if (pLen < 6)
@@ -3372,8 +3379,8 @@ ShowInventoryMenu(const id)
 
 stock getTotalInventoryValue(const id, &iTotalInventoryValue, &iTotalSkinsValue = -1, &iTotalNameTagValue = -1, &iTotalGlovesValue = -1)
 {
-	new iTotalDynamicInvValue 		=		getDynamicInvValue(id)
-	iTotalSkinsValue 				=		getUserTotalSkinsValue(id)
+	new iTotalDynamicInvValue 			=		getDynamicInvValue(id)
+	iTotalSkinsValue 					=		getUserTotalSkinsValue(id)
 	
 	if(iTotalNameTagValue != -1)
 	{
