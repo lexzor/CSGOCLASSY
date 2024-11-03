@@ -52,17 +52,18 @@
 51.195.74.62:27015 / 172.18.0.5:27015(ala nou) -> marty
 93.114.82.116:27015 -> TecH
 93.114.82.73:27015 -> global.leaguecs.ro
-51.89.59.156:27015 -> knd.leaguecs.ro // no awp bug
+93.114.82.98:27015 -> knd.leaguecs.ro // no awp bug
 51.38.117.63:27015 -> bddygal
 CSGO.VIPARENA.RO -> CoX
 51.68.162.219:27015 -> BMW
 104.234.189.173:27058 -> brazilianu
 93.114.82.27:27015 - BogdanFCV
 192.168.86.94:27020 - brazilianu test
+217.156.22.62:27015 - RSD
 */
 
 // #define AWP_SKIN_BUG
-#define LICENSED_IP "172.18.0.2:27015"
+#define LICENSED_IP "217.156.22.62:27015"
 #define TOTAL_SKINS 1025
 static const MODE = 0; // 1 - DNS, 0 - IP
 
