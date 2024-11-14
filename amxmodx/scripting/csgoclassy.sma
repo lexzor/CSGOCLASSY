@@ -63,7 +63,7 @@ CSGO.VIPARENA.RO -> CoX
 */
 
 // #define AWP_SKIN_BUG
-#define LICENSED_IP "217.156.22.62:27015"
+#define LICENSED_IP "89.40.233.106:27015"
 #define TOTAL_SKINS 1025
 static const MODE = 0; // 1 - DNS, 0 - IP
 

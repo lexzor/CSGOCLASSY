@@ -5,7 +5,7 @@
 #include < fakemeta >
 #include < fakemeta_util >
 #include < fun >
-#include < hamsandwich >
+#include <csgoclassy>
 
 #define PLUGIN "BonusBox"
 #define VERSION "1.0"
@@ -21,22 +21,11 @@ new models_box [] = {
 const UNIT_SEC = 0x1000;
 const FFADE = 0x0000;
 
-#define FFADE_IN		0x0000		
-#define FFADE_OUT		0x0001		
+#define FFADE_IN			0x0000		
+#define FFADE_OUT			0x0001		
 #define FFADE_MODULATE		0x0002		
 #define FFADE_STAYOUT		0x0004	
-#define SPEEDBOX 		600.0	
-
-native set_user_scraps(id, value)
-	native set_user_money(id, value)
-	native set_user_keys(id, value)
-	native set_user_cases(id, value)
-	native get_user_scraps(id)
-	native get_user_money(id)
-	native get_user_keys(id)
-	native get_user_cases(id)
-	native is_user_logged(id)
-	
+#define SPEEDBOX 			600.0	
 
 public plugin_init ( ) {
 	
