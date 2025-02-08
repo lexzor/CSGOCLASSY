@@ -10,6 +10,7 @@
 #include <csgoclassy>
 #include <sqlx>
 #include <reapi>
+#include <unixtime>
 
 #pragma dynamic 32768
 #pragma compress 1
@@ -60,12 +61,13 @@ CSGO.VIPARENA.RO -> CoX
 93.114.82.27:27015 - BogdanFCV
 192.168.86.94:27020 - brazilianu test
 217.156.22.62:27015 - RSD
+45.81.254.108:27015 - lituanianu (ACTIVE: 185.80.129.183:27015)
 */
 
 // #define AWP_SKIN_BUG
-#define LICENSED_IP "89.40.233.106:27015"
+#define LICENSED_IP "CSGO.PLAY4STAR.COM"
 #define TOTAL_SKINS 1025
-static const MODE = 0; // 1 - DNS, 0 - IP
+static const MODE = 1; // 1 - DNS, 0 - IP
 
 #define MENU_PREFIX "\y[\dCSGO Classy\y]\w"
 #define CHAT_PREFIX "^4[^3CSGO Classy^4]^1"
@@ -719,6 +721,7 @@ new g_iCFItem[MAX_PLAYERS + 1]
 new g_bCFActive[MAX_PLAYERS + 1]
 new g_bCFSecond[MAX_PLAYERS + 1]
 new g_iCFRequest[MAX_PLAYERS + 1]
+new g_iFirstSeen[MAX_PLAYERS + 1]
 new bool:g_bOneAccepted
 new bool:g_bBettingCFStt[MAX_PLAYERS + 1]
 new g_iRouletteCost
@@ -1211,6 +1214,7 @@ public plugin_natives()
 
 public plugin_end()
 {
+
 	ArrayDestroy(g_aRankName);
 	ArrayDestroy(g_aRankKills);
 	ArrayDestroy(g_aSkinWeaponID);
@@ -1330,6 +1334,7 @@ public client_connect(id)
 		mysql_escape_string(g_szSQLName[id], charsmax(g_szSQLName[]))
 	}
 	
+	g_iFirstSeen[id] = 0;
 	g_iNameTagCapsule[id] = 0;
 	g_iCommonNameTag[id] = 0;
 	g_iRareNameTag[id] = 0;
@@ -1947,18 +1952,16 @@ registerUser(id)
 {
 	g_bAccountExists[id] = true;
 
-	new szDbPass[MAX_SQL_NAME_LENGTH], szQuery[512];
+	static szQuery[2048];
+	new szDbPass[MAX_SQL_NAME_LENGTH];
 
 	copy(szDbPass, charsmax(szDbPass), g_szUserPassword[id]);
 	mysql_escape_string(szDbPass, charsmax(szDbPass))
 
 	formatex(szQuery, charsmax(szQuery),
-		"INSERT INTO `%s` (`uname`,`upassword`,`first_seen`) \
-		VALUES (^"%s^",^"%s^",%d); \
-		INSERT INTO `%s` (`uname`) \
-		VALUES (^"%s^"); \
-		INSERT INTO `%s` (`uname`) \
-		VALUES (^"%s^");",
+		"INSERT INTO `%s` (`uname`,`upassword`,`first_seen`)  VALUES (^"%s^",^"%s^",%d); \
+		INSERT INTO `%s` (`uname`) VALUES (^"%s^"); \
+		INSERT INTO `%s` (`uname`) VALUES (^"%s^");",
 		g_szTables[PLAYER_DATA], g_szSQLName[id], szDbPass, get_systime(),
 		g_szTables[PLAYER_SKINS], g_szSQLName[id],
 		g_szTables[USERS_STATISTICS], g_szSQLName[id]);
@@ -2223,6 +2226,7 @@ public GetUserData(FailState, Handle:Query, szError[], ErrorCode, szData[], iSiz
 		g_iTotalPlayedTime[id]		=   	SQL_ReadResult(Query, SQL_FieldNameToNum(Query, "played_time"))
 		g_iRang[id]					=   	SQL_ReadResult(Query, SQL_FieldNameToNum(Query, "rang"))
 		g_iRangExp[id]				=   	SQL_ReadResult(Query, SQL_FieldNameToNum(Query, "rang_experience"))
+		g_iFirstSeen[id]				=   	SQL_ReadResult(Query, SQL_FieldNameToNum(Query, "first_seen"))
 
 		new szValue[MAX_SKIN_TAG_LENGTH], j;
 		static szQueryData[TOTAL_SKINS * 6];
@@ -10868,6 +10872,7 @@ RegisterCMDS()
 	
 	register_clcmd("say /coinflipaccept", "clcmd_say_accept_cf", -1)
 	register_clcmd("say /coinflipdeny", "clcmd_say_deny_cf", -1)
+	register_clcmd("say /firstseen", "clcmd_say_first_seen")
 
 	register_clcmd("chooseteam", "clcmd_chooseteam", -1, "", -1)
 
@@ -10900,6 +10905,19 @@ RegisterCMDS()
 	register_clcmd("amx_skin", "clcmd_skin", -1, "", -1, false);
 	register_clcmd("simulate_glove_drop", "simulate_glove_drop", Access, "<number>", -1, false);
 	register_clcmd("get_models", "get_models", Access, "<number>", -1, false);
+}
+
+public clcmd_say_first_seen(id)
+{
+	if(!is_user_logged(id))
+	{
+		client_print_color(id, print_team_default, "%s You need to be logged in.", CHAT_PREFIX)
+		return
+	}
+
+	new iYear, iMonth, iDay, iHour, iMinute, iSecond;
+	UnixToTime(g_iFirstSeen[id] , iYear , iMonth , iDay , iHour , iMinute , iSecond );
+	client_print_color(id, print_team_default, "%s You account has been registered at^4 %02d/%02d/%d^1 at^4 %02d:%02d:%02d", CHAT_PREFIX, iDay , iMonth , iYear , iHour , iMinute , iSecond)
 }
 
 RegisterCVARS()
