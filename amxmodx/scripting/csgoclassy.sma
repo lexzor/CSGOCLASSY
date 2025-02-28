@@ -50,7 +50,7 @@
 172.18.0.2:27015 - devilboy extreamcs
 188.212.101.144:27015 - go.weststrike.ro
 188.212.102.180:27015 - CSGO.NEBUNATICII.RO
-51.195.74.62:27015 / 172.18.0.5:27015(ala nou) -> marty
+51.89.14.53:27015 / 172.18.0.5:27015(ala nou) -> marty
 93.114.82.116:27015 -> TecH
 93.114.82.73:27015 -> global.leaguecs.ro
 93.114.82.98:27015 -> knd.leaguecs.ro // no awp bug
