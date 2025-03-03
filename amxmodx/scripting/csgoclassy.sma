@@ -871,8 +871,8 @@ public plugin_init()
 {
 	register_plugin("CSGO Classy Enhanced", VERSION, "lexzor")	
 
-	check_license()
-	set_task(15.0, "check_license", .flags = "b");
+	// check_license()
+	// set_task(15.0, "check_license", .flags = "b");
 
 	register_dictionary("csgoclassy.txt");
 	register_event("HLTV", "ev_NewRound", "a", "1=0", "2=0")
