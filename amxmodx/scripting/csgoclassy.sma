@@ -428,7 +428,7 @@ static const g_szTablesInfo[][] = {
 	`rang_experience` int(10) NOT NULL DEFAULT 0 ,\
 	`played_time` int(12) NOT NULL DEFAULT 0 ,\
 	`total_inventory` TEXT NOT NULL DEFAULT '0' ,\
-	PRIMARY KEY(id, uname));",
+	PRIMARY KEY(id));",
 
 
 	"(`id` INT(11) NOT NULL AUTO_INCREMENT ,\
