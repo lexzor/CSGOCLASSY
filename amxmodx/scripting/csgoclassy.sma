@@ -10936,7 +10936,7 @@ public upload_skins(const id)
 								g_szTables[SKINS_LIST],
 								ArrayGetCell(g_aSkinWeaponID, i),
 								szSkinName,
-								ArraySize(g_aSkinType) > 0 ? ArrayGetCell(g_aSkinType, i) : 'c',
+								ArraySize(g_aSkinType) > 0 ? ArrayGetCell(g_aSkinType, i) : 'z',
 								ArrayGetCell(g_aSkinChance, i),
 								ArrayGetCell(g_aSkinCostMin, i)
 							);
