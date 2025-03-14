@@ -10926,10 +10926,8 @@ public upload_skins(const id)
 	
 	for(new i = 0, iLastInsertSize = 0, szTemp[1024]; i < g_iSkinsNum; i++)
 	{
-		new const iWeaponID = ArrayGetCell(g_aSkinWeaponID, i);
 		new szSkinName[64];
 		ArrayGetString(g_aSkinName, i, szSkinName, charsmax(szSkinName));
-		
 		mysql_escape_string(szSkinName, charsmax(szSkinName))
 
 		iLastInsertSize 	= formatex(szTemp, charsmax(szTemp), "INSERT INTO `%s` (`weapon_id`, `name`, `drop_type`, `chance`, `cost`) VALUES (%d, '%s', '%c', %d, %d); ",
