@@ -10933,14 +10933,14 @@ public upload_skins(const id)
 		
 		mysql_escape_string(szSkinName, charsmax(szSkinName))
 
-		iLastInsertSize 		= formatex(szTemp, charsmax(szTemp), "INSERT INTO `%s` (`weapon_id`, `name`, `drop_type`, `chance`, `cost`) VALUES (%d, '%s', '%c', %d, %d); ",
-									g_szTables[SKINS_LIST],
-									ArrayGetCell(g_aSkinWeaponID, i),
-									szSkinName,
-									ArraySize(g_aSkinType) > 0 ? ArrayGetCell(g_aSkinType, i) : 'c',
-									ArrayGetCell(g_aSkinChance, i),
-									ArrayGetCell(g_aSkinCostMin, i)
-								);
+		iLastInsertSize 	= formatex(szTemp, charsmax(szTemp), "INSERT INTO `%s` (`weapon_id`, `name`, `drop_type`, `chance`, `cost`) VALUES (%d, '%s', '%c', %d, %d); ",
+								g_szTables[SKINS_LIST],
+								ArrayGetCell(g_aSkinWeaponID, i),
+								szSkinName,
+								ArraySize(g_aSkinType) > 0 ? ArrayGetCell(g_aSkinType, i) : 'c',
+								ArrayGetCell(g_aSkinChance, i),
+								ArrayGetCell(g_aSkinCostMin, i)
+							);
 
 		if(iCharactersCount + iLastInsertSize >= 799)
 		{
