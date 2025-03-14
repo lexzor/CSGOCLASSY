@@ -10921,7 +10921,6 @@ RegisterCMDS()
 public upload_skins(const id)
 {
 	new szQuery[800];
-
 	new iCharactersCount = 0;
 	SQL_ThreadQuery(g_SqlTuple, "FreeHandle", fmt("TRUNCATE %s;", g_szTables[SKINS_LIST]));
 	
@@ -10952,7 +10951,6 @@ public upload_skins(const id)
 		{
 			iCharactersCount = add(szQuery, charsmax(szQuery), szTemp);
 		}
-
 	}
 
 	if(strlen(szQuery) > 0)
