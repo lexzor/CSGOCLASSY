@@ -290,7 +290,8 @@ enum
 	PLAYER_DATA 		=	0,
 	PLAYER_SKINS 		=	1,
 	USERS_STATISTICS	=	2,		
-	SERVER_STATISTICS	=	3,		
+	SERVER_STATISTICS	=	3,
+	SKINS_LIST			=	4
 }
 
 enum 
@@ -402,6 +403,7 @@ static const g_szTables[][] = {
 	"csgoclassy_skins",
 	"csgoclassy_users_statistics",
 	"csgoclassy_server_statistics",
+	"csgoclassy_skins_list"
 }
 
 static const g_szTablesInfo[][] = {
@@ -509,6 +511,14 @@ static const g_szTablesInfo[][] = {
 	`MARKET_ITEMS_SOLD` INT(11) NOT NULL DEFAULT 0 ,\ 
 	`MARKET_ITEM_BOUGHT` INT(11) NOT NULL DEFAULT 0 ,\
 	PRIMARY KEY(server_key));",
+
+	"(`id` INT(11) NOT NULL AUTO_INCREMENT ,\
+	`weapon_id` INT(2) NOT NULL ,\
+	`name` VARCHAR(64)  ,\
+	`drop_type` VARCHAR(1) NOT NULL DEFAULT 'z' ,\
+	`chance` INT(3) NOT NULL ,\
+	`cost` INT(11) NOT NULL  ,\
+	PRIMARY KEY(id));"
 }
 
 static const g_szStatsLang[][] =
@@ -10905,6 +10915,52 @@ RegisterCMDS()
 	register_clcmd("amx_skin", "clcmd_skin", -1, "", -1, false);
 	register_clcmd("simulate_glove_drop", "simulate_glove_drop", Access, "<number>", -1, false);
 	register_clcmd("get_models", "get_models", Access, "<number>", -1, false);
+	register_concmd("upload_skins", "upload_skins", read_flags("a"), "Upload skins in database", -1, false);
+}
+
+public upload_skins(const id)
+{
+	new szQuery[800];
+
+	new iCharactersCount = 0;
+	SQL_ThreadQuery(g_SqlTuple, "FreeHandle", fmt("TRUNCATE %s;", g_szTables[SKINS_LIST]));
+	
+	for(new i = 0, iLastInsertSize = 0, szTemp[1024]; i < g_iSkinsNum; i++)
+	{
+		new const iWeaponID = ArrayGetCell(g_aSkinWeaponID, i);
+		new szSkinName[64];
+		ArrayGetString(g_aSkinName, i, szSkinName, charsmax(szSkinName));
+		
+		mysql_escape_string(szSkinName, charsmax(szSkinName))
+
+		iLastInsertSize 		= formatex(szTemp, charsmax(szTemp), "INSERT INTO `%s` (`weapon_id`, `name`, `drop_type`, `chance`, `cost`) VALUES (%d, '%s', '%c', %d, %d); ",
+									g_szTables[SKINS_LIST],
+									ArrayGetCell(g_aSkinWeaponID, i),
+									szSkinName,
+									ArraySize(g_aSkinType) > 0 ? ArrayGetCell(g_aSkinType, i) : 'c',
+									ArrayGetCell(g_aSkinChance, i),
+									ArrayGetCell(g_aSkinCostMin, i)
+								);
+
+		if(iCharactersCount + iLastInsertSize >= 799)
+		{
+			SQL_ThreadQuery(g_SqlTuple, "FreeHandle", szQuery);
+			arrayset(szQuery, 0, sizeof(szQuery));
+			iCharactersCount = formatex(szQuery, charsmax(szQuery), "%s", szTemp);
+		}
+		else 
+		{
+			iCharactersCount = add(szQuery, charsmax(szQuery), szTemp);
+		}
+
+	}
+
+	if(strlen(szQuery) > 0)
+	{
+		SQL_ThreadQuery(g_SqlTuple, "FreeHandle", szQuery);
+	}
+
+	server_print("%s Skins uploaded successfully!", CONSOLE_PREFIX);
 }
 
 public clcmd_say_first_seen(id)
