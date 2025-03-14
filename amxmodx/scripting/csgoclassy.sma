@@ -518,6 +518,7 @@ static const g_szTablesInfo[][] = {
 	`drop_type` VARCHAR(1) NOT NULL DEFAULT 'z' ,\
 	`chance` INT(3) NOT NULL ,\
 	`cost` INT(11) NOT NULL  ,\
+	`image_url` VARCHAR(255) DEFAULT NULL ,\
 	`texture_url` VARCHAR(255) DEFAULT NULL ,\
 	PRIMARY KEY(id));"
 }
